@@ -1,0 +1,37 @@
+{
+   "type":"FeatureCollection",
+   "features":[
+   {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -97.7431,
+               30.2672
+            ]
+         },
+         "properties":{
+            "title":"Austin, Texas",
+             "icon": "monument",
+             "icon-size": 3
+         }
+      },
+      {
+               "type":"Feature",
+               "geometry":{
+                  "type":"Point",
+                  "coordinates":[
+                     -94.7431,
+                     35.2672
+                  ]
+               },
+               "properties":{
+                  "title":"ASD",
+                   "icon": "airport",
+                   "icon-size": 2
+               }
+            }
+      ]
+}
+
+
