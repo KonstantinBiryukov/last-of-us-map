@@ -1,7 +1,7 @@
 {
    "type":"FeatureCollection",
    "features":[
-   {
+      {
          "type":"Feature",
          "geometry":{
             "type":"Point",
@@ -12,26 +12,161 @@
          },
          "properties":{
             "title":"Austin, Texas",
-             "icon": "monument",
-             "icon-size": 3
+            "icon":"server/icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+            "message":"hometown"
          }
       },
       {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -71.05024837,
+               42.3558849
+            ]
+         },
+         "properties":{
+            "title":"Boston, Massachusetts",
+            "icon":"server/icons/Chapter_quarantinezone.png",
+            "icon-size":2,
+            "iconSize":[
+               40,
+               40
+            ],
+            "message":"smth"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -97.7431,
+               30.2672
+            ]
+         },
+         "properties":{
+            "title":"Lincoln, Massachusetts",
+            "icon":"server/icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+            "message":"hometown"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -80.0505408,
+               40.431478
+            ]
+         },
+         "properties":{
+            "title":"Pittsburgh, Pennsylvania",
+            "icon":"server/icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+            "message":"hometown"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -110.810617,
+               43.4745759
+            ]
+         },
+         "properties":{
+            "title":"Jackson, Wyoming",
+            "icon":"server/icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+            "message":"hometown"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -105.4217324,
+               40.0265475
+            ]
+         },
+         "properties":{
+            "title":"Boulder, Colorado",
+            "icon":"server/icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+            "message":"hometown"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -105.5042227,
+               40.0314944
+            ]
+         },
+         "properties":{
+            "title":"Silver Lake, Colorado",
+            "icon":"server/icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+            "message":"hometown"
+         }
+      },
+        {
                "type":"Feature",
                "geometry":{
                   "type":"Point",
                   "coordinates":[
-                     -94.7431,
-                     35.2672
+                     -112.2006695,
+                     40.7762691
                   ]
                },
                "properties":{
-                  "title":"ASD",
-                   "icon": "airport",
-                   "icon-size": 2
+                  "title":"Silver Lake, Colorado",
+                  "icon":"server/icons/firefly.jpg",
+                  "icon-size":3,
+                  "description-card-id":1,
+                  "iconSize":[
+                     40,
+                     40
+                  ],
+                  "message":"hometown"
                }
             }
-      ]
+   ]
 }
-
-
