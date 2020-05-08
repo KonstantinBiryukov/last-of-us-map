@@ -9,12 +9,13 @@ const style = "mapbox://styles/mapbox/dark-v10";
 
 export default new Vuex.Store({
     state: {
-        markers: [],
-        showCard: true,
         mapboxgl: mapboxgl,
-        map: ""
+        map: "",
+        markers: [],
+        cards: [],
+        currentCard: null
     },
-    getters: {
+    getters: { // = computed properties
         createMap: (state) => (container) => {
             mapboxgl.accessToken = token;
             state.map = new state.mapboxgl.Map({
@@ -23,8 +24,15 @@ export default new Vuex.Store({
             });
             return state.map;
         },
-        fetchMarkers: state => {
-            let url = "server/paths/test.geojson";
+    },
+    mutations: {
+        changeShowCardState(state, marker) {
+            (!state.currentCard) ? state.currentCard = marker : state.currentCard = null;
+        }
+    },
+    actions: {
+        fetchMarkers({state, commit, dispatch}) {
+            let url = "server/info/markers.geojson";
 
             state.map.on('load', () => {
                 fetch(url)
@@ -35,36 +43,43 @@ export default new Vuex.Store({
                             data: data
                         });
 
-                        data.features.forEach((marker) => {
-                            // console.log(marker);
-                            state.markers.push(marker);
+                            data.features.forEach((marker) => {
+                                // console.log(marker);
+                                if (state.markers.length === 0) {
+                                    state.markers.push(marker);
+                                }
+                                const el = document.createElement('div');
+                                el.className = 'marker';
 
-                            const el = document.createElement('div');
-                            el.className = 'marker';
+                                el.style.backgroundImage =
+                                    'url(' + marker.properties.icon + ')';
+                                el.style.width = marker.properties.iconSize[0] + 'px';
+                                el.style.height = marker.properties.iconSize[1] + 'px';
 
-                            el.style.backgroundImage =
-                                'url(' + marker.properties.icon + ')';
-                            el.style.width = marker.properties.iconSize[0] + 'px';
-                            el.style.height = marker.properties.iconSize[1] + 'px';
+                                el.addEventListener('click', () => {
+                                    commit('changeShowCardState', marker);
+                                });
 
-                            el.addEventListener('click', () => {
-                                alert(1);
-                                // this.addCard(el, marker);
+                                // make a marker for each feature and add to the map
+                                new state.mapboxgl.Marker(el)
+                                    .setLngLat(marker.geometry.coordinates)
+                                    .addTo(state.map);
                             });
-
-                            // make a marker for each feature and add to the map
-                            new state.mapboxgl.Marker(el)
-                                .setLngLat(marker.geometry.coordinates)
-                                .addTo(state.map);
-                        });
                     });
+                // to fetch cards during map's initialization
+                // dispatch('fetchCards');
             });
 
-        }
-    },
-    mutations: {}
-    ,
-    actions: {}
-    ,
-    modules: {}
-})
+        },
+        // async fetchCards({state}) {
+        //     let url = "server/info/cards_data.json";
+        //     await fetch(url)
+        //         .then(response => response.json())
+        //         .then((data) => {
+        //             data.features.forEach(card => {
+        //                 state.cards.push(card);
+        //             });
+        //         });
+        // }
+    }
+});

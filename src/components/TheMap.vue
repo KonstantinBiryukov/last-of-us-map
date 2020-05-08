@@ -1,30 +1,32 @@
 <template>
     <div id="map">
         <div class="card">
-            <DescriptionCard :name="cardTitle"></DescriptionCard>
-            <!--<div class="marker" v-for="marker in markers"></div>-->
+            <DescriptionCard v-if="showCard"></DescriptionCard>
         </div>
     </div>
 </template>
 
-
 <script>
     import store from "../store/index"
     import DescriptionCard from '@/components/DescriptionCard';
+    import Velocity from "velocity-animate"
 
     export default {
-        name: 'Mapbox',
+        name: 'TheMap',
         components: {
             DescriptionCard
         },
         data() {
             return {
-                cardTitle: "1"
+                cardId: "0",
             }
         },
         computed: {
             map() {
                 return store.getters.createMap("map");
+            },
+            showCard() {
+                return store.state.currentCard;
             }
         },
         mounted() {
@@ -37,14 +39,9 @@
             this.map.setMaxBounds(bounds);
             this.map.setCenter(center);
 
-            store.getters.fetchMarkers;
-
+            // store.dispatch('fetchMarkers');
         },
-        methods: {
-            addCard(el, marker) {
-                window.alert(marker.properties.message);
-            }
-        }
+        methods: {}
     }
 </script>
 
@@ -61,6 +58,6 @@
         width: 50px;
         height: 50px;
         border-radius: 50%;
-        cursor: pointer;
+        cursor: help;
     }
 </style>

@@ -1,0 +1,23 @@
+{
+  "type": "CardsCollection",
+  "features": [
+    {
+      "title": "Boston, Massasusets",
+      "chapters": "1. Hometown",
+      "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+      "photo": "server/icons/Joel_and_Sarah.png"
+    },
+    {
+      "title": "Austin",
+      "chapters": "2. Austin",
+      "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+      "photo": "server/icons/Joel_and_Sarah.png"
+    },
+    {
+      "title": "Texas",
+      "chapters": "3. Pittsburgh",
+      "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+      "photo": "server/icons/Joel_and_Sarah.png"
+    }
+  ]
+}

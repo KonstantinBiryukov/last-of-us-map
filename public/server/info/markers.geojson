@@ -1,0 +1,179 @@
+{
+   "type":"FeatureCollection",
+   "features":[
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -97.7431,
+               30.2672
+            ]
+         },
+         "properties":{
+            "title":"Austin, Texas",
+            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon-size":3,
+            "iconSize":[
+               40,
+               40
+            ],
+            "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+            "photo": "server/assets/card_images/austin_card.png"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -71.05024837,
+               42.3558849
+            ]
+         },
+         "properties":{
+            "title":"Boston, Massachusetts",
+            "icon":"server/assets/marker_icons/Chapter_quarantinezone.png",
+            "icon-size":2,
+            "iconSize":[
+               40,
+               40
+            ],
+             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+             "photo": "server/assets/card_images/boston_card.png"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -71.3225763,
+               42.4403879
+            ]
+         },
+         "properties":{
+            "title":"Lincoln, Massachusetts",
+            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+             "photo": "#"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -80.0505408,
+               40.431478
+            ]
+         },
+         "properties":{
+            "title":"Pittsburgh, Pennsylvania",
+            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+             "photo": "server/assets/card_images/pittsburgh_icon.png"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -110.810617,
+               43.4745759
+            ]
+         },
+         "properties":{
+            "title":"Jackson, Wyoming",
+            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+             "photo": "server/assets/card_images/jackson_icon.jpg"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -105.4217324,
+               40.0265475
+            ]
+         },
+         "properties":{
+            "title":"Boulder, Colorado",
+            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+             "photo": "#"
+         }
+      },
+      {
+         "type":"Feature",
+         "geometry":{
+            "type":"Point",
+            "coordinates":[
+               -105.5042227,
+               40.0314944
+            ]
+         },
+         "properties":{
+            "title":"Silver Lake, Colorado",
+            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon-size":3,
+            "description-card-id":1,
+            "iconSize":[
+               40,
+               40
+            ],
+             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+             "photo": "#"
+          }
+      },
+        {
+               "type":"Feature",
+               "geometry":{
+                  "type":"Point",
+                  "coordinates":[
+                     -112.2006695,
+                     40.7762691
+                  ]
+               },
+               "properties":{
+                  "title":"Salt Lake City, Utah",
+                  "icon":"server/assets/marker_icons/firefly.jpg",
+                  "icon-size":3,
+                  "description-card-id":1,
+                  "iconSize":[
+                     40,
+                     40
+                  ],
+                   "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+                   "photo": "server/assets/card_images/utah_icon.jpg"
+               }
+            }
+   ]
+}
