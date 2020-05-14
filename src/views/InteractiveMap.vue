@@ -1,6 +1,6 @@
 <template>
     <div class="map">
-        <Map></Map>
+        <Map :interactive="true"></Map>
     </div>
 </template>
 

@@ -13,6 +13,7 @@
 
     export default {
         name: 'TheMap',
+        props: ["interactive"],
         components: {
             DescriptionCard
         },
@@ -23,7 +24,7 @@
         },
         computed: {
             map() {
-                return store.getters.createMap("map");
+                return store.getters.createMap("map", this.interactive);
             },
             showCard() {
                 return store.state.currentCard;

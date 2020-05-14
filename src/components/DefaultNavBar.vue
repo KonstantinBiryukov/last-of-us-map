@@ -1,16 +1,17 @@
 <template>
     <div id="nav">
             <router-link to="/">Main Page</router-link>
-            |||
+            |
             <router-link to="/map">Interactive Mode</router-link>
-            |||
+            |
             <router-link to="/path">Visualize the path</router-link>
+
     </div>
 </template>
 
 <script>
     export default {
-        name: "DefaultNavBar"
+        name: "DefaultNavBar",
     }
 </script>
 
@@ -21,11 +22,18 @@
 
         a {
             font-weight: bold;
-            color: #2c3e50;
+            color: firebrick;
+            text-decoration: none;
+            opacity:0.9;
 
             &.router-link-exact-active {
-                color: #42b983;
+                color: lightcoral;
+                opacity: 1;
             }
+        }
+
+        a:hover {
+            color: red;
         }
     }
 </style>

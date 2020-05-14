@@ -3,6 +3,7 @@
     "features": [
         {
             "type": "Feature",
+            "color": "red",
             "geometry": {
                 "type": "LineString",
                 "coordinates": [
@@ -1347,3 +1348,4 @@
         }
     ]
 }
+

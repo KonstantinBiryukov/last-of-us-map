@@ -20,15 +20,20 @@
         <!--<div v-else>-->
             <!--<router-view/>-->
         <!--</div>-->
+        <Player class="layout player"></Player>
+
     </div>
 </template>
 
 <script>
     import DefaultNavBar from "@/components/DefaultNavBar";
+    import Player from "@/components/ThePlayer.vue"
+
 
     export default {
         components: {
             DefaultNavBar,
+            Player
         },
         computed: {
             mainPageNotActive() {
@@ -98,6 +103,13 @@
 
     .fade-leave-to {
         opacity: 0;
+    }
+
+    /** Player styles **/
+    .layout.player {
+        position: fixed;
+        top: 3vh;
+        right: 20vh;
     }
 </style>
 

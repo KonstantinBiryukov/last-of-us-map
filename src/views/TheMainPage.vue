@@ -18,7 +18,7 @@
             </span>
         </div>
         <MainPageNavBar></MainPageNavBar>
-        <Player class="layout player"></Player>
+        <!--<Player class="layout player"></Player>-->
     </div>
 </template>
 
@@ -72,11 +72,11 @@
         transform: scale(1.1);
     }
 
-    .layout.player {
-        position: fixed;
-        top: 5vh;
-        right: 20vh;
-    }
+    /*.layout.player {*/
+        /*position: fixed;*/
+        /*top: 5vh;*/
+        /*right: 20vh;*/
+    /*}*/
 
     img.image-box {
         z-index: -1;

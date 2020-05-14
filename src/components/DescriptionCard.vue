@@ -3,7 +3,7 @@
         <div class="card">
             <div class="title"> {{ currentCard.properties.title }}</div>
             <!--<button class="close-button">-->
-                <img @click="close()" class="close-img" src="server/assets/other_images/close-icon.png" alt="close">
+            <img @click="close()" class="close-img" src="server/assets/other_images/close-icon.png" alt="close">
             <!--</button>-->
             <div class="description"> {{ currentCard.properties.description }}</div>
             <img class="card-photo" :src=currentCard.properties.photo :alt="currentCard.properties.title">
@@ -43,13 +43,13 @@
         mounted() {
             // store.dispatch('fetchCards');
             // console.log(this.cards);
-            // let url = "server/info/cards_data.json";
+            // let url = "server/info/path_cards.json";
             // this.fetchCards(url);
             // console.log(this.cards);
         },
         created() {
             // fetchCards(url) {
-            // let url = "server/info/cards_data.json";
+            // let url = "server/info/path_cards.json";
             // fetch(url)
             //         .then(response => response.json())
             //         .then((data) => {
