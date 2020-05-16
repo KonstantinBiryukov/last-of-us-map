@@ -12,13 +12,13 @@
          },
          "properties":{
             "title":"Austin, Texas",
-            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon":"server/assets/marker_icons/austin.png",
             "icon-size":3,
             "iconSize":[
-               40,
-               40
+               45,
+               45
             ],
-            "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+            "description": "Austin was a city in Texas where Joel, Tommy, and Sarah lived before the cordyceps outbreak. Joel and Sarah's house was a short journey from the main city. There was plenty of grassland and even a farm in the area.nThe main city had hotels, gas stations, and several bars. There was also a hospital located next to the main 71 highway. There was also a police station in the area, big enough to house at least six police cars. When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive. Years later, Tommy returned to the city and found Joel's old house, the city likely deserted, He claimed there wasn't much left, but he did manage to salvage a photo.",
             "photo": "server/assets/card_images/austin_card.png"
          }
       },
@@ -36,11 +36,11 @@
             "icon":"server/assets/marker_icons/Chapter_quarantinezone.png",
             "icon-size":2,
             "iconSize":[
-               40,
-               40
+               50,
+               50
             ],
-             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
-             "photo": "server/assets/card_images/boston_card.png"
+             "description": "Boston is the capital city of Massachusetts and where Ellie was born and subsequently lived before meeting Joel. As of 2033, FEDRA and the military currently control it, the city acting as one of the last functioning Quarantine Zones in America. Although Firefly attacks occur frequently, Boston has not devolved into a total war-zone as other cities had. Indeed, Boston currently doesn't experience riots, and the military's hard crack down on the local Fireflies keeps the zone functioning. The Boston QZ corresponds to the real-life North End neighborhood of Boston, known for being the oldest residential community in the city and a hub for Italian-Americans.",
+             "photo": "server/assets/card_images/boston_card.jpg"
          }
       },
       {
@@ -54,15 +54,15 @@
          },
          "properties":{
             "title":"Lincoln, Massachusetts",
-            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon":"server/assets/marker_icons/lincoln.png",
             "icon-size":3,
             "description-card-id":1,
             "iconSize":[
                40,
                40
             ],
-             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
-             "photo": "#"
+             "description": "Lincoln is a small town in Massachusetts and one of the many locations that Joel and Ellie come across during their journey across the United States of America in The Last of Us. Bill was the sole living resident of the town by the time of the game. Though the 'Mandatory Evacuation Notice' signs place Lincoln in 'Amherst County, Massachusetts', there is no Amherst county in Massachusetts; Lincoln, Massachusetts is located in Middlesex county, which is most likely the town this game refers to, as it is relatively close to Boston. 'Lincoln High School' has never existed in Lincoln, Massachusetts. Lincoln students attend Lincoln-Sudbury Regional High School in neighboring Sudbury, Massachusetts.",
+             "photo": "server/assets/card_images/lincoln_icon.jpg"
          }
       },
       {
@@ -76,14 +76,14 @@
          },
          "properties":{
             "title":"Pittsburgh, Pennsylvania",
-            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon":"server/assets/marker_icons/pittsburgh.png",
             "icon-size":3,
             "description-card-id":1,
             "iconSize":[
-               40,
-               40
+               45,
+               45
             ],
-             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+             "description": "Pittsburgh is a city in Pennsylvania and one of the many locations that Joel and Ellie visited across the United States in The Last of Us in their quest to find the Fireflies. Hunters currently control the former east coast Quarantine Zone after overthrowing the military. Some of the buildings and structures used in the game are actually real locations. The real interstate 74/US 52 actually only runs from West to East in the Cincinnati area section of I-74 which is the Midwestern terminus of the highway. I-74 currently does not plan on expanding into Pennsylvania but rather in West Virginia, North Carolina, and South Carolina.",
              "photo": "server/assets/card_images/pittsburgh_icon.png"
          }
       },
@@ -98,14 +98,14 @@
          },
          "properties":{
             "title":"Jackson, Wyoming",
-            "icon":"server/assets/marker_icons/firefly.jpg",
+            "icon":"server/assets/marker_icons/jackson.jpeg",
             "icon-size":3,
             "description-card-id":1,
             "iconSize":[
-               40,
-               40
+               45,
+               45
             ],
-             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+             "description": "Jackson County, Wyoming is one of the many locations that Joel and Ellie reach during their journey across the United States in The Last of Us. It is where Tommy and Maria currently reside. Interestingly, no Infected are encountered in the area. The reason for this is unknown, although a possible explanation is the apparent remoteness from any large towns or cities. The county seems like an ideal location to avoid the outbreak, although Tommy mentions that attacks by Infected still occur. Wyoming, as evidenced through the players' journeys with Tommy, has several farms and is rich in both vegetation and wildlife. In the last level of the game, if one looks closely at the town while overlooking it on the hill with Joel, survivors can be seen walking around the town.",
              "photo": "server/assets/card_images/jackson_icon.jpg"
          }
       },
@@ -114,21 +114,21 @@
          "geometry":{
             "type":"Point",
             "coordinates":[
-               -105.4217324,
-               40.0265475
-            ]
+              -105.081619,
+              40.573578
+               ]
          },
          "properties":{
-            "title":"Boulder, Colorado",
-            "icon":"server/assets/marker_icons/firefly.jpg",
+            "title":"Fort Collins, Colorado",
+            "icon":"server/assets/marker_icons/collins.jpeg",
             "icon-size":3,
             "description-card-id":1,
             "iconSize":[
-               40,
-               40
+               50,
+               50
             ],
-             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
-             "photo": "#"
+             "description": "While the University of Eastern Colorado is not a real-life university and despite the campus map mentioning the location in Boulder, it is modeled after Colorado State University in Fort Collins. One of the newspaper clippings inside the Science building in the room to the left of the way in is from The Times newspaper August 9th 2011 edition on the London Riots. The Left Behind DLC explores the aftermath of this chapter. Specifically, it reveals that the trio fled to the Colorado Mountain Plaza, pursued by a splinter group from the cannibals.",
+             "photo": "server/assets/card_images/university.jpg"
          }
       },
       {
@@ -141,16 +141,16 @@
             ]
          },
          "properties":{
-            "title":"Silver Lake, Colorado",
-            "icon":"server/assets/marker_icons/firefly.jpg",
+            "title":"Silver Lake, Boulder, Colorado",
+            "icon":"server/assets/marker_icons/lake.png",
             "icon-size":3,
             "description-card-id":1,
             "iconSize":[
                40,
                40
             ],
-             "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
-             "photo": "#"
+             "description": "Silver Lake is a town in Colorado that Joel and Ellie stumbled upon in the chapter Lakeside Resort. It is inhabited by cannibals. In reality, there are three locations known as 'Silver Lake' in Colorado: one is a lake west of Boulder, the other is a suburban lake in Loveland, and the last is a lake near Telluride.",
+             "photo": "server/assets/card_images/silver_lake.jpg"
           }
       },
         {
@@ -168,10 +168,10 @@
                   "icon-size":3,
                   "description-card-id":1,
                   "iconSize":[
-                     40,
-                     40
+                     45,
+                     45
                   ],
-                   "description": "When the outbreak occurred, the city quickly fell into chaos, with many people either dying outright or becoming infected. While fleeing into the city, Joel, Tommy and Sarah noticed a barn on fire. Tommy and Joel briefly remarked that it was owned by a man called Louis, the pair hoping he made it out alive.\n\nOnce they reached the city, the highway was blocked by dozens of cars, though the surface streets within the city were filled with men and women running for their lives. When the three crashed their truck, they fled through the streets on foot. They escaped most of the devastation through an alleyway, although Sarah and Joel became separated from Tommy due to several Infected.\n\n",
+                   "description": "Salt Lake City is the capital city of Utah and is the last location that Joel and Ellie journey to in order to find the Fireflies in The Last of Us. The hospital in the city is a major base for the Fireflies, the city itself currently being an abandoned quarantine zone. When Joel and Ellie first enter Salt Lake City, the Salt Lake Temple of the Church of Jesus Christ of Latter-day Saints, also known as Mormons, can be seen as part of the skyline. In fact, the Temple is the one of the few buildings that actually exists in real life along with the Wells Fargo building and Saint Mark's Hospital, the basis for Saint Mary's Hospital. The surrounding skyscrapers and St. Mary's Hospital do not exist in real-life Salt Lake City. By the appearance of the road signs and the location of the skyline, Joel and Ellie appear to enter Salt Lake City along I-15/I-80, from the west side of the city. The baseball field shown in the foreground when Joel and Ellie first enter Salt Lake City is Bethany Clare Field.",
                    "photo": "server/assets/card_images/utah_icon.jpg"
                }
             }

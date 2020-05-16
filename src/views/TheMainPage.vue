@@ -6,12 +6,13 @@
         <div class="layout description">
             <span class="title">
                 Welcome to The Last of Us interactive map experience.<br>
-                WARNING: The maps contains major spoilers, do not proceed before completing the game. <br> <br>
+                WARNING: The maps contains major spoilers, do not proceed before completing the game. 18+. Alpha version: 0.1.4<br> <br>
             </span>
             <span class="modes">
                 Choose one of the 2 modes: <br>
-                I. "Follow The Last of Us Path" Mode will guide through the route Joel and Ellie has followed throughout
-                the game. Just sit and enjoy their path recalling bygone events. <br>
+                I. "Follow The Last of Us Path" Mode will guide you through the route that Joel and Ellie has followed throughout
+                the game. Just sit and enjoy their path recalling bygone events.
+                Zoom scroll will be enabled only after the path is rendered.<br>
                 II. Interactive Map Mode will show you the locations which took place in the game. Click on the location
                 markers to check out card-descriptions which let you refresh your memory. <br>
                 Recommended way to feel map experience: Turn on your speakers and keep music playing, start with the 1st mode and enjoy.
@@ -73,9 +74,9 @@
     }
 
     /*.layout.player {*/
-        /*position: fixed;*/
-        /*top: 5vh;*/
-        /*right: 20vh;*/
+    /*position: fixed;*/
+    /*top: 5vh;*/
+    /*right: 20vh;*/
     /*}*/
 
     img.image-box {
@@ -98,7 +99,13 @@
         img.image-box {
             left: 50%;
             margin-left: -512px; /* 50% */
+        }
+    }
 
+    @media screen and (min-width: 1800px) {
+        .description {
+            width: 1000px;
+            padding-top: 150px;
         }
     }
 </style>

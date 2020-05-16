@@ -27,7 +27,8 @@ export default new Vuex.Store({
             state.map = new state.mapboxgl.Map({
                 container: container,
                 style: style,
-                interactive: interactive
+                interactive: interactive,
+                minzoom: 5
             });
             return state.map;
         },

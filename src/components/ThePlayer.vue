@@ -18,19 +18,30 @@
                 song1: Object,
                 song2: Object,
                 song3: Object,
-                song4: Object
+                song4: Object,
+                song5: Object,
+                song6: Object
             }
         },
         mounted() {
-            this.song1 = this.addSong("server/assets/music/1_Seasons.mp3");
-            this.song2 = this.addSong("server/assets/music/2_All_Gone(No_Escape).mp3");
-            this.song3 = this.addSong("server/assets/music/3_The_Path_(Vacant).mp3");
-            this.song4 = this.addSong("server/assets/music/4_The_Path.mp3");
+            this.song1 = new Howl({
+                src: "server/assets/music/1_Seasons.mp3",
+                loop: false,
+                autoplay: true
+            });
+            // this.song1 = this.addSong("server/assets/music/1_Seasons.mp3");
+            this.song2 = this.addSong("server/assets/music/5_The_Last_of_Us.mp3");
+            this.song3 = this.addSong("server/assets/music/4_The_Path.mp3");
+            this.song4 = this.addSong("server/assets/music/2_All_Gone(No_Escape).mp3");
+            this.song5 = this.addSong("server/assets/music/3_The_Path_(Vacant).mp3");
+            this.song6 = this.addSong("server/assets/music/6_The_Path_New_Beginning.mp3");
 
             this.afterPlaying(this.song1, this.song2);
             this.afterPlaying(this.song2, this.song3);
             this.afterPlaying(this.song3, this.song4);
-            this.afterPlaying(this.song4, this.song1);
+            this.afterPlaying(this.song4, this.song5);
+            this.afterPlaying(this.song5, this.song6);
+            this.afterPlaying(this.song6, this.song1);
 
             this.play();
         },
@@ -39,6 +50,7 @@
                 return new Howl({
                     src: src,
                     loop: false,
+                    autoplay: false
                 });
             },
             afterPlaying(current, next) {
@@ -66,6 +78,16 @@
                 this.currentTrack = 4;
                 this.song4.play();
             },
+            play5: function () {
+                this.stop();
+                this.currentTrack = 5;
+                this.song5.play();
+            },
+            play6: function () {
+                this.stop();
+                this.currentTrack = 6;
+                this.song6.play();
+            },
             play() {
                 this.stop();
                 if (this.currentTrack === 1) {
@@ -76,7 +98,12 @@
                     this.play3();
                 } else if (this.currentTrack === 4) {
                     this.play4();
+                } else if (this.currentTrack === 5) {
+                    this.play5();
+                } else if (this.currentTrack === 6) {
+                    this.play6();
                 }
+
             },
             stop() {
                 if (this.currentTrack === 1) {
@@ -87,6 +114,10 @@
                     this.song3.stop();
                 } else if (this.currentTrack === 4) {
                     this.song4.stop();
+                } else if (this.currentTrack === 5) {
+                    this.song5.stop();
+                } else if (this.currentTrack === 6) {
+                    this.song6.stop();
                 }
             },
             next() {
@@ -97,6 +128,10 @@
                 } else if (this.currentTrack === 3) {
                     this.play4();
                 } else if (this.currentTrack === 4) {
+                    this.play5();
+                } else if (this.currentTrack === 5) {
+                    this.play6();
+                } else if (this.currentTrack === 6) {
                     this.play1();
                 }
             }

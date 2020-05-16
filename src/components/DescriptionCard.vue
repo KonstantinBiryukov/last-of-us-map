@@ -1,6 +1,6 @@
 <template>
     <div class="wrapper">
-        <div class="card">
+        <div class="card-map">
             <div class="title"> {{ currentCard.properties.title }}</div>
             <!--<button class="close-button">-->
             <img @click="close()" class="close-img" src="server/assets/other_images/close-icon.png" alt="close">
@@ -69,9 +69,11 @@
 </script>
 
 <style scoped lang="scss">
-    .card {
+    .card-map {
+        overflow-y: auto;
         width: 270px;
-        height: 400px;
+        /*height: 400px;*/
+        height: 100%;
         background-color: black;
         position: absolute;
         /*top: 0.5vh;*/
@@ -85,7 +87,7 @@
     }
 
 
-    .card {
+    .card-map {
         color: navajowhite;
 
         .title {
@@ -112,4 +114,35 @@
         top: 0;
         cursor: pointer;
     }
+
+    @media only screen and (min-width: 1800px) {
+        .card-map {
+            width: 400px;
+
+            .title {
+                font-size: 25px;
+            }
+
+            .description {
+                font-size: 19px;
+                line-height: 30px;
+            }
+
+            .card-photo {
+                width: 400px;
+            }
+        }
+    }
+
+        @media only screen and (max-width: 1200px) {
+            .card-map {
+                .description {
+                    font-size:12px;
+                    line-height:15px;
+                }
+            }
+
+
+        }
+
 </style>
