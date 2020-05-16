@@ -6,9 +6,9 @@
                 :transitions="vfTransitions"
                 ref="slider">
 
-            <template v-slot:preloader>
-                <flux-preloader/>
-            </template>
+            <!--<template v-slot:preloader>-->
+                <!--<flux-preloader/>-->
+            <!--</template>-->
         </vue-flux>
 
     </div>
@@ -17,14 +17,14 @@
 <script>
     import {
         VueFlux,
-        FluxPreloader
+        // FluxPreloader
     } from 'vue-flux';
 
     export default {
         name: "PathCardsFlux",
         components: {
             VueFlux,
-            FluxPreloader
+            // FluxPreloader
         },
         data: () => ({
             vfOptions: {
@@ -169,7 +169,7 @@
                 'server/assets/story_telling_images/chapters/12/img_4.jpeg'
 
             ], // good transitions: 'fade', 'blinds2d', 'explode', 'kenburn', 'slide', 'swipe'
-            vfTransitions: ['slide', 'fade', 'slide', 'swipe', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',]
+            vfTransitions: ['slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',]
         })
 
     }
