@@ -36,7 +36,6 @@
                 'server/assets/story_telling_images/chapters/1/welcome_screen.png',
                 'server/assets/story_telling_images/chapters/1/1_naughty_dog.png',
                 'server/assets/story_telling_images/chapters/1/last_of_us.jpg',
-
                 'server/assets/story_telling_images/chapters/1/2_chapter1.png',
                 'server/assets/story_telling_images/chapters/1/3_year.png',
                 'server/assets/story_telling_images/chapters/1/img_1.png',
@@ -47,7 +46,6 @@
                 'server/assets/story_telling_images/chapters/1/img_6.jpg',
                 'server/assets/story_telling_images/chapters/1/img_7.png',
                 'server/assets/story_telling_images/chapters/1/img_8.png',
-
                 'server/assets/story_telling_images/chapters/2/1_chapter2.png',
                 'server/assets/story_telling_images/chapters/2/2_year.png',
                 'server/assets/story_telling_images/chapters/2/img_1.jpg',
@@ -56,7 +54,6 @@
                 'server/assets/story_telling_images/chapters/2/img_6.jpg',
                 'server/assets/story_telling_images/chapters/2/img_8.jpg',
                 'server/assets/story_telling_images/chapters/2/img_9.jpg',
-
                 'server/assets/story_telling_images/chapters/3/chapter3.png',
                 'server/assets/story_telling_images/chapters/3/img_0.jpg',
                 'server/assets/story_telling_images/chapters/3/img_1.jpg',
@@ -69,7 +66,6 @@
                 'server/assets/story_telling_images/chapters/3/img_14.jpg',
                 'server/assets/story_telling_images/chapters/3/img_15.jpg',
                 'server/assets/story_telling_images/chapters/3/img_16.jpg',
-
                 'server/assets/story_telling_images/chapters/4/chapter4.png',
                 'server/assets/story_telling_images/chapters/4/img_1.jpg',
                 'server/assets/story_telling_images/chapters/4/img_2.jpg',
@@ -85,7 +81,6 @@
                 'server/assets/story_telling_images/chapters/4/img_12.jpg',
                 'server/assets/story_telling_images/chapters/4/img_13.jpg',
                 'server/assets/story_telling_images/chapters/4/img_14.jpg',
-
                 'server/assets/story_telling_images/chapters/5/chapter5.png',
                 'server/assets/story_telling_images/chapters/5/img_0_0.png',
                 'server/assets/story_telling_images/chapters/5/img_0_1.png',
@@ -103,7 +98,6 @@
                 'server/assets/story_telling_images/chapters/5/img_13.jpg',
                 'server/assets/story_telling_images/chapters/5/img_14.png',
                 'server/assets/story_telling_images/chapters/5/img_15.jpg',
-
                 'server/assets/story_telling_images/chapters/6/chapter6.png',
                 'server/assets/story_telling_images/chapters/6/img_0_1.jpg',
                 'server/assets/story_telling_images/chapters/6/img_0_2.jpg',
@@ -111,7 +105,6 @@
                 'server/assets/story_telling_images/chapters/6/img_2_1.jpg',
                 'server/assets/story_telling_images/chapters/6/img_3.jpg',
                 'server/assets/story_telling_images/chapters/6/img_4.jpg',
-
                 'server/assets/story_telling_images/chapters/7/chapter7.png',
                 'server/assets/story_telling_images/chapters/7/img_1.jpg',
                 'server/assets/story_telling_images/chapters/7/img_2.jpg',
@@ -126,7 +119,6 @@
                 'server/assets/story_telling_images/chapters/7/img_7.jpg',
                 'server/assets/story_telling_images/chapters/7/img_8.jpg',
                 'server/assets/story_telling_images/chapters/7/img_9.png',
-
                 'server/assets/story_telling_images/chapters/8/chapter8.png',
                 'server/assets/story_telling_images/chapters/8/img_0.jpg',
                 'server/assets/story_telling_images/chapters/8/img_00.jpg',
@@ -138,7 +130,6 @@
                 'server/assets/story_telling_images/chapters/8/img_5.jpg',
                 'server/assets/story_telling_images/chapters/8/img_6.jpg',
                 'server/assets/story_telling_images/chapters/8/img_7.jpg',
-
                 'server/assets/story_telling_images/chapters/9/chapter9.png',
                 'server/assets/story_telling_images/chapters/9/img_0.jpg',
                 'server/assets/story_telling_images/chapters/9/img_1.jpg',
@@ -152,7 +143,6 @@
                 'server/assets/story_telling_images/chapters/9/img_5.jpg',
                 'server/assets/story_telling_images/chapters/9/img_6.jpg',
                 'server/assets/story_telling_images/chapters/9/img_7.jpg',
-
                 'server/assets/story_telling_images/chapters/10/chapter10.png',
                 'server/assets/story_telling_images/chapters/10/img_1.jpg',
                 'server/assets/story_telling_images/chapters/10/img_2.jpg',
@@ -163,7 +153,6 @@
                 'server/assets/story_telling_images/chapters/10/img_6_2.png',
                 'server/assets/story_telling_images/chapters/10/img_7.jpg',
                 'server/assets/story_telling_images/chapters/10/img_8.jpg',
-
                 'server/assets/story_telling_images/chapters/11/chapter11.png',
                 'server/assets/story_telling_images/chapters/11/img_1.jpg',
                 'server/assets/story_telling_images/chapters/11/img_2.jpg',
@@ -172,7 +161,6 @@
                 'server/assets/story_telling_images/chapters/11/img_5.jpg',
                 'server/assets/story_telling_images/chapters/11/img_6.jpg',
                 'server/assets/story_telling_images/chapters/11/img_7.png',
-
                 'server/assets/story_telling_images/chapters/12/chapter12.png',
                 'server/assets/story_telling_images/chapters/12/img_1.jpg',
                 'server/assets/story_telling_images/chapters/12/img_2.jpg',
@@ -181,8 +169,7 @@
                 'server/assets/story_telling_images/chapters/12/img_4.jpeg'
 
             ], // good transitions: 'fade', 'blinds2d', 'explode', 'kenburn', 'slide', 'swipe'
-            vfTransitions: ['slide', 'fade', 'kenburn', 'slide', 'swipe', 'kenburn', 'kenburn',
-                'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',]
+            vfTransitions: ['slide', 'fade', 'slide', 'swipe', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',]
         })
 
     }

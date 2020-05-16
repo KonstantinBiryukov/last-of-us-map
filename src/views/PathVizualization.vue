@@ -474,6 +474,7 @@
             clearInterval(this.timer);
             //  Cleanup any pending timeouts
             clearTimeout(this.timeout);
+            store.state.map = null;
         }
     }
 </script>

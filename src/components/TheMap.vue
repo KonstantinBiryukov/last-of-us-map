@@ -9,7 +9,6 @@
 <script>
     import store from "../store/index"
     import DescriptionCard from '@/components/DescriptionCard';
-    import Velocity from "velocity-animate"
 
     export default {
         name: 'TheMap',

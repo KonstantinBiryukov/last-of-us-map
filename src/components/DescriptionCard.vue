@@ -13,7 +13,6 @@
 
 <script>
     import store from "../store/index"
-    // import Velocity from "velocity-animate"
 
     export default {
         name: "DescriptionCard",
