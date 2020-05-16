@@ -1,13 +1,16 @@
 <template>
     <div class="carousel">
         <vue-flux
-                :options="vfOptions"
                 :images="vfImages"
                 :transitions="vfTransitions"
-                ref="slider">
+                :options="vfOptions"
+        >
+            <!--:transitions="vfTransitions"-->
+            <!--ref="slider">-->
+
 
             <!--<template v-slot:preloader>-->
-                <!--<flux-preloader/>-->
+            <!--<flux-preloader/>-->
             <!--</template>-->
         </vue-flux>
 
@@ -169,7 +172,19 @@
                 'server/assets/story_telling_images/chapters/12/img_4.jpeg'
 
             ], // good transitions: 'fade', 'blinds2d', 'explode', 'kenburn', 'slide', 'swipe'
-            vfTransitions: ['slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',]
+            vfTransitions: ['slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'fade', 'slide', 'fade', 'slide', 'fade', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'fade', 'slide', 'fade', 'slide', 'fade', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'fade', 'slide', 'slide', 'slide', 'fade', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'fade', 'slide',
+                'slide', 'fade', 'slide', 'slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'fade', 'slide', 'slide', 'fade', 'slide', 'slide', 'slide',
+                'slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'slide', 'fade', 'slide',
+                'slide', 'fade', 'slide', 'slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'fade',
+                'slide', 'fade', 'slide', 'slide', 'slide', 'slide', 'slide', 'fade', 'slide', 'fade',]
         })
 
     }
