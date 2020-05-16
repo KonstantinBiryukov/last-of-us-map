@@ -33,7 +33,9 @@
             vfOptions: {
                 autoplay: true,
                 delay: 5000,
-                infinite: false
+                infinite: false,
+                lazyLoad: true,
+                lazyLoadAfter: 5
             },
             vfImages: [
                 'server/assets/story_telling_images/chapters/1/welcome_screen.png',
