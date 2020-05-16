@@ -1,3 +1,3 @@
 module.exports = {
-    publicPath: '/last-of-us/'
+    publicPath: '/last-of-us-map/'
 };
