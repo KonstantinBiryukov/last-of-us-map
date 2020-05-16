@@ -6,7 +6,7 @@
         <div class="layout description">
             <span class="title">
                 Welcome to The Last of Us interactive map experience.<br>
-                WARNING: The maps contains major spoilers, do not proceed before completing the game. 18+. Alpha version: 0.1.4<br> <br>
+                WARNING: The maps contains major spoilers, do not proceed before completing the game. 18+. Alpha version: 0.1.1<br> <br>
             </span>
             <span class="modes">
                 Choose one of the 2 modes: <br>
