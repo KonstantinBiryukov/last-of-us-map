@@ -77,4 +77,25 @@
             margin-top: 30px;
         }
     }
+
+    @media screen and (max-width: 600px) {
+        .description {
+            width: 200px;
+        }
+
+        .modes {
+            font-size: 10px; //15px
+        }
+
+    }
+
+    @media screen and (max-width: 500px) {
+
+        #nav {
+            width: 300px;
+        }
+        a {
+            font-size: 15px;
+        }
+    }
 </style>

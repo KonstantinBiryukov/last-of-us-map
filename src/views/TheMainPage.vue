@@ -6,7 +6,7 @@
         <div class="layout description">
             <span class="title">
                 Welcome to The Last of Us interactive map experience.<br>
-                WARNING: The maps contain major spoilers, do not proceed before completing the game. 18+. Beta version: 0.1.1<br> <br>
+                WARNING: The maps contain major spoilers, do not proceed before completing the game. 18+. Beta version: 0.2.1<br> <br>
             </span>
             <span class="modes">
                 Choose one of the 2 modes: <br>
@@ -65,7 +65,7 @@
     .firefly {
         width: 16vh; // 100px
         height: 16vh; // 100px
-        position: fixed;
+        position: absolute;
         left: 5vh;
     }
 
@@ -93,6 +93,17 @@
         position: fixed;
         top: 0;
         left: 0;
+    }
+
+    @media screen and (max-width: 500px) {
+        .description {
+            width: 200px;
+        }
+
+        .modes {
+            font-size: 10px; //15px
+        }
+
     }
 
     @media screen and (max-width: 1024px) { /* Specific to this particular image */
