@@ -31,6 +31,9 @@
             Santaolalla.
         </div>
         <div class="stack">Tech_stack: JS + Vue + Mapbox-gl + Howler.js</div>
+        <div>
+            <a class="contact" href="https://konstantinbiryukov.github.io/website"> Contact author </a>
+        </div>
     </div>
 </template>
 
@@ -58,6 +61,12 @@
 
     .text {
         margin-bottom: 30px;
+    }
+
+    .contact {
+        font-size: 20px;
+        margin-bottom: 50px;
+        color: dodgerblue;
     }
 
     @media screen and (min-width: 1800px) {
