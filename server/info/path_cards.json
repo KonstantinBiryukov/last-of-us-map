@@ -1,0 +1,41 @@
+{
+  "type": "CardsCollection",
+  "cards": [
+    {
+      "id": "0",
+      "title": "Austin",
+      "photo": "server/assets/card_images/austin_card.png",
+      "description": "Joel and Ellie"
+    },
+    {
+      "id": "1",
+      "title": "Austin2",
+      "photo": "server/assets/card_images/boston_card.png",
+      "description": "Joel and Ellie2"
+    },
+    {
+      "id": "2",
+      "title": "Austin2",
+      "photo": "server/assets/card_images/jackson_icon.jpg",
+      "description": "Joel and Ellie2"
+    },
+    {
+      "id": "3",
+      "title": "Boston city",
+      "photo": "server/assets/card_images/lincoln_icon.jpg",
+      "description": "Massachusetts"
+    },
+    {
+      "id": "4",
+      "title": "Boston city",
+      "photo": "server/assets/card_images/boston_card.png",
+      "description": "Massachusetts"
+    },
+    {
+      "id": "5",
+      "title": "Boston city",
+      "photo": "server/assets/card_images/boston_card.png",
+      "description": "Massachusetts"
+    }
+  ]
+}
