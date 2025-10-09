@@ -1,5 +1,5 @@
 # last_of_us
-konstantinBiryukov/last-of-us-map
+[konstantinBiryukov/last-of-us-map](https://konstantinbiryukov.github.io/last-of-us-map/#/)
 
 ## Project setup
 ```
