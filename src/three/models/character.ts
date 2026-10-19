@@ -29,7 +29,7 @@ import { part, type PaletteKey } from '../materials';
 
 export interface CharacterLook {
   /** Also used as a key for caching each character's geometry sizes. */
-  name: 'joel' | 'ellie' | 'tess' | 'bill';
+  name: 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david';
   /** Overall size multiplier (Joel = 1). */
   scale: number;
   /** Shoulder width multiplier (Joel is broader). */
@@ -199,6 +199,58 @@ export const BILL: CharacterLook = {
   shirt: 'billJacket',
   pants: 'billPants',
   hair: 'billHair',
+  beard: true,
+  ponytail: false,
+};
+
+/** Henry: slim adult, a little shorter than Joel, grey-blue jacket. */
+export const HENRY: CharacterLook = {
+  name: 'henry',
+  scale: 0.97,
+  build: 1.0,
+  skin: 'skinDark',
+  shirt: 'henryJacket',
+  pants: 'henryPants',
+  hair: 'darkHair',
+  beard: false,
+  ponytail: false,
+};
+
+/** Sam: Henry's younger brother, about Ellie's size, blue hoodie. */
+export const SAM: CharacterLook = {
+  name: 'sam',
+  scale: 0.78,
+  build: 0.88,
+  skin: 'skinDark',
+  shirt: 'samHoodie',
+  pants: 'samPants',
+  hair: 'darkHair',
+  beard: false,
+  ponytail: false,
+};
+
+/** Tommy: Joel's younger brother — same height, brown jacket, beard. */
+export const TOMMY: CharacterLook = {
+  name: 'tommy',
+  scale: 0.99,
+  build: 1.06,
+  skin: 'skin',
+  shirt: 'tommyJacket',
+  pants: 'tommyPants',
+  hair: 'tommyHair',
+  beard: true,
+  ponytail: false,
+};
+
+/** David: stocky, grey-bearded, in a sheepskin-brown coat. */
+export const DAVID: CharacterLook = {
+  name: 'david',
+  scale: 1.0,
+  build: 1.15,
+  skin: 'skinBill',
+  shirt: 'davidCoat',
+  pants: 'davidPants',
+  hair: 'davidHair',
   beard: true,
   ponytail: false,
 };

@@ -32,6 +32,22 @@ export const PALETTE = {
   billPants: 0x4a3b2c,
   billHair: 0x76706a,
   skinBill: 0xc4937a,
+  // Henry and his younger brother Sam: darker skin, black hair; Henry in a grey-blue
+  // jacket and khaki trousers, Sam in a blue hoodie.
+  skinDark: 0x6e4a35,
+  henryJacket: 0x4c5865,
+  henryPants: 0x6b5f4a,
+  samHoodie: 0x3f6d8c,
+  samPants: 0x3a4250,
+  darkHair: 0x16110e,
+  // Tommy: Joel's brother — brown work jacket, darker trousers, longer brown hair, beard.
+  tommyJacket: 0x6b4a2e,
+  tommyPants: 0x38383a,
+  tommyHair: 0x4a3626,
+  // David: sheepskin-brown coat, dark trousers, grey hair and beard.
+  davidCoat: 0x7a5a3a,
+  davidPants: 0x3a332c,
+  davidHair: 0x8a8580,
   boots: 0x3a2a1e,
   backpack: 0x6e5a3c,
   strap: 0x2b2118,

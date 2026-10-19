@@ -29,7 +29,16 @@ import styles from './StoryPanel.module.css';
 const MODE_LABEL: Record<TravelMode, string> = { walk: 'On foot', horse: 'On horseback', vehicle: 'By truck' };
 
 /** Display names of the characters. */
-const NAMES: Record<Traveller, string> = { joel: 'Joel', ellie: 'Ellie', tess: 'Tess', bill: 'Bill' };
+const NAMES: Record<Traveller, string> = {
+  joel: 'Joel',
+  ellie: 'Ellie',
+  tess: 'Tess',
+  bill: 'Bill',
+  henry: 'Henry',
+  sam: 'Sam',
+  tommy: 'Tommy',
+  david: 'David',
+};
 
 /**
  * Who is travelling, in words — shown only when it is NOT the usual Joel and Ellie:

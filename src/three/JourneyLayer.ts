@@ -39,8 +39,12 @@ import type { MutableLngLat } from '../geo/polyline';
 import {
   BILL,
   createCharacter,
+  DAVID,
   ELLIE,
+  HENRY,
   JOEL,
+  SAM,
+  TOMMY,
   poseIdle,
   poseSeated,
   poseWalk,
@@ -80,15 +84,33 @@ const SHADOW_SIZE: Record<TravelMode, [number, number]> = { walk: [2.2, 1.6], ho
 /** Walk/gallop cycles per second, and how fast the truck "drives" for its wheel spin (m/s). */
 const HORSE_GAIT_HZ = 1.3;
 /** Every character that can walk on the map. */
-const TRAVELLERS: readonly Traveller[] = ['joel', 'ellie', 'tess', 'bill'];
+const TRAVELLERS: readonly Traveller[] = ['joel', 'ellie', 'tess', 'bill', 'henry', 'sam', 'tommy', 'david'];
 /** Steps per second: shorter legs take quicker steps. */
-const STEPS_HZ: Record<Traveller, number> = { joel: 1.05, ellie: 1.25, tess: 1.12, bill: 1.0 };
+const STEPS_HZ: Record<Traveller, number> = {
+  joel: 1.05,
+  ellie: 1.25,
+  tess: 1.12,
+  bill: 1.0,
+  henry: 1.08,
+  sam: 1.22,
+  tommy: 1.05,
+  david: 1.0,
+};
 /** Phase offsets (radians) so nobody walks perfectly in step with the others. */
-const PHASE_OFFSET: Record<Traveller, number> = { joel: 0, ellie: 1.3, tess: 2.4, bill: 3.6 };
+const PHASE_OFFSET: Record<Traveller, number> = {
+  joel: 0,
+  ellie: 1.3,
+  tess: 2.4,
+  bill: 3.6,
+  henry: 4.4,
+  sam: 5.2,
+  tommy: 0.7,
+  david: 2.9,
+};
 /**
  * Walking formations (x = metres to the right of the route, z = metres BEHIND the leader),
- * for 1, 2 and 3 travellers, in party order. Example for three: left, middle (half a step
- * ahead), right.
+ * for 1, 2, 3 and 4 travellers, in party order. Three: left, middle (half a step ahead),
+ * right. Four: a shallow V with the middle two in front.
  */
 const WALK_FORMATION: readonly (readonly (readonly [number, number])[])[] = [
   [[0, 0]],
@@ -100,6 +122,12 @@ const WALK_FORMATION: readonly (readonly (readonly [number, number])[])[] = [
     [-0.75, 0.1],
     [0.05, -0.25],
     [0.85, 0.35],
+  ],
+  [
+    [-1.15, 0.2],
+    [-0.38, -0.2],
+    [0.38, -0.2],
+    [1.15, 0.25],
   ],
 ];
 /**
@@ -219,7 +247,7 @@ export class JourneyLayer implements CustomLayerInterface {
 
   /** Builds the three rigs. Each rig has its own figures posed for that way of travelling. */
   private buildRigs(): void {
-    // Walking: everyone who ever walks with them (Joel, Ellie, Tess, Bill) has a figure;
+    // Walking: everyone who ever walks with them (Joel, Ellie and the companions) has a figure;
     // the current party decides who is shown and where (see poseRigs).
     const walkGroup = new THREE.Group();
     const people: Record<Traveller, Character> = {
@@ -227,6 +255,10 @@ export class JourneyLayer implements CustomLayerInterface {
       ellie: createCharacter(ELLIE),
       tess: createCharacter(TESS),
       bill: createCharacter(BILL),
+      henry: createCharacter(HENRY),
+      sam: createCharacter(SAM),
+      tommy: createCharacter(TOMMY),
+      david: createCharacter(DAVID),
     };
     for (const name of TRAVELLERS) walkGroup.add(people[name].root);
 
@@ -408,7 +440,7 @@ export class JourneyLayer implements CustomLayerInterface {
     if (mode === 'walk') {
       // Walking formation: everyone in the party side by side across the route, in the
       // party's order, the middle person a step ahead. Unused characters are hidden.
-      const slots = WALK_FORMATION[Math.min(party.length, 3) - 1] ?? WALK_FORMATION[0]!;
+      const slots = WALK_FORMATION[Math.min(party.length, WALK_FORMATION.length) - 1] ?? WALK_FORMATION[0]!;
       for (const name of TRAVELLERS) {
         const character = walk.people[name];
         const slot = party.indexOf(name);

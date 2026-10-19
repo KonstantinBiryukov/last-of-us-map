@@ -54,7 +54,7 @@ Without a token the app still works, using a simplified built-in map (no 3D).
 | `npm run check` | Type check + tests + build (what CI runs) |
 | `npm run deploy` | Build and publish `dist/` to the `gh-pages` branch |
 | `npm run optimize:images` | Regenerate WebP images + blur placeholders |
-| `npm run build:boston` | Regenerate the Boston street route (needs the token in `.env.local`) |
+| `npm run build:streets -- boston\|hospital\|escape` | Regenerate one generated street route (needs the token in `.env.local`) |
 
 ## Keyboard
 

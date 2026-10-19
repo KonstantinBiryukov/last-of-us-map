@@ -52,12 +52,8 @@ export const MapControls = memo(function MapControls({ explore = false }: MapCon
     };
   }, [menuOpen]);
 
-  /** Zoom buttons: taking control of the zoom means the camera stops following. */
-  const zoom = (delta: number) => {
-    if (!director) return;
-    director.release();
-    director.zoomBy(delta);
-  };
+  /** Zoom buttons: while following, the camera keeps following at the new zoom (camera.ts). */
+  const zoom = (delta: number) => director?.zoomBy(delta);
 
   return (
     <div ref={wrapRef} className={styles.controls} role="toolbar" aria-label="Map controls">

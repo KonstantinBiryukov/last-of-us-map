@@ -9,8 +9,20 @@
  *              (a stretch with no detailed path) it pulls out to show the whole
  *              leap, then dives back in at the other end.
  *   overview – the whole journey framed at once.
- *   free     – the user is in control (they dragged/zoomed the map, or chose
- *              "Explore the map"). The camera never moves on its own.
+ *   free     – the user is in control ("Explore the map"). The camera never moves
+ *              on its own.
+ *
+ * WHAT THE USER MAY DO DURING THE JOURNEY (see `applyInteraction`)
+ * Only ZOOM. Dragging the map away let the travellers walk off-screen while the story
+ * kept playing, so panning (drag, keyboard arrows, box zoom, double-click zoom, which
+ * all move the centre) is switched off in the journey. Wheel, pinch and the +/− buttons
+ * still zoom, and they do NOT stop following: they change an offset (`zoomOffset`, e.g.
+ * +1 = one level closer than the camera's own choice) that follow keeps applying, so the
+ * zoom always happens around the travellers. Mapbox's own wheel/pinch zoom cannot be used
+ * for this: follow moves the camera every frame, and every such move cancels a zoom
+ * gesture Mapbox has just begun. So in the journey the wheel and two-finger pinch are read
+ * here (`onWheel`, `onTouch…`) and turned into offset changes.
+ * In "Explore the map" everything is Mapbox's again — that mode is for free browsing.
  *
  * Story navigation (next/previous chapter, clicking a location, releasing the
  * timeline) ALWAYS switches back to "follow" and flies to the new spot — that is
@@ -56,6 +68,14 @@ const CENTRE_SPEED = 2.6;
 const ZOOM_SPEED = 0.9;
 const JUMP_ZOOM_SPEED = 2.4;
 const PITCH_SPEED = 1.5;
+/** How far (zoom levels) the user may zoom out (−) or in (+) from the camera's own choice. */
+const MIN_ZOOM_OFFSET = -5;
+const MAX_ZOOM_OFFSET = 3;
+/** Zoom levels per wheel "pixel" (a typical mouse notch is 100 px → ~0.4 levels). */
+const WHEEL_ZOOM_RATE = 1 / 250;
+/** Right after a user zoom, the camera zooms this much faster, so the gesture feels direct. */
+const USER_ZOOM_SPEED = 6;
+const USER_ZOOM_BOOST_MS = 700;
 /** How long story flights last (ms): short hops are quick, cross-country ones a bit longer. */
 const FLIGHT_MIN_MS = 1100;
 const FLIGHT_MAX_MS = 2400;
@@ -99,6 +119,12 @@ export class CameraDirector {
    * story jumps are ignored (the story is not on screen in that mode).
    */
   private exploring = false;
+  /** The user's own zoom on top of the camera's choice while following (see the top of this file). */
+  private zoomOffset = 0;
+  /** When the user last changed the zoom offset (performance.now() ms), for the fast-zoom boost. */
+  private userZoomAt = -Infinity;
+  /** Finger distance (px) of the two-finger pinch in progress, or 0 when there is none. */
+  private pinchDistance = 0;
   /**
    * The last camera move we started (fly to the story, frame the journey, frame the
    * locations). If something interrupts it before it finishes — e.g. the panels change
@@ -121,12 +147,20 @@ export class CameraDirector {
       map.on(type, this.onUserMove);
     }
     map.on('moveend', this.onMoveEnd);
+    // Journey zoom gestures (see the top of this file). Passive: false so the page does not scroll.
+    const container = map.getContainer();
+    container.addEventListener('wheel', this.onWheel, { passive: false });
+    container.addEventListener('touchstart', this.onTouchStart, { passive: true });
+    container.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    container.addEventListener('touchend', this.onTouchEnd);
+    container.addEventListener('touchcancel', this.onTouchEnd);
     // The screen size changed → jump framing must be recomputed.
     map.on('resize', this.onResize);
     // Story navigation (chapter buttons, timeline, markers in the journey) → follow and fly there.
     this.unsubscribeJump = engine.onJump(() => {
       if (!this.exploring) this.follow();
     });
+    this.applyInteraction(); // the app starts in the journey: zoom only
   }
 
   // ───────────────────────── store for React (useSyncExternalStore) ─────────────────────────
@@ -168,6 +202,7 @@ export class CameraDirector {
   setExploring(exploring: boolean): void {
     if (exploring === this.exploring) return;
     this.exploring = exploring;
+    this.applyInteraction();
     if (exploring) this.frameLocations();
   }
 
@@ -215,8 +250,15 @@ export class CameraDirector {
     this.setModeInternal('free');
   }
 
-  /** Smoothly zoom in (+1) or out (−1) one level. */
+  /**
+   * Zoom buttons: one level in (+1) or out (−1). While following, this changes the user's
+   * zoom offset (the camera glides there and keeps following); otherwise it zooms the map.
+   */
   zoomBy(delta: number): void {
+    if (this.mode === 'follow' && !this.exploring) {
+      this.changeZoomOffset(delta);
+      return;
+    }
     this.map.easeTo({ zoom: this.map.getZoom() + delta, duration: this.options.reducedMotion() ? 0 : 400 });
   }
 
@@ -231,9 +273,10 @@ export class CameraDirector {
   frame(dt: number): void {
     if (this.mode !== 'follow' || this.flightId !== 0) return; // only glide when following and not flying
 
-    const { zoom, look, jumping } = this.storyTarget();
+    const { zoom, look, jumping } = this.storyTarget(true);
     const kCentre = 1 - Math.exp(-dt * CENTRE_SPEED);
-    const kZoom = 1 - Math.exp(-dt * (jumping ? JUMP_ZOOM_SPEED : ZOOM_SPEED));
+    const boosted = performance.now() - this.userZoomAt < USER_ZOOM_BOOST_MS;
+    const kZoom = 1 - Math.exp(-dt * (boosted ? USER_ZOOM_SPEED : jumping ? JUMP_ZOOM_SPEED : ZOOM_SPEED));
     const kPitch = 1 - Math.exp(-dt * PITCH_SPEED);
     this.centre[0] += (look[0] - this.centre[0]) * kCentre;
     this.centre[1] += (look[1] - this.centre[1]) * kCentre;
@@ -250,6 +293,12 @@ export class CameraDirector {
       this.map.off(type, this.onUserMove);
     }
     this.map.off('moveend', this.onMoveEnd);
+    const container = this.map.getContainer();
+    container.removeEventListener('wheel', this.onWheel);
+    container.removeEventListener('touchstart', this.onTouchStart);
+    container.removeEventListener('touchmove', this.onTouchMove);
+    container.removeEventListener('touchend', this.onTouchEnd);
+    container.removeEventListener('touchcancel', this.onTouchEnd);
     this.map.off('resize', this.onResize);
     this.unsubscribeJump();
     this.listeners.clear();
@@ -257,12 +306,70 @@ export class CameraDirector {
 
   // ───────────────────────── internals ─────────────────────────
 
-  /** A camera movement started. If a human caused it, give them control. */
+  /**
+   * Switches the map's mouse/touch/keyboard handlers for the current experience:
+   * explore → all of Mapbox's handlers; journey → none (zoom gestures are read by this
+   * class instead, see the top of this file). Rotation and tilt stay off in both.
+   */
+  private applyInteraction(): void {
+    const map = this.map;
+    const free = this.exploring;
+    for (const handler of [map.dragPan, map.keyboard, map.boxZoom, map.doubleClickZoom, map.scrollZoom, map.touchZoomRotate]) {
+      if (free) handler.enable();
+      else handler.disable();
+    }
+    map.touchZoomRotate.disableRotation();
+    map.keyboard.disableRotation();
+    // Without panning, the "grab" hand cursor would promise something that does nothing.
+    map.getContainer().classList.toggle('map--zoom-only', !free);
+  }
+
+  /** A camera movement started. If a human caused it, react (see the top of this file). */
   private onUserMove = (event: object): void => {
     // Programmatic moves (our own jumpTo/flyTo) have no originalEvent; real mouse/touch/wheel moves do.
     if (!('originalEvent' in event) || !event.originalEvent) return;
+    if (!this.exploring) return; // journey: Mapbox's handlers are off, nothing can take over
     this.flightId = 0;
     this.setModeInternal('free');
+  };
+
+  /** Changes the user's zoom offset by `delta` levels (clamped) and boosts the zoom speed. */
+  private changeZoomOffset(delta: number): void {
+    this.zoomOffset = clamp(this.zoomOffset + delta, MIN_ZOOM_OFFSET, MAX_ZOOM_OFFSET);
+    this.userZoomAt = performance.now();
+  }
+
+  /** Is a journey zoom gesture meaningful right now? (Following, not in Explore.) */
+  private journeyZoom(): boolean {
+    return !this.exploring && this.mode === 'follow';
+  }
+
+  /** Mouse wheel / trackpad scroll in the journey: wheel up = closer. */
+  private onWheel = (event: WheelEvent): void => {
+    if (this.exploring) return; // Explore: Mapbox's own scroll zoom handles it
+    event.preventDefault(); // never scroll the page behind the map
+    if (!this.journeyZoom()) return;
+    // deltaMode 1 = lines (some mice/Firefox): about 40 px per line.
+    const pixels = event.deltaMode === 1 ? event.deltaY * 40 : event.deltaY;
+    this.changeZoomOffset(-pixels * WHEEL_ZOOM_RATE);
+  };
+
+  /** Two fingers down: remember their distance (the start of a pinch). */
+  private onTouchStart = (event: TouchEvent): void => {
+    this.pinchDistance = !this.exploring && event.touches.length === 2 ? touchDistance(event.touches) : 0;
+  };
+
+  /** Two fingers moving: zoom by how much their distance changed (doubling it = one level closer). */
+  private onTouchMove = (event: TouchEvent): void => {
+    if (this.exploring || this.pinchDistance === 0 || event.touches.length !== 2) return;
+    event.preventDefault(); // no browser page zoom
+    const distance = touchDistance(event.touches);
+    if (this.journeyZoom() && distance > 0) this.changeZoomOffset(Math.log2(distance / this.pinchDistance));
+    this.pinchDistance = distance;
+  };
+
+  private onTouchEnd = (event: TouchEvent): void => {
+    if (event.touches.length < 2) this.pinchDistance = 0;
   };
 
   /** A camera movement ended. Only the end of OUR current flight matters (see top of file). */
@@ -282,7 +389,7 @@ export class CameraDirector {
   /** Cinematic flight to the travellers' current position. */
   private flyToStory(): void {
     this.lastFlight = () => this.flyToStory();
-    const { zoom, look } = this.storyTarget();
+    const { zoom, look } = this.storyTarget(true);
     if (this.options.reducedMotion()) {
       this.flightId = 0;
       this.centre = [look[0], look[1]];
@@ -320,11 +427,12 @@ export class CameraDirector {
 
   /**
    * Where the camera should be for the current story moment.
-   *   zoom    – comfortable zoom for the current leg (or the framing zoom of a jump)
+   *   zoom    – comfortable zoom for the current leg (or the framing zoom of a jump),
+   *             plus the user's zoom offset when `withUserZoom` is true
    *   look    – the point to centre on (slightly ahead of the travellers)
    *   jumping – true during jumps and time skips
    */
-  private storyTarget(): { zoom: number; look: MutableLngLat; jumping: boolean } {
+  private storyTarget(withUserZoom: boolean): { zoom: number; look: MutableLngLat; jumping: boolean } {
     const frame = this.engine.frame;
     const journey = this.engine.route.journey;
     const leg = this.engine.route.legs[frame.legIndex];
@@ -332,6 +440,7 @@ export class CameraDirector {
     const jumping = leg !== undefined && isJumpKind(leg.kind);
     let zoom = this.spanZoom.get(`${frame.chapterIndex}:${frame.spanIndex}`) ?? 9;
     if (jumping) zoom = this.zoomForJump(frame.legIndex);
+    if (withUserZoom) zoom = clamp(zoom + this.zoomOffset, 1.5, 17);
     // Look ~90 px ahead along the route so the travellers sit a little behind centre.
     const ahead = jumping ? 0 : metersPerPixel(zoom, this.target[1]) * 90;
     journey.pointAt(frame.distance + ahead, this.ahead);
@@ -384,6 +493,18 @@ export class CameraDirector {
   private journeyBounds(): LngLatBoundsLike {
     return boundsOf(this.engine.route.journey.coords);
   }
+}
+
+/** Distance in pixels between the first two fingers of a touch list. */
+function touchDistance(touches: TouchList): number {
+  const a = touches[0]!;
+  const b = touches[1]!;
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
+/** Keeps `value` between `min` and `max`. */
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 /** Smallest box containing all points of a flat [lng0, lat0, lng1, lat1, …] list. */

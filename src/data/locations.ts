@@ -3,10 +3,14 @@
  *
  * DATA MIGRATION: this list was copied 1:1 from the original
  * public/server/info/markers.geojson (same order, same coordinates, same icons,
- * same photos, same description text). Only two things changed:
+ * same photos, same description text). Only three things changed:
  *   1. Each location got a stable `id` and a `shortName`.
  *   2. Austin's description contained a broken "\n" that had turned into the
  *      literal text "area.nThe"; it is now split into two paragraphs.
+ *   3. Salt Lake City's marker moved from the city's western edge (near the airport,
+ *      ~25 km from where the story ends) to St. Mark's Hospital — the real building the
+ *      game's Fireflies hospital (St. Mary's) is based on, where the journey now ends.
+ *      The original coordinates are kept below as ORIGINAL_SALT_LAKE_CITY.
  *
  * The original GeoJSON file is kept in /public for reference.
  *
@@ -100,7 +104,8 @@ export const LOCATIONS: readonly StoryLocation[] = [
     id: "salt-lake-city",
     title: "Salt Lake City, Utah",
     shortName: "Salt Lake City",
-    coordinates: [-112.2006695, 40.7762691],
+    // St. Mark's Hospital (Mapbox Search), see note 3 at the top of this file.
+    coordinates: [-111.857112, 40.686071],
     icon: "server/assets/marker_icons/firefly.jpg",
     photo: "server/assets/card_images/utah_icon.jpg",
     description: [
@@ -108,6 +113,9 @@ export const LOCATIONS: readonly StoryLocation[] = [
     ],
   },
 ];
+
+/** Salt Lake City's marker position in the original markers.geojson (before note 3). */
+export const ORIGINAL_SALT_LAKE_CITY = [-112.2006695, 40.7762691] as const;
 
 /** Fast lookup: location id → location. */
 export const LOCATIONS_BY_ID: ReadonlyMap<string, StoryLocation> = new Map(

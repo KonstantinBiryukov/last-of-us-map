@@ -107,13 +107,20 @@ export interface LegMeta {
   /** Human-readable note explaining the leg (shown in the story panel). */
   note: string;
   /**
-   * Optional correction: replace the START of this leg with the Boston street route
-   * (public/server/info/boston-streets.geojson), joining the original line at its point
-   * closest to where the street route ends. Used for leg 2, whose original Boston section
-   * meanders on the spot (see geo/route.ts).
+   * Optional correction with a generated street route (scripts/build-street-routes.mjs):
+   *   at 'start' – replace the START of this leg with the street route, joining the original
+   *                line at its point closest to where the street route ends (leg 2: Boston's
+   *                original section meandered on the spot);
+   *                Leg 14 also uses it: the drive away starts at the hospital and joins
+   *                the original line on I-80;
+   *   at 'end'   – continue this leg with the street route after its last point (leg 13:
+   *                on from downtown Salt Lake City to the Fireflies' hospital).
    */
-  replaceStartWithBostonStreets?: boolean;
+  streets?: { route: StreetRoute; at: 'start' | 'end' };
 }
+
+/** The generated street routes (files in public/server/info/<route>-streets.geojson). */
+export type StreetRoute = 'boston' | 'hospital' | 'escape';
 
 /** A leg after its coordinates have been loaded, corrected and measured. */
 export interface Leg extends LegMeta {
@@ -122,10 +129,12 @@ export interface Leg extends LegMeta {
 }
 
 /**
- * A character who can appear on the map. Joel and Ellie travel most of the way;
- * Tess is with them in Boston and Bill in Lincoln, exactly where the game has them.
+ * A character who can appear on the map. Joel and Ellie travel most of the way; the
+ * others join exactly where the game has them: Tess (Boston), Bill (Lincoln), Henry and
+ * Sam (Pittsburgh and the suburbs), Tommy (his dam near Jackson), David (with Ellie in
+ * Lakeside Resort).
  */
-export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill';
+export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david';
 
 /**
  * A slice of a leg travelled during one chapter.

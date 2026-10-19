@@ -218,10 +218,18 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
      QZ (North End) → Robert at the docks → the Fireflies (Government Center) → beyond the
      wall → Downtown (Downtown Crossing) → The Museum (Old State House) → The Capitol
      (State House), then the original line from the State House to Lincoln. It was generated
-     once with the Mapbox Directions API — `npm run build:boston` (script
-     `scripts/build-boston-route.mjs`, output `public/server/info/boston-streets.geojson`,
+     once with the Mapbox Directions API — `npm run build:streets -- boston` (script
+     `scripts/build-street-routes.mjs`, output `public/server/info/boston-streets.geojson`,
      which also records each stop's distance along the line). The game's places are
      fictionalised; each stop is a real place chosen to match the story.
+  4. *St. Mark's Hospital* — the original route stopped in downtown Salt Lake City, ~10 km
+     short of the game's last stop. Leg 13 now continues with a 12.8 km walking route to
+     St. Mark's Hospital (the real basis of the game's St. Mary's; `build:streets -- hospital`
+     → `hospital-streets.geojson`), and the Epilogue drive (leg 14) starts there with a
+     5.5 km driving route that joins the original line on I-80 (`build:streets -- escape`
+     → `escape-streets.geojson`). The Salt Lake City marker moved to the hospital too.
+  Each correction is a `streets: { route, at: 'start' | 'end' }` entry in `data/legs.ts`.
+  Only regenerate a route you need: chapter split points are measured on the committed files.
   Long straight interstate stretches (points 2–6 km apart on the 500–700 km legs in
   Wyoming/Colorado) are valid road geometry and are kept; a test flags any hop > 10 km.
   The legs are then glued into one `journey` polyline (`legStart`/`legEnd` give each
@@ -239,8 +247,9 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
   leg parts travelled during the chapter (every chapter has at least one), and the
   `ambience` particle moods for that place.
 - **Leg parts** can override who travels and how:
-  `{ leg, from, to, party, mode, wounded, note }`. `party` is a list of characters in walking
-  order (default `['joel', 'ellie']`); `wounded` lays Joel across the horse behind Ellie.
+  `{ leg, from, to, party, mode, wounded, timeShare, note }`. `party` is a list of characters
+  in walking order (default `['joel', 'ellie']`; companions: Tess, Bill, Henry, Sam, Tommy,
+  David); `wounded` lays Joel across the horse behind Ellie.
   Used exactly where the game has them:
   - *Quarantine Zone* — Joel and Tess cross the QZ to Robert and the Fireflies; Ellie joins
     when Marlene hands her over; the three slip beyond the wall.
@@ -249,12 +258,16 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
     then walk out of Boston to just outside Lincoln (compressed into the last 30 %).
   - *Bill's Town* — starts right outside Lincoln; into the town, through it with Bill; the
     last 20 % is Bill's truck driving out of Lincoln (the drive continues in *Pittsburgh*).
-  - *Lakeside Resort* — 40 % Ellie riding with wounded Joel lying across the horse (the
-    escape after the university), 30 % Ellie alone on foot, 20 % Joel alone on foot
-    searching for her, and the last 10 % together again.
+  - *Pittsburgh* / *The Suburbs* — Henry and Sam join near the end of *Pittsburgh* and
+    walk with them through *The Suburbs*.
+  - *Tommy's Dam* — the last quarter is with Tommy, reunited at his dam.
+  - *Lakeside Resort* — 50 % Ellie riding with wounded Joel lying across the horse (the
+    escape after the university), 20 % Ellie on foot (alone, then with David), 20 % Joel
+    alone on foot searching for her, and the last 10 % together again.
   - *Epilogue* — by car most of the way; only the last 20 % on foot, home to Jackson.
-  The 3D layer shows only the party (Tess and Bill have their own looks); the story panel
-  shows "Joel & Tess", "Joel, Bill & Ellie", "Ellie, alone", "Ellie, with Joel wounded", etc.
+  The 3D layer shows only the party (each companion has their own look, in the same
+  low-poly style); the story panel shows "Joel & Tess", "Joel, Henry, Sam & Ellie",
+  "Ellie & David", "Ellie, with Joel wounded", etc.
 - **Which chapter travels where** follows each chapter's images: Boston chapters stay in
   Boston; *Bill's Town* stays between Boston's edge and Lincoln; Bill's truck drive opens
   *Pittsburgh* (as in the game); *Bus Depot* starts with the jump to Utah and stays near Salt
@@ -328,13 +341,20 @@ frame. To add a mood: add a name to `AmbienceKind` (`data/types.ts`), a recipe i
 
 **Camera** (`map/camera.ts`). *Follow* glides after the travellers at a zoom matched
 to their speed and swoops out over jumps; *Overview* frames the whole journey;
-*Free* never moves on its own (dragging the map, zoom buttons, or "Explore the map").
+*Free* never moves on its own ("Explore the map"). During the journey the map **cannot be
+panned** (dragging it away let the travellers walk off-screen while the story played): wheel,
+pinch and the +/− buttons zoom around the centre and following continues at that zoom (kept
+as an offset of −5…+3 levels on the camera's own choice). Explore allows panning again.
 Any story navigation — next/previous chapter, clicking a location, releasing the
 timeline — switches back to Follow and flies there. Users can pan and zoom but **not rotate
 or tilt** (right-click/Ctrl-drag, two-finger twist and tilt, Shift+arrows are disabled):
 tilt and heading are the director's choices. Every flight carries an id so an
 interrupted flight cannot hand control back early (the cause of an earlier bug where
 the camera stopped following after quick chapter clicks).
+
+**Markers** are Mapbox HTML markers: Mapbox writes the marker element's `transform` on every
+camera move, so hover effects scale the inner icon/ring instead — a CSS transition on the
+element itself made the markers lag and shake while the camera moved.
 
 **Main menu.** The house button (top-left) returns to the title screen and pauses the
 story; the title screen then offers *Continue the journey*, *Start over* and *Explore the map*.
@@ -426,7 +446,7 @@ In the repository settings, Pages must stay on *Deploy from a branch → gh-page
 | Files starting with `_` 404 on Pages | `.nojekyll` missing in `dist/` (it comes from `public/.nojekyll`). |
 | No music | Browser autoplay policy — press the music play button once. |
 | Slow or hot laptop | Map settings (layers icon) → turn off *3D terrain* and *Particles & dust*. Low-core machines start with them off. |
-| Camera does not move | You are in *free* mode (you dragged the map or chose Explore). Press *Follow* (F) or pick a chapter. |
+| Camera does not move | You are in *overview* (Overview button) or *Explore the map*. Press *Follow* (F) or pick a chapter. |
 | Want to see the frame rate | Open the page with `?stats` before the `#` (see Appendix A). |
 | `npm install` warns about engines | Use Node 24 LTS or newer (`brew upgrade node`). |
 | Images load slowly after adding new ones | Run `npm run optimize:images`. |
@@ -476,10 +496,10 @@ chapter images show*. Checked against real coordinates (automated in `data.test.
 | --- | --- |
 | Markers: Austin, Boston (North End = the game's QZ), Lincoln, Pittsburgh, Jackson, Fort Collins (CSU = University of Eastern Colorado) | within 0–5 km of the real places ✔ |
 | Silver Lake marker | ~11 km east of Silver Lake in the Boulder watershed — fine at map scale |
-| Salt Lake City marker | ~26 km **west** of downtown (near Magna); the route itself ends downtown. Not moved — could be placed at downtown / St. Mark's Hospital (the basis of the game's St. Mary's) |
+| Salt Lake City marker | was ~26 km **west** of downtown (near Magna); **moved** to St. Mark's Hospital (the basis of the game's St. Mary's), where the route now ends (§7, correction 4) |
 | *Bill's Town* showed Connecticut/Pennsylvania | **fixed** — it starts right outside Lincoln (< 3 km), and only its last 20 % drives out of Lincoln in Bill's truck; the drive west continues in *Pittsburgh* |
 | Boston chapters walked on the spot | **fixed** — a street route through the game's places (§7, correction 3); the split points (Ellie joins at the Fireflies, Tess stays at the Capitol) are tested to land within 150 m of those places |
-| *Bus Depot* walked through Colorado | **fixed** — the Colorado mountain walk belongs to *Lakeside Resort*; *Bus Depot* starts with the jump to Utah and stays within 80 km of Salt Lake City (the original jump lands near Provo); *The Firefly Lab* is the last 14 km into the city |
+| *Bus Depot* walked through Colorado | **fixed** — the Colorado mountain walk belongs to *Lakeside Resort*; *Bus Depot* starts with the jump to Utah and stays within 80 km of Salt Lake City (the original jump lands near Provo); *The Firefly Lab* is the last ~17 km into the city plus ~13 km of streets to the hospital |
 | Boston chapters | stay in Boston (QZ within 3 km, Outskirts within 8 km of the State House) ✔ |
 | Leg order and travel modes (truck, horse) | match the game's chapters ✔ |
 | Prologue drive | ends ~47 km south-west of Austin — longer than the game's drive to the outskirts (harmless) |

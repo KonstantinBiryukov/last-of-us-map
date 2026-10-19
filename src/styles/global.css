@@ -125,7 +125,14 @@ img {
   border-radius: 50%;
   background: transparent;
   cursor: pointer;
-  transition: transform 0.35s var(--ease-out), opacity 0.35s;
+  /*
+   * IMPORTANT: never transition or set `transform` on this element. Mapbox positions each
+   * marker by rewriting this element's transform (translate) on every camera move — up to
+   * 60 times a second while the camera follows the travellers. A CSS transition on
+   * transform made every new position glide in late, so the markers lagged and shook.
+   * Visual effects (hover zoom) are applied to the inner ring and icon instead.
+   */
+  transition: opacity 0.35s;
 }
 
 .map-marker__icon {
@@ -136,7 +143,7 @@ img {
   border-radius: 50%;
   object-fit: cover;
   filter: saturate(0.75) brightness(0.9);
-  transition: filter 0.35s;
+  transition: filter 0.35s, transform 0.35s var(--ease-out);
 }
 
 .map-marker__ring {
@@ -146,7 +153,7 @@ img {
   border: 2px solid var(--color-line-strong);
   background: var(--color-surface-solid);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
-  transition: border-color 0.35s, box-shadow 0.35s;
+  transition: border-color 0.35s, box-shadow 0.35s, transform 0.35s var(--ease-out);
 }
 
 .map-marker__label {
@@ -169,8 +176,17 @@ img {
   transition: opacity 0.3s;
 }
 
-.map-marker:hover,
-.map-marker:focus-visible {
+/* Journey: the map can only be zoomed, not dragged (camera.ts) — no "grab" hand cursor. */
+.map--zoom-only .mapboxgl-canvas-container.mapboxgl-interactive,
+.map--zoom-only .mapboxgl-canvas-container.mapboxgl-interactive:active {
+  cursor: default;
+}
+
+/* Hover/focus zoom on the INNER layers (see the note on .map-marker above). */
+.map-marker:hover .map-marker__ring,
+.map-marker:hover .map-marker__icon,
+.map-marker:focus-visible .map-marker__ring,
+.map-marker:focus-visible .map-marker__icon {
   transform: scale(1.12);
 }
 .map-marker:hover .map-marker__label,

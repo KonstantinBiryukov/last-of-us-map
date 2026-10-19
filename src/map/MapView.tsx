@@ -126,7 +126,7 @@ export function MapView({ padding, onNotice, onUnavailable, mode, selectedLocati
         attributionControl: false,
         logoPosition: 'bottom-right',
         fadeDuration: 150,
-        // Users may pan and zoom, but NOT rotate or tilt: right-click / Ctrl-drag, two-finger
+        // Users may pan (only in Explore — see camera.ts) and zoom, but NOT rotate or tilt: right-click / Ctrl-drag, two-finger
         // twist and two-finger tilt are all switched off. Tilt and heading are cinematic
         // choices the camera director makes; letting a stray drag change them left the
         // camera in a broken, sideways "free-fly" state.
