@@ -43,7 +43,7 @@
  */
 import type { LngLatBoundsLike, Map as MapboxMap } from 'mapbox-gl';
 import type { PlaybackEngine } from '../playback/engine';
-import type { MutableLngLat } from '../geo/polyline';
+import { haversineMeters, type MutableLngLat } from '../geo/polyline';
 import { metersPerPixel } from '../geo/mercator';
 import { isJumpKind } from '../playback/timeline';
 
@@ -68,17 +68,32 @@ const CENTRE_SPEED = 2.6;
 const ZOOM_SPEED = 0.9;
 const JUMP_ZOOM_SPEED = 2.4;
 const PITCH_SPEED = 1.5;
-/** How far (zoom levels) the user may zoom out (−) or in (+) from the camera's own choice. */
-const MIN_ZOOM_OFFSET = -5;
-const MAX_ZOOM_OFFSET = 3;
+/**
+ * How far (zoom levels) the user may zoom out (−) or in (+) from the camera's own choice.
+ * Out: only one level, so the travellers never become specks. In: 2.5 levels, so you can
+ * get close to the street where the satellite imagery is sharpest.
+ */
+const MIN_ZOOM_OFFSET = -1;
+const MAX_ZOOM_OFFSET = 2.5;
 /** Zoom levels per wheel "pixel" (a typical mouse notch is 100 px → ~0.4 levels). */
 const WHEEL_ZOOM_RATE = 1 / 250;
 /** Right after a user zoom, the camera zooms this much faster, so the gesture feels direct. */
 const USER_ZOOM_SPEED = 6;
 const USER_ZOOM_BOOST_MS = 700;
-/** How long story flights last (ms): short hops are quick, cross-country ones a bit longer. */
-const FLIGHT_MIN_MS = 1100;
-const FLIGHT_MAX_MS = 2400;
+/**
+ * How long story flights last (ms). The duration grows with the LOGARITHM of the distance
+ * (see flightDuration): within a city ≈ 2 s, to a nearby town ≈ 3 s, to another state or
+ * across the country ≈ 4.5–5 s. A straight "ms per pixel" rule hit its cap for almost every
+ * chapter change, so long flights crammed a continent into the same time as a short one —
+ * that is what felt like rushing.
+ */
+const FLIGHT_MIN_MS = 2000;
+const FLIGHT_MAX_MS = 5000;
+/**
+ * Easing of story flights: "ease in-out sine" — starts and ends gently, with no sudden lurch
+ * (Mapbox's default curve accelerates quite sharply at the start). t = 0…1 → progress 0…1.
+ */
+const flightEasing = (t: number): number => 0.5 - Math.cos(Math.PI * t) / 2;
 
 export interface CameraOptions {
   /** Returns true when the user prefers reduced motion (we then cut instead of flying). */
@@ -398,16 +413,19 @@ export class CameraDirector {
       this.map.jumpTo({ center: this.centre, zoom, pitch: 30, bearing: 0 });
       return;
     }
-    // Duration grows with how far the camera must travel on screen (pixels at the current zoom).
-    const from = this.map.project(this.map.getCenter());
-    const to = this.map.project([look[0], look[1]]);
-    const pixels = Math.hypot(to.x - from.x, to.y - from.y) + Math.abs(zoom - this.map.getZoom()) * 400;
-    const duration = Math.min(FLIGHT_MAX_MS, Math.max(FLIGHT_MIN_MS, pixels * 0.9));
+    // Duration grows with how far the camera must travel, measured as the GROUND distance in
+    // pixels of the current zoom. (Projecting the target on screen does not work for far
+    // targets: in a tilted view a point beyond the horizon projects to a misleadingly small
+    // distance, so a flight across the country was timed like a short hop.)
+    const centre = this.map.getCenter();
+    const metres = haversineMeters([centre.lng, centre.lat], [look[0], look[1]]);
+    const pixels = metres / metersPerPixel(this.map.getZoom(), centre.lat) + Math.abs(zoom - this.map.getZoom()) * 400;
+    const duration = flightDuration(pixels);
     const id = ++this.flightCounter;
     this.flightId = id;
     // The second argument is "eventData": Mapbox copies it onto the movestart/moveend events.
     this.map.flyTo(
-      { center: [look[0], look[1]], zoom, pitch: FOLLOW_PITCH, bearing: 0, curve: 1.42, duration, essential: false },
+      { center: [look[0], look[1]], zoom, pitch: FOLLOW_PITCH, bearing: 0, curve: 1.42, duration, easing: flightEasing, essential: false },
       { flightId: id },
     );
   }
@@ -500,6 +518,16 @@ function touchDistance(touches: TouchList): number {
   const a = touches[0]!;
   const b = touches[1]!;
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
+/**
+ * Story flight duration (ms) for a camera move of `pixels` (ground distance in pixels at the
+ * current zoom):  1600 + 380 × log2(1 + pixels / 300), kept between FLIGHT_MIN_MS and
+ * FLIGHT_MAX_MS. Each doubling of the distance adds only 0.38 s, so far flights take longer
+ * but never drag. E.g. at street zoom: 1 km ≈ 2 s, 20 km ≈ 3.2 s, 300+ km = 5 s.
+ */
+function flightDuration(pixels: number): number {
+  return clamp(1600 + 380 * Math.log2(1 + pixels / 300), FLIGHT_MIN_MS, FLIGHT_MAX_MS);
 }
 
 /** Keeps `value` between `min` and `max`. */

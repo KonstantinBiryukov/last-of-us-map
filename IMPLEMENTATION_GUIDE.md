@@ -344,13 +344,16 @@ to their speed and swoops out over jumps; *Overview* frames the whole journey;
 *Free* never moves on its own ("Explore the map"). During the journey the map **cannot be
 panned** (dragging it away let the travellers walk off-screen while the story played): wheel,
 pinch and the +/− buttons zoom around the centre and following continues at that zoom (kept
-as an offset of −5…+3 levels on the camera's own choice). Explore allows panning again.
+as an offset from the camera's own choice: at most 1 level out, 2.5 levels in). Explore allows panning again.
 Any story navigation — next/previous chapter, clicking a location, releasing the
 timeline — switches back to Follow and flies there. Users can pan and zoom but **not rotate
 or tilt** (right-click/Ctrl-drag, two-finger twist and tilt, Shift+arrows are disabled):
 tilt and heading are the director's choices. Every flight carries an id so an
 interrupted flight cannot hand control back early (the cause of an earlier bug where
 the camera stopped following after quick chapter clicks).
+
+Story flights last 2–5 s (growing with the logarithm of the distance) with a gentle "ease in-out sine"
+curve, so chapter clicks travel quickly without a jolt.
 
 **Markers** are Mapbox HTML markers: Mapbox writes the marker element's `transform` on every
 camera move, so hover effects scale the inner icon/ring instead — a CSS transition on the
