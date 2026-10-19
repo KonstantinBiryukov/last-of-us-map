@@ -1,0 +1,9 @@
+{
+  // Type-checks the unit tests, which run in Node and may use Node APIs (fs, path).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src"],
+  "exclude": []
+}

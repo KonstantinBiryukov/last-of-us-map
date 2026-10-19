@@ -1,0 +1,240 @@
+/* Same surface language as the journey's story panel, so both modes feel like one product. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  max-height: 100%;
+  padding: 18px 18px 16px;
+  border-radius: var(--radius-l);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-panel);
+  overflow-y: auto;
+  overscroll-behavior: contain; /* scrolling the panel never scrolls/zooms the map behind it */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+/* Children keep their natural height; the panel scrolls instead of squashing them. */
+.panel > * {
+  flex-shrink: 0;
+}
+
+.kicker,
+.sectionLabel {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.title,
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2.2vw, 34px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.cardTitle {
+  outline: none; /* focused from code only; the visible focus would be noise here */
+  animation: rise 0.5s var(--ease-out);
+}
+
+.lede {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+/* ── list of places ── */
+.list {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-m);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.item:hover {
+  background: rgba(236, 227, 211, 0.06);
+  border-color: var(--color-line);
+}
+.itemIcon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px var(--color-line-strong);
+}
+.itemText {
+  display: grid;
+}
+.itemTitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.itemMeta {
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #1a1206;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.primary:hover {
+  background: #f0b456;
+}
+
+/* ── location card ── */
+.cardBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.back,
+.close {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.back:hover,
+.close:hover {
+  color: var(--color-text);
+  background: rgba(236, 227, 211, 0.06);
+}
+
+.photoFrame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background-color: #111;
+  background-size: cover;
+  background-position: center;
+}
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: fade 0.6s var(--ease-out);
+}
+
+.chapters {
+  display: grid;
+  gap: 6px;
+}
+.chapter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  background: rgba(236, 227, 211, 0.03);
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.chapter:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+.chapterLabel {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-right: 4px;
+}
+.chapterGo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #1a1206;
+}
+
+.description {
+  border-top: 1px solid var(--color-line);
+  padding-top: 12px;
+  font-family: var(--font-story);
+  font-size: 15px;
+  line-height: 1.6;
+  color: #d9cfbe;
+}
+.description p {
+  margin: 0 0 10px;
+}
+.source {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  color: var(--color-text-faint);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}

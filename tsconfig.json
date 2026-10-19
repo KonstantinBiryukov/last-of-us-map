@@ -1,0 +1,30 @@
+{
+  // TypeScript settings for the browser application (everything in src/).
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+
+    // Strict type checking: every option that catches real bugs is switched on.
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
+
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src"],
+  // Tests use Node APIs; they are checked separately by tsconfig.test.json.
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/playback/testUtils.ts"]
+}

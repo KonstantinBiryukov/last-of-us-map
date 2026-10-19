@@ -2,20 +2,18 @@
 node_modules
 /dist
 
-# local env files
+# Local environment files. Your Mapbox token lives in .env.local and is never committed.
 .env.local
 .env.*.local
 
 # Log files
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Editor directories and files
 .idea
 .vscode
 *.suo
-*.ntvs*
-*.njsproj
-*.sln
 *.sw?
+
+# gh-pages publishing cache
+node_modules/.cache/gh-pages

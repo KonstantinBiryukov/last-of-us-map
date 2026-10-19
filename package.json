@@ -1,29 +1,43 @@
 {
-  "name": "last_of_us",
-  "version": "0.2.0",
+  "name": "last-of-us-map",
+  "version": "1.0.0",
   "private": true,
+  "description": "A cinematic, interactive map of Joel and Ellie's journey in The Last of Us.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "gh-pages-deploy": "node scripts/gh-pages-deploy.js"
+    "dev": "vite",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run test && vite build",
+    "optimize:images": "node scripts/optimize-images.mjs",
+    "deploy": "node scripts/deploy-gh-pages.mjs"
   },
   "dependencies": {
-    "core-js": "^3.6.4",
-    "howler": "^2.1.3",
-    "mapbox-gl": "^1.9.1",
-    "vue": "^2.6.11",
-    "vue-flux": "^6.1.1",
-    "vue-router": "^3.1.6",
-    "vuex": "^3.1.3"
+    "@fontsource/barlow-condensed": "^5.2.6",
+    "@fontsource/source-serif-4": "^5.2.8",
+    "mapbox-gl": "^3.32.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.3.0",
-    "@vue/cli-plugin-router": "~4.3.0",
-    "@vue/cli-plugin-vuex": "~4.3.0",
-    "@vue/cli-service": "~4.3.0",
-    "node-sass": "^4.12.0",
-    "sass-loader": "^8.0.2",
-    "vue-template-compiler": "^2.6.11",
-    "execa": "latest"
+    "@types/geojson": "^7946.0.16",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "gh-pages": "^6.3.0",
+    "jsdom": "^30.1.0",
+    "sharp": "^0.35.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3"
   }
 }

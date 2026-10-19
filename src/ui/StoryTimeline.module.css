@@ -1,0 +1,119 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.time {
+  flex: none;
+  min-width: 38px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.track {
+  position: relative;
+  flex: 1;
+  height: 26px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+/* Chapter segments with small gaps between them, like chapters on a film strip. */
+.segments {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11px;
+  height: 4px;
+  display: flex;
+  gap: 3px;
+}
+.segment {
+  flex-basis: 0;
+  border-radius: 2px;
+  background: var(--color-line-strong);
+}
+
+.fillClip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  pointer-events: none;
+}
+.fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #b8742a, var(--color-accent));
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+.head {
+  position: absolute;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: var(--color-text);
+  box-shadow: 0 0 0 4px var(--color-accent-soft), 0 2px 6px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transition: transform 0.15s;
+}
+.track:hover .head {
+  transform: scale(1.15);
+}
+
+/* The real (invisible) slider sits on top and receives all input. */
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+/* Keyboard focus is shown on the playhead, since the real slider is invisible. */
+.track:has(.input:focus-visible) .head {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  padding: 5px 9px;
+  border-radius: var(--radius-s);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-panel);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.tooltipChapter {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tooltipTime {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}

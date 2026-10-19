@@ -1,0 +1,87 @@
+.wrap {
+  position: absolute;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(60, 48, 32, 0.35), transparent 70%),
+    var(--color-bg);
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.leg {
+  fill: none;
+  stroke: var(--color-text);
+  stroke-opacity: 0.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.6s, stroke-opacity 0.6s;
+}
+.leg[data-done='true'] {
+  stroke: var(--color-accent);
+  stroke-opacity: 0.95;
+}
+.detailed {
+  stroke-linecap: round;
+}
+.jump {
+  stroke-linecap: butt;
+}
+.timeskip {
+  stroke-opacity: 0.55;
+}
+
+.active {
+  fill: none;
+  stroke: #ffd38a;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.marker {
+  cursor: pointer;
+  outline: none;
+}
+.markerDot {
+  fill: var(--color-surface-solid);
+  stroke: var(--color-line-strong);
+}
+.marker[data-state='visited'] .markerDot {
+  stroke: rgba(232, 163, 61, 0.6);
+}
+.marker[data-state='next'] .markerDot {
+  stroke: var(--color-accent);
+  stroke-dasharray: 2 2;
+}
+.marker[data-state='current'] .markerDot {
+  fill: var(--color-accent);
+  stroke: #fff3d6;
+}
+.marker:hover .markerDot,
+.marker:focus-visible .markerDot {
+  stroke: var(--color-focus);
+}
+.markerLabel {
+  fill: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+  text-transform: uppercase;
+  paint-order: stroke;
+  stroke: var(--color-bg);
+  stroke-width: 0.6px;
+}
+.marker[data-state='upcoming'] .markerLabel {
+  fill: var(--color-text-faint);
+}
+
+.dot {
+  fill: #fff3d6;
+}
+.dotGlow {
+  fill: var(--color-accent);
+  opacity: 0.8;
+}
