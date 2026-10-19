@@ -1,0 +1,335 @@
+/*
+ * global.css — design tokens and styles shared by the whole app.
+ *
+ * VISUAL DIRECTION
+ *   Dark, warm, worn surfaces (like old paper and ash), bone-coloured text, and
+ *   one warm accent — the amber of a lantern or a firefly's glow — used only
+ *   for what matters right now: the active route, the current place, the
+ *   playhead. A rust/ember tone is the secondary accent for warnings.
+ *
+ * PERFORMANCE NOTE
+ *   Panels are semi-opaque but deliberately do NOT use `backdrop-filter: blur`.
+ *   The map behind them repaints up to 60×/s, and a live blur would force the
+ *   GPU to re-blur the whole panel area every frame.
+ *
+ * Component-specific styles live next to each component in *.module.css
+ * files (CSS Modules: class names are scoped automatically, no collisions).
+ * This file only holds tokens, resets, and styles for DOM that Mapbox creates
+ * (markers, popups, controls), which CSS Modules cannot reach.
+ */
+
+@import '@fontsource/barlow-condensed/500.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/source-serif-4/400.css';
+@import '@fontsource/source-serif-4/400-italic.css';
+
+:root {
+  /* Colours */
+  --color-bg: #0d0c0a;
+  --color-surface: rgba(17, 16, 13, 0.86);
+  --color-surface-solid: #15130f;
+  --color-surface-raised: rgba(30, 27, 22, 0.92);
+  --color-line: rgba(236, 227, 211, 0.12);
+  --color-line-strong: rgba(236, 227, 211, 0.24);
+  --color-text: #ece3d3;
+  --color-text-muted: #a89f8f;
+  --color-text-faint: #7a7266;
+  --color-accent: #e8a33d;
+  --color-accent-soft: rgba(232, 163, 61, 0.18);
+  --color-ember: #c2502e;
+  --color-focus: #ffd38a;
+
+  /* Type */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-story: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  /* Shape & motion */
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 14px;
+  --shadow-panel: 0 18px 50px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-cinematic: cubic-bezier(0.65, 0, 0.35, 1);
+  --gutter: 20px;
+
+  color-scheme: dark;
+}
+
+@media (max-width: 899px) {
+  :root {
+    --gutter: 12px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; /* the app is a full-screen experience */
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* One clearly visible focus style for every interactive element (keyboard users). */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Text only for screen readers. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ───────────────────────── Map markers (DOM created in map/markers.ts) ───────────────────────── */
+
+.map-marker {
+  --size: 34px;
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.35s var(--ease-out), opacity 0.35s;
+}
+
+.map-marker__icon {
+  position: absolute;
+  inset: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  border-radius: 50%;
+  object-fit: cover;
+  filter: saturate(0.75) brightness(0.9);
+  transition: filter 0.35s;
+}
+
+.map-marker__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--color-line-strong);
+  background: var(--color-surface-solid);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  transition: border-color 0.35s, box-shadow 0.35s;
+}
+
+.map-marker__label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(13, 12, 10, 0.78);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.map-marker:hover,
+.map-marker:focus-visible {
+  transform: scale(1.12);
+}
+.map-marker:hover .map-marker__label,
+.map-marker:focus-visible .map-marker__label,
+.map-marker--current .map-marker__label,
+.map-marker--next .map-marker__label {
+  opacity: 1;
+}
+.map-marker:hover .map-marker__icon {
+  filter: none;
+}
+
+.map-marker--upcoming {
+  --size: 28px;
+  opacity: 0.72;
+}
+.map-marker--upcoming .map-marker__icon {
+  filter: grayscale(0.85) brightness(0.75);
+}
+
+.map-marker--visited .map-marker__ring {
+  border-color: rgba(232, 163, 61, 0.55);
+}
+
+.map-marker--next .map-marker__ring {
+  border: 2px dashed var(--color-accent);
+}
+.map-marker--next .map-marker__label {
+  /* Above the marker, so it never collides with the current location's label below its own marker. */
+  top: auto;
+  bottom: calc(100% + 6px);
+  color: var(--color-text-muted);
+}
+.map-marker--next .map-marker__label::before {
+  content: 'Next · ';
+  color: var(--color-accent);
+}
+
+.map-marker--current {
+  --size: 44px;
+}
+.map-marker--current .map-marker__icon {
+  filter: none;
+}
+.map-marker--current .map-marker__ring {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-accent-soft), 0 6px 22px rgba(0, 0, 0, 0.7);
+}
+.map-marker--current::after {
+  /* A slow "breathing" halo — transform/opacity only, so it is GPU-cheap. */
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent);
+  animation: marker-breathe 2.8s var(--ease-cinematic) infinite;
+  pointer-events: none;
+}
+.map-marker--current .map-marker__label {
+  color: var(--color-accent);
+}
+
+/* Explore mode: every location equal, in full colour, always labelled. */
+.map-marker--explore {
+  --size: 40px;
+}
+.map-marker--explore .map-marker__icon {
+  filter: none;
+}
+.map-marker--explore .map-marker__label {
+  opacity: 1;
+}
+/* The location whose card is open. */
+.map-marker--selected {
+  --size: 48px;
+}
+.map-marker--selected .map-marker__ring {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-accent-soft), 0 6px 22px rgba(0, 0, 0, 0.7);
+}
+.map-marker--selected .map-marker__label {
+  color: var(--color-accent);
+}
+
+@keyframes marker-breathe {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ───────────────────────── Location preview popup ───────────────────────── */
+
+.location-popup .mapboxgl-popup-content {
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-m);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-panel);
+  color: var(--color-text);
+}
+.location-popup .mapboxgl-popup-tip {
+  border-top-color: var(--color-surface-raised) !important;
+  border-bottom-color: var(--color-surface-raised) !important;
+}
+
+.location-preview__photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background-size: cover;
+  background-color: #222;
+}
+.location-preview__title {
+  padding: 10px 12px 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.location-preview__chapters {
+  padding: 2px 12px 0;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+}
+.location-preview__hint {
+  padding: 6px 12px 10px;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ───────────────────────── Mapbox controls ───────────────────────── */
+
+.mapboxgl-ctrl-attrib,
+.mapboxgl-ctrl-attrib.mapboxgl-compact {
+  background: rgba(13, 12, 10, 0.6) !important;
+  color: var(--color-text-faint);
+}
+.mapboxgl-ctrl-attrib a {
+  color: var(--color-text-muted) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.12s !important;
+  }
+}

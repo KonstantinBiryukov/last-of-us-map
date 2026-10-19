@@ -1,0 +1,189 @@
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  align-items: center;
+  padding: 6vh 7vw;
+  /* Vertical scrolling only as a fallback for very short screens; never sideways. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  /*
+   * Opaque from the very first frame. The map (with the route) is already loading
+   * BEHIND this screen; if the overlay itself faded in from transparent, or relied on
+   * the photo for its opacity, the route would flash through for a moment. So the
+   * overlay is a solid colour, and only its contents (photo + text) fade in on top.
+   */
+  background: var(--color-bg);
+  isolation: isolate; /* keeps the backdrop's z-index: -1 inside this overlay, above the map */
+}
+
+.backdrop {
+  /*
+   * fixed (not absolute): the slow push-in starts at 108 % size, larger than the
+   * screen. Inside the scrollable overlay an absolutely positioned photo would count
+   * as overflowing content and create scrollbars; a fixed one is pinned to the
+   * viewport and never takes part in scrolling.
+   */
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--color-bg); /* solid even before the photo has downloaded */
+  background-size: cover;
+  background-position: center 35%;
+  /* Fade in over the solid colour, then a slow push-in, like the opening shot of a film. */
+  animation:
+    fade-in 1.2s var(--ease-out) both,
+    push-in 30s linear both;
+}
+
+.content {
+  animation: fade-in 1.2s var(--ease-out) both;
+}
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(10, 9, 7, 0.96) 0%, rgba(10, 9, 7, 0.82) 38%, rgba(10, 9, 7, 0.35) 75%, rgba(10, 9, 7, 0.55) 100%),
+    linear-gradient(0deg, rgba(10, 9, 7, 0.9) 0%, transparent 40%);
+}
+
+.content {
+  max-width: 560px;
+  display: grid;
+  gap: 14px;
+}
+
+.emblem {
+  width: 84px;
+  height: 84px;
+  opacity: 0.92;
+}
+
+.kicker {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(52px, 8vw, 96px);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lede {
+  margin: 4px 0 8px;
+  font-family: var(--font-story);
+  font-size: 18px;
+  line-height: 1.55;
+  color: #d8cebd;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.primary,
+.secondary {
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s, transform 0.2s, border-color 0.25s;
+}
+.primary {
+  border: 0;
+  background: var(--color-accent);
+  color: #1a1206;
+  box-shadow: 0 10px 30px rgba(232, 163, 61, 0.25);
+}
+.primary:hover:not(:disabled) {
+  background: #f0b456;
+  transform: translateY(-1px);
+}
+.secondary {
+  border: 1px solid var(--color-line-strong);
+  background: rgba(13, 12, 10, 0.4);
+  color: var(--color-text);
+}
+.secondary:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.link {
+  padding: 8px 6px;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--color-line-strong);
+  text-underline-offset: 5px;
+}
+.link:hover {
+  color: var(--color-text);
+}
+
+.warning {
+  margin: 14px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--color-ember);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.warning strong {
+  color: #e07b5a;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes push-in {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .intro {
+    align-items: end;
+    padding: 24px var(--gutter) 32px;
+  }
+  .lede {
+    font-size: 16px;
+  }
+  .backdrop::after {
+    background: linear-gradient(0deg, rgba(10, 9, 7, 0.97) 35%, rgba(10, 9, 7, 0.45) 100%);
+  }
+}

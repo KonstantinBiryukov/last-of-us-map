@@ -1,0 +1,908 @@
+{
+ "server/assets/story_telling_images/chapters/1/1_naughty_dog.png": {
+  "width": 980,
+  "height": 562,
+  "src": "server/optimized/story_telling_images/chapters/1/1_naughty_dog.webp",
+  "lqip": "data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAABQAwCdASoYAA4APu1kqk4ppaQiMAgBMB2JaQAAW+sXillYAAD+9Bv3WFxmuy4yuBkMGsMTByiKcHHz7Jb4rfQcPIOPAAAA"
+ },
+ "server/assets/story_telling_images/chapters/1/2_chapter1.png": {
+  "width": 948,
+  "height": 620,
+  "src": "server/optimized/story_telling_images/chapters/1/2_chapter1.webp",
+  "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAADwAwCdASoYABAAPu1iqk2ppaQiMAgBMB2JYgAAW+zPNqanvo1eNaGAAP70JdDoC0Af1VynrFMH1VZ3iAqOJ2xJ9LuvHe5/19OF/XhJXWxRLYnSpK4FEwNgPgAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/1/3_year.png": {
+  "width": 936,
+  "height": 594,
+  "src": "server/optimized/story_telling_images/chapters/1/3_year.webp",
+  "lqip": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAAAQAwCdASoYAA8APu1orU6ppiSiMAgBMB2JYgAAetChi+AA/vDdjA183pTuqfx0t3gQ17pX9lKjB3VQ1AO73Cf1Yi5qxjXj3AgAAA=="
+ },
+ "server/assets/story_telling_images/chapters/1/img_1.png": {
+  "width": 2398,
+  "height": 1334,
+  "src": "server/optimized/story_telling_images/chapters/1/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAADQAwCdASoYAA0APu1iqk2ppaQiMAgBMB2JZQCw7CHhT0yehtFXYAAA/uNB4zyJYvCwvSC3/nAPLSr9df4oUr0scbbf8Yx3aSbzEkAU5Jip90psFZCgtQAA"
+ },
+ "server/assets/story_telling_images/chapters/1/img_2.jpg": {
+  "width": 640,
+  "height": 396,
+  "src": "server/optimized/story_telling_images/chapters/1/img_2.webp",
+  "lqip": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADwAwCdASoYAA8APu1qrU8ppiQiMAgBMB2JYwDE2CHhvX2rvdQ78nggAP7ujPYFurH+isHGH7S8d1RGUL3w88Z/NTB1y638b/DM1z0Zg3bxuhQLzvfIAA=="
+ },
+ "server/assets/story_telling_images/chapters/1/img_3.jpg": {
+  "width": 640,
+  "height": 396,
+  "src": "server/optimized/story_telling_images/chapters/1/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAACwAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JZwAAW72BrOipGVnNgAD+2c+KXvxXumOjJqjgKcCEKV1W9e9CAZ73M8brzoWklfFgAA=="
+ },
+ "server/assets/story_telling_images/chapters/1/img_4.jpg": {
+  "width": 1280,
+  "height": 720,
+  "src": "server/optimized/story_telling_images/chapters/1/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAABwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JYgCdH8ACvffJR7s9ogXl6PpMAAD+8r2VaY1NiPIsfSju3VCN+QKCjrnytKQ1zTjYtGDeFEF9t/bXH0jGJD1AGrJNL8eO4dml3cD3YMKrzFmizLp6Q4jovaswKQj8hoFhGNOimcVQEbBVMN38iaqlX8aQAA=="
+ },
+ "server/assets/story_telling_images/chapters/1/img_5.jpg": {
+  "width": 1280,
+  "height": 720,
+  "src": "server/optimized/story_telling_images/chapters/1/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAADwAwCdASoYAA4APu1iqk2ppaQiMAgBMB2JYwCdACIj7CjndicyYBqAAP7pUYI7lyB8CJMf02N6gYEzl5EgVLC4m5kbD6YIQoZ8DglZ8l/eU/BbtMmWmx7UgVf7KFq1fUAaNJeh8Wp+/BawNJ7W8G2pyjrPZx040g0MwAAA"
+ },
+ "server/assets/story_telling_images/chapters/1/img_6.jpg": {
+  "width": 640,
+  "height": 396,
+  "src": "server/optimized/story_telling_images/chapters/1/img_6.webp",
+  "lqip": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAADQAwCdASoYAA8APu1iqU2ppaQiMAgBMB2JZwAAW/C97Hvc414HAAAA/u6PqoWTUpsgn96iwmnvJpeSvm7VxZLicagBfFSYGstIVh4CAAA="
+ },
+ "server/assets/story_telling_images/chapters/1/img_7.png": {
+  "width": 2292,
+  "height": 1484,
+  "src": "server/optimized/story_telling_images/chapters/1/img_7.webp",
+  "lqip": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAADwAwCdASoYABAAPu1iqU2ppaQiMAgBMB2JZwAAW+uL7oMJa9Zc6CKgAP7ynzGwamDCwt1ZdOauNUO/LesA8oJ69SmdV+SSA7SM8XRirSJm2vuzqZRo676gAAA="
+ },
+ "server/assets/story_telling_images/chapters/1/img_8.png": {
+  "width": 1066,
+  "height": 884,
+  "src": "server/optimized/story_telling_images/chapters/1/img_8.webp",
+  "lqip": "data:image/webp;base64,UklGRsYAAABXRUJQVlA4ILoAAADQBACdASoYABQAPu1srFEppaQiqAqpMB2JbAC06BEbKLIFW9dCrQJ5qY1j22eYQAD+6jmBgvqVY4P8kekwIF81W5qB42vH2imvmE4Z3wL6F3n+5MdYN9QpLjJYaAJQ3wAMMH1KQabXs15phglvSm0KdqLBr77i68BTXZNXdsXT2AGRAESW/V7KRW6AZhF94HaOGXpnj3Ly3uCYcRg4nPnWrac6hyycQtTZ7ObLOZvm1lBDkbleN3fPIAA="
+ },
+ "server/assets/story_telling_images/chapters/1/last_of_us.jpg": {
+  "width": 1000,
+  "height": 566,
+  "src": "server/optimized/story_telling_images/chapters/1/last_of_us.webp",
+  "lqip": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAABwAwCdASoYAA0APu1iqU2ppaQiMAgBMB2JaQAAXGi7LzPrCgAA/vQiswUsQyHDlMRjXsVAbs99bPeeTqkSgbeLyzoKnVi6qfLnkLbA55gAAA=="
+ },
+ "server/assets/story_telling_images/chapters/1/welcome_screen.png": {
+  "width": 1106,
+  "height": 706,
+  "src": "server/optimized/story_telling_images/chapters/1/welcome_screen.webp",
+  "lqip": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAACQAwCdASoYAA8APu1kqU2ppaQiMAgBMB2JZgAAW+lsLA6mt+WAAP70KqCdUR52DcKSOfzMU79f0AwQQMUDNpInghbIFCe05mecWZLr4kWQzK/fBC1wqRK3WRTNiLgA"
+ },
+ "server/assets/story_telling_images/chapters/10/chapter10.png": {
+  "width": 938,
+  "height": 616,
+  "src": "server/optimized/story_telling_images/chapters/10/chapter10.webp",
+  "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACwAwCdASoYABAAPu1mqk4ppaOiMAgBMB2JYgAAXe3YHvciA66wAAD+8zTYCKsMHB9izJYm6qYiE12NXhO29J9u2VFlYSFvEUoSQv/4n+z6gN2GBM2LcHjd08hbwcsstQf5wZlvCgctPSiJ0AA="
+ },
+ "server/assets/story_telling_images/chapters/10/img_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/10/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAACQAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JQAALxwfYZk4pLrYwAPfej+G5mSwBjXm5l3k9NL6qBMC/2PuD/f/tA4xysRj8G8KmF8x91+6vTPaJUnPollZ4FK4vTCLnATqxRu6opihWKzoEMypliSaqiZf9nKV+Fa9UEGK46uAH9ybjAAA="
+ },
+ "server/assets/story_telling_images/chapters/10/img_2.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/10/img_2.webp",
+  "lqip": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAAAQBACdASoYAA8APu1iqU2ppaOiMAgBMB2JQAAMOCJOBBQqii4e3HJGAAD+5e0yvS2saNb/ejeF6H5S9Cn+kbtvGGNlDQ43xmXiUr7Knuqev/qixaz3VgNLF8xG26ctMxXXHP9UDJHEK2zj2j8+OXLvvcxnIrNeG19UybG6xh6SNE9c61vGg4zC3bAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/10/img_3.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/10/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAABQBACdASoYAA8APu1iqU2ppaOiMAgBMB2JQBZwBH5OIQMII1hBbD/gfr6AAP6Jr/zLUQvAAMPsgvnagNEmaDSEO56eW/Ym8LnH+b7qrxsjduxQFo8rgTlXuq7WUufIw1PkNbq8h01GZ7BrcuTCAbwbEjAwhne+4xK8bEyHEY3s1dCoZiSwX7RNaxoBiTXbfSSTaWd+m4jGbGAA"
+ },
+ "server/assets/story_telling_images/chapters/10/img_4.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/10/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAAAQBACdASoYAA8APu1iqU2ppaOiMAgBMB2JYwCdABboyqN6vPCnOLbMQADylXVRkdScVGAEHs4ALcAIMr6tA3pFgH27fJeIBpaCBQd+x8zZ2j+LNqEvRInPpASuUiqRHy/fGjB8oU9Yjc3nVX7kdPzWa23XlIxKcfpvwuB3MsVOniInYBPEGDEl4TwAAA=="
+ },
+ "server/assets/story_telling_images/chapters/10/img_5.jpg": {
+  "width": 1200,
+  "height": 675,
+  "src": "server/optimized/story_telling_images/chapters/10/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAADwAwCdASoYAA0APu1iqU2ppaQiMAgBMB2JZQC7AB6nU2rr681ovQwAAP6pVrPmcNrSuW8zgeM/mIEBWCCLx7pg3ITLtTY9s33y0NON7o5W3xpZ59bEHtG0mxZ/2hHFTCZmLdvdMj3rXJzbQa0m3u9dfQkMIAAA"
+ },
+ "server/assets/story_telling_images/chapters/10/img_6.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/10/img_6.webp",
+  "lqip": "data:image/webp;base64,UklGRsgAAABXRUJQVlA4ILwAAACQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZABUftwnt6PzLd1WNCLArl/iUQAA/ukDsONtucdvAKcfTOV1ntDEFLwg8WgyMq0nrLdH/cKegMlcav/wxxNupN74oPukCLekXKe2+VH9BOGr8v9ybG1LLs8ZUw/Tq7cRtjeAP/N9tED4ZwMFNvX/z+M2rADR//X59A9WdVAIgly3FRxcmMkcn2bmxh5iNSg1HfR2aL3WFGFkIunWLLjI1QAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/10/img_6_2.png": {
+  "width": 997,
+  "height": 696,
+  "src": "server/optimized/story_telling_images/chapters/10/img_6_2.webp",
+  "lqip": "data:image/webp;base64,UklGRtYAAABXRUJQVlA4IMoAAABQBQCdASoYABEAPu1srFEppaQiqAqpMB2JQBYjwYAJOCkWzbZlXqV0ZcPoSOXpdap1mwAA/tl98Ar+YxivS/JIp3ZIZaAvDuxQf2SHMd7bZRNUx7KzqV6rWAD4WzYOJBI4ksV/32qnkVuU9vkuMRI4+zJcoI8dLUCQiamBii9YtoRdT6JkyH0jbOlfwPptV5F8CBFI9swqh6Rlpf2l2b8m84hfkgBQe4XqEOeO0bU7aVAtC40ILqOAy9wSIHNHEFyGDVYBaogPEAAA"
+ },
+ "server/assets/story_telling_images/chapters/10/img_7.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/10/img_7.webp",
+  "lqip": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4IJ4AAADQAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JYwCdAB57k6qdnEIYZwAA/lvTaF2Zi28O5xIM0RHYfSsOH7kuTYoSwAC+21N5de0M4lvRGYvErJP2qnuzVbUojgT2o+2lU4h/qijeazZz9ISR9SiV7Ir97ruii0qOFkaKwQoxGomDG9E+pesqD7cUEecYU3YJ51faE8XAR0BTybpbw6XgAA=="
+ },
+ "server/assets/story_telling_images/chapters/10/img_8.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/10/img_8.webp",
+  "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAABQBACdASoYAA8APu1iqU2ppaQiMAgBMB2JZQDCgB6TOL1XK/aS/VhdJd/AAP6tJJS6ia3eFiDWltZjwdV2E6FPi37oAY+lDsAvu7H7FvXXzMeotgZWkCBq59IQS4+6wo6bI4tbc+i84PW8840G/wmF7OzfQAAA"
+ },
+ "server/assets/story_telling_images/chapters/11/chapter11.png": {
+  "width": 1020,
+  "height": 588,
+  "src": "server/optimized/story_telling_images/chapters/11/chapter11.webp",
+  "lqip": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAADwAwCdASoYAA4APu1kqU2ppaOiMAgBMB2JYgC7ACHhz3KiWpZYoVYAAP70Ko1R553/xPU6GmtxJy0AF7+9FJDXnh2XUiRS8inmP8qMo0V7kYmH/DMu/5SAAAA="
+ },
+ "server/assets/story_telling_images/chapters/11/img_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/11/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAAAQBACdASoYAA8APu1yrU+pp6QiMAgBMB2JZwABHvBOOxNRLOKQdQ7hwgD++2tMWbg1Td0AAcKIbgLJptULyBbIa+QXUENX+2XQLxpwiTeaxkSDr6hAAA=="
+ },
+ "server/assets/story_telling_images/chapters/11/img_2.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/11/img_2.webp",
+  "lqip": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAACwAwCdASoYAA8APu1iqk2ppaQiMAgBMB2JZwAAYf+AG4WDWd2PAAD+7DkhwguhYX7bGQlOZIBmB6KvNyySDlCReUutWCtJjLzQUTvnwAA="
+ },
+ "server/assets/story_telling_images/chapters/11/img_3.jpg": {
+  "width": 1000,
+  "height": 563,
+  "src": "server/optimized/story_telling_images/chapters/11/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAAAQBACdASoYAA0APu1iqU2ppaQiMAgBMB2JZQC7ABulhfY/M8w8NNflAAD+8N0PmPadn5kRpItzptgyVdyE/XIxVlQLSsYDRyRwnh3Wahoe2OIHt6WFaz+gzqEtB4FasRSCb+s4XjX2fx0AAAA="
+ },
+ "server/assets/story_telling_images/chapters/11/img_4.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/11/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAADQAwCdASoYAA8APu1iqk2ppaQiMAgBMB2JZQAAXf8CQOA3fS6tpYAA/t0hrm9OtooJrQTj3/fLClILM0CjRYNYZjxpMfnCUucgr2+rqVzoR7t/OVQUXA3VivnnZrVRS3p6ldeMtjFRQbhBcQShf8vYAAA="
+ },
+ "server/assets/story_telling_images/chapters/11/img_5.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/11/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAACQAwCdASoYAA8APu1iqk2ppaQiMAgBMB2JaQAAW5Q5V6T4phKcAP7uhMsOm1l8k6giZO+GNvePXp7AZRa5vIJeAAA="
+ },
+ "server/assets/story_telling_images/chapters/11/img_6.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/11/img_6.webp",
+  "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAADQAwCdASoYAA4APu1krU2ppaSiMAgBMB2JZwAAW+kU51BNED/a2AAA/vKg1mfvHkyRhtc0VDx8jw6kitPuzpBxnntwKf9u2PpExkybZD+pUjUBNoyzpN5UBAAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/11/img_7.png": {
+  "width": 997,
+  "height": 696,
+  "src": "server/optimized/story_telling_images/chapters/11/img_7.webp",
+  "lqip": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAADwBACdASoYABEAPu1mqk+ppSOiMBgIATAdiWUAyFwRBQYAl7RP1Hw2rpBqBmRuKGAA/ukTx9Fb7D5xNVzh8x7lHRF/kWTbQ0zPbvECf976d6jXUDRX9MTIMIBUreSrVlBiRxFbEIQuZvrOWyrTBw1tkV8HfB6gVeEIB8U08P5+RjbbV5McH/QLAAA="
+ },
+ "server/assets/story_telling_images/chapters/12/chapter12.png": {
+  "width": 860,
+  "height": 652,
+  "src": "server/optimized/story_telling_images/chapters/12/chapter12.webp",
+  "lqip": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAACQBACdASoYABIAPu1mrE+ppSQiMBgIATAdiUAY3oIfD8A5JEXZt5pU6PpYTAAA/vQl3zX7Qadt20gb2Ciki7y7kvzuqjZcrVE6TbySumKcjdI02cMGrbyYSgg/SUfGAAA="
+ },
+ "server/assets/story_telling_images/chapters/12/img_1.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/12/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4IJ4AAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JbACdABcsD/bS3p5r2limgADOD4MyqDOJe52CuDrs9q44HIP36nhRJAVeWqvxfT8XltV5Fe/KCLK2KjYgpWp0oPeaazKyPFcVw88thrwO4Uiuvz8BaGvkMLZnyy01sbQ7gFO2yD+SxoXR3f3liD4EiCIhnoQC1fDoVZCBWnB2R6JbSdAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/12/img_2.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/12/img_2.webp",
+  "lqip": "data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JbAB3AGiCc6DSthnLH1S3+mAA361pyUWWsjhXTT+oRLEVeGKYh5401BUpVtQvEKgBfcjZSEy4zze2sIf8ZXq4ixKDZM2XfEP/h1iioJhcMC8AaCiZJV9W3UxCcQFY2pHC73t6CradOOKoxrg8RHK6Zh0rajgxbscpIB7dGR9J84QSZO7qZls2qjpjf71FRAAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/12/img_3.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/12/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZgC1CDZCRalvuaTLQNWwiAD+CvLEkfGrdl1K1VAJ6vVP9V6XWTs/mY0UcsiOHkv1pwZ+sDELHohvEcJ8qGSTVlUvz8fbb03EH+UxDwd0pno+2lmWjLTQlPBa3g1vYNHELIh49JyZYzAayeriE2rijIvhEYlgAAA="
+ },
+ "server/assets/story_telling_images/chapters/12/img_3_2.png": {
+  "width": 1176,
+  "height": 691,
+  "src": "server/optimized/story_telling_images/chapters/12/img_3_2.webp",
+  "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JYwCdACFjUPq82UZryOcTpgAA/kN62h/izrFjBuiHpRIlxNMDHvL+hsAK7Zado1KL7B+pV0oqKlQROUwv3DEyQwtQJ72Paa+6IB5f6aL77yYYgU4c/xnmRCnkiEekXJEsUAAA"
+ },
+ "server/assets/story_telling_images/chapters/12/img_4.jpeg": {
+  "width": 600,
+  "height": 338,
+  "src": "server/optimized/story_telling_images/chapters/12/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACwAwCdASoYAA0APu1iqU2ppaOiMAgBMB2JYwCdABuECK49GFqyGAD8It/P/aF99MFcfRAShAwKYuAnIJGRFu4ChZZrYQK7YrN8yGHpBN7GLgANhRekYELM7LY56dskZcGT4JVNTKXMSnkwgAA="
+ },
+ "server/assets/story_telling_images/chapters/2/1_chapter2.png": {
+  "width": 974,
+  "height": 512,
+  "src": "server/optimized/story_telling_images/chapters/2/1_chapter2.webp",
+  "lqip": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACQAwCdASoYAA0APu1iqU2ppaOiMAgBMB2JQAALfivU2Gi95igAAP70Km/HE5TZI9DDNHlutUC7Kgf4FDlu6Z8MC4XMg2Gmaci4GD45TfQBM0AA"
+ },
+ "server/assets/story_telling_images/chapters/2/2_year.png": {
+  "width": 792,
+  "height": 480,
+  "src": "server/optimized/story_telling_images/chapters/2/2_year.webp",
+  "lqip": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAADQAwCdASoYAA8APu1mqk4ppaOiMAgBMB2JYgAAW+kImseXpjZwKAAA/vQqjmKXkt9s8QhNQ5LIrOV4gFIz5VRKzAxCRjI3vUdshP1viv7jC6Z2inlX+CrIAAA="
+ },
+ "server/assets/story_telling_images/chapters/2/img_1.jpg": {
+  "width": 640,
+  "height": 396,
+  "src": "server/optimized/story_telling_images/chapters/2/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADQAwCdASoYAA8APu1iqk2ppaQiMAgBMB2JZwAAQy7Mh7D1gz9g9zAA/u7fnX2vV6vCkJ+lWmDRS20uvCxda48MNM3APNoUNc/+eyLs91Wy+gobMOBU/syOAu6lDMkdJMMY4lmauybN8ZdAd3LI/pNBfxl4AA=="
+ },
+ "server/assets/story_telling_images/chapters/2/img_3.jpg": {
+  "width": 640,
+  "height": 396,
+  "src": "server/optimized/story_telling_images/chapters/2/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACwAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JZwAAQzC0MMy4MyXXAAD+0lzbjz2g6o38iN1bHm9WP4Gvfwoom6gJd6uyaOSas7/X9/OvYpIS0Ek2hInUdybv1GQDXv5xqinUNJTyiAA="
+ },
+ "server/assets/story_telling_images/chapters/2/img_4.jpg": {
+  "width": 440,
+  "height": 282,
+  "src": "server/optimized/story_telling_images/chapters/2/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAAAQBACdASoYAA8APu1iqU2ppaOiMAgBMB2JZQCdABh5Ezp7ToM5XSnCtAD+b4zIpSN7vfZZWv0VsFV1TlDtzgu0NfTVINCQ/h/s8X1wWj7+5b4GVTwW1/fmDOG+qpYG4JBw0YrviDk/N449VSxzId/DXeaSCi/eFtDoNh1C6nzzzH+Ur8uW7mV+xXfydqsPvK/JlnfXS00gMegA"
+ },
+ "server/assets/story_telling_images/chapters/2/img_6.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/2/img_6.webp",
+  "lqip": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAACwAwCdASoYAA8APu1iqk2ppaQiMAgBMB2JYwAAWk6uMdu+aKj62AD+7oOpVwaRoG3BY0bJLku1zj0d8FgxNUQWfiMl27LKa/uG9gxFDOkZaV91K0M+DNoAAAA="
+ },
+ "server/assets/story_telling_images/chapters/2/img_8.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/2/img_8.webp",
+  "lqip": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAADwAwCdASoYAA4APu1iqU2ppaQiMAgBMB2JZQAAW+lGYU/hvay2XsAAAP7yp+DMG2HmNOmYTIwptd/1E47mq4zq3uuawML+9sgjuX5i2YAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/2/img_9.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/2/img_9.webp",
+  "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAADQAwCdASoYAA4APu1iqk2ppaQiMAgBMB2JQBdgA2sNTc2ZjcoPaUAA9iGM6t40GTKKCcBGXBGXRu2nnxNJoC/p2XPyqTy1pF0u6STQS0inyfA2JB4aVuA/9igCsaHUqcUrJIxlTfuUfbTWw0NNouk0DXibOIAA"
+ },
+ "server/assets/story_telling_images/chapters/3/chapter3.png": {
+  "width": 1046,
+  "height": 548,
+  "src": "server/optimized/story_telling_images/chapters/3/chapter3.webp",
+  "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAACQAwCdASoYAA0APu1kqU2ppaOiMAgBMB2JYgC7ACHhzSIa85tgAP70Kpzd9m1+AtYZQclRFK5wHs7JMIfXnQF7i5f/BfI75LFS14+6WXZ6b5cPJiZOfeTAT7Rjst4lHyHyathXCgAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/3/img_0.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/3/img_0.webp",
+  "lqip": "data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAABQAwCdASoYAA4APu1iqk2ppaQiMAgBMB2JYwCdAC0HeY32lAD+8ALOSqp3tKYkg5DYM8npJXOfmAej/nyA74RvuyAxFOgA"
+ },
+ "server/assets/story_telling_images/chapters/3/img_1.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/3/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAADwAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JZwDG9CHqIDn6kfSpB+xAAP7Iu4sik3fhMC/7SqGzOUgw979Ppu9Z8/lgsf9E9VDb5DXGzsu9wh1ZEiHcIBo9XwAzBAu1DZwN4sBYAAA="
+ },
+ "server/assets/story_telling_images/chapters/3/img_12.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/3/img_12.webp",
+  "lqip": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADQAwCdASoYAA8APu1iqU2ppaQiMAgBMB2JZQCsAB6RgFpi9gDicAAA/u6gwsP+KCue0JCyDtEj3waC2IqCMULwDkXsE9JBXPsBxhp1AvGTqajLcAAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/3/img_14.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/3/img_14.webp",
+  "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoYAA8APu1iqU2ppaOiMAgBMB2JYwC/OCLGzpcAOovLGd9+SAD+fo+frTJbEPEbhjLvlS6lFWSfOZf/ervhkZ/0ACkMOTC73LYMb+uzdd4KMq6PiVM+Kw+c7lLUOYwdREFejEgAQg2Qyk9C9BlwoIAA"
+ },
+ "server/assets/story_telling_images/chapters/3/img_15.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/3/img_15.webp",
+  "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAAAwBACdASoYAA4APu1iqU2ppaQiMAgBMB2JZQC7ACG7WlNbqmrBzzn80kAA/uj3WoRUwIX+wTjUz6Pst6r2fVUd3XxXIlgWTuo66jXfxqOzUjIgbObPVSym9TwYbUjh3gV23M2dBgAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/3/img_16.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/3/img_16.webp",
+  "lqip": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JYwCo9CIQfmfztqG3kH9x0EAA/u6Ts+uzgATl1xhx7WTJb+QMMnKGh/6mJtiXXyEoVF0CnUj8CiGbTdfHBHIiXx+opVLDcQI9r8jQlZiQNmP3yrJIp6jGuAA="
+ },
+ "server/assets/story_telling_images/chapters/3/img_2.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/3/img_2.webp",
+  "lqip": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAABQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JYwCdMoADS26sYiVQC8HcMpoAAP7r5vxuK8Dxio39wjPwtkf3EZCvV68bLMtZ5LWoQUeJ9QzQRwVV6wyH34wJsglvD17yjo9LqLT4ckVH6kInX29VEvQAAAA="
+ },
+ "server/assets/story_telling_images/chapters/3/img_4.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/3/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAAAwBACdASoYAA4APu1iqU2ppaQiMAgBMB2JZgCsAYye3kcEy4EgY7kozCAA/t+CkBiQ5eq2uo7DE+68u+oIQpATMANLFouKUUaLnAvcY/HhSjyhrZaSAFP7haJ/gopP8LJV/P22eDi8fhhjLA0VS/FrlsdLY+FSx3MnGmPJNxgrVHrVUW6mUkyb2rEVl5AHaB4UBfLIOClPAAAA"
+ },
+ "server/assets/story_telling_images/chapters/3/img_5.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/3/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JYgC7MoADVG2r5oByTNeBKVAA/s376S8irWDRkrzMBkfvAS6sQSrJ9yQlHV3vMJubE8BqbfCmmeeomNV53X2GR+igcrpfUg/lc+AO0YtE7bnNOY0izS3EJgKcbIBJ/0tQTbEwby04nQX5K9i/5KmGRtXwSQzXXWfVqqYAMpqiCoAA"
+ },
+ "server/assets/story_telling_images/chapters/3/img_6.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/3/img_6.webp",
+  "lqip": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZQC06CF5Gzf5POO9xKxn8AD+6+KT260oCbQDqzdaZMvWcWRYiNvRHHOGOeU6zrqeIgAA"
+ },
+ "server/assets/story_telling_images/chapters/3/img_7.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/3/img_7.webp",
+  "lqip": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JQAAGch+yiYhobTHdjf03wAD+6R9B5CQlgeDv2Pw1Bcge6U9TGiYrpqw8PTgVA41ZIiE5hseqrrM8mkvtIxoF33635nN+wgTe03x5ArV7t1iZLKDZEtLhV21M3/POHttJmzLTlD6ouAAA"
+ },
+ "server/assets/story_telling_images/chapters/4/chapter4.png": {
+  "width": 1076,
+  "height": 654,
+  "src": "server/optimized/story_telling_images/chapters/4/chapter4.webp",
+  "lqip": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAACwAwCdASoYAA8APu1kqU2ppaQiMAgBMB2JQBdgBFKPAM48B7bamAD+9J1Eu0C9wxKYuGAd/XBj+ezGQDfxhN7rDkr2AtiegoR9Ju9nu6pYdPb4DGnxvEo/cJqOWQAA"
+ },
+ "server/assets/story_telling_images/chapters/4/img_1.jpg": {
+  "width": 1280,
+  "height": 720,
+  "src": "server/optimized/story_telling_images/chapters/4/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JQBOmXkBCKbArph7ua8hgAAD+QBwZ6ec6kC7jUFD6Vk9yshQF3+0C8YRPXf7PdH2mso//ZTdvQza5SJWtc6CIIPVKGLOoSOdHKn/zV0yWBs7yKNyMOazdkT0pSAAA"
+ },
+ "server/assets/story_telling_images/chapters/4/img_10.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_10.webp",
+  "lqip": "data:image/webp;base64,UklGRqQAAABXRUJQVlA4IJgAAADwAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JYgCdABeZ53kM5ykAqZ3gAOApxGLAFSlkKkPTHetmNv8fYBQWMsHrRqK2ipb16vEwNjkDPfc/Hx2aN1xQCycz4XIVhe6Qz2FD1USRqOkXe3/cBHhGdRim/Z2Cf19bxCRracgVsCjL+daCxcmfENlGx9X28Zz6kOHrgEB6awqAAA=="
+ },
+ "server/assets/story_telling_images/chapters/4/img_12.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_12.webp",
+  "lqip": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAAAwBACdASoYAA4APu1kqk4ppaQiMAgBMB2JYgCdMoC4AAE686HLxVtvaoAA/uRY7xroU7YJgWv4iBI3Xa8Y7LG7xGpIltpyttWeLB7F9JpYqFaK1zf7b765xmhId1Vxd0tlRrLHoUpmDnFXtyoav0xXkYuLsyIGAAA="
+ },
+ "server/assets/story_telling_images/chapters/4/img_13.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_13.webp",
+  "lqip": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAAAQBACdASoYAA4APu1iqU2ppaQiMAgBMB2JQAALTpjvISdr1ECC6jF6AAD+6OyWVJz+peiY0g1SaFRMi4QD9bSGYIJ7XOrx8pA+po7kT1xroAZ3W2GfOqBsII5vHoqle7QkAv01pMrZ4IL5smc/S71GwEh1xeoPoJ/oduWtPoAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/4/img_14.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_14.webp",
+  "lqip": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAwBACdASoYAA4APu1kqk4ppaQiMAgBMB2JQBdgBEGc16ELejhtoqK7tzAA/vDSsE/E3mQE1eV/kST8RI65NoIR9OZ4saPK41wuwSdMx3xClpifV6X7oOV2S6JSyRj8XAHHOUI1MQtKAAAA"
+ },
+ "server/assets/story_telling_images/chapters/4/img_2.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_2.webp",
+  "lqip": "data:image/webp;base64,UklGRqwAAABXRUJQVlA4IKAAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JagCdACB1JsgN88qu4/Gi9YAA/tFCln+S6GefMBTeRkWDzi/X2hCw2TGbFm4JyQmxq2iHFDA65ySN+/5QeQzGcUMkf1Huy0BRXLqBIrDx/Pl4LqtWfTqqiVyW+gQLpGLf55/sAg1+sWpXa1tvgZuaSF3A999q88RGAefMxGYNQwfJundLwAAA"
+ },
+ "server/assets/story_telling_images/chapters/4/img_4_2.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/4/img_4_2.webp",
+  "lqip": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAAAQBACdASoYAA8APu1oqk6ppiQiMAgBMB2JYwCdABulFOD8EzE9quGNYAD+40s2bmPZuj3ESg1NzRcnB+SuCZrxXpNd97meRPjIX5nWBuSNw12F9iKmREf8YuDQb5M0ezr+As8MPnErmgUDuiAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/4/img_5.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRroAAABXRUJQVlA4IK4AAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JQBOmUDX/wHO0hSak2KlsbCAA/nhxh4pD/P+qZbcmdjFksEns8FsBzetTbVGVAPZdsydQZQmOfXT9Pw+nrdzYE1H/msXfavMzF5+GCSOwj+8GVFs/BwHGH9x1uV80pvmnehbzjH41nOkjy1sNo6/KMlp1fhMCWp6XbqugtA987TmDrMqfK6530iih8HzqMNrChNkAAAA="
+ },
+ "server/assets/story_telling_images/chapters/4/img_6_1.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_6_1.webp",
+  "lqip": "data:image/webp;base64,UklGRrwAAABXRUJQVlA4ILAAAABwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZACdMoGv/gOavbpQxWZYh+b6IAD+v/BDCJ7f08sX+4ZiaWSosItOu8RWCxJNufokFzlFA3kH+ptJWG+8hF2X4HzhFDxPcx7OibLko6T3iKuMGODh9b09nU82iqJ/i//DFYaCfe3Zdc3stgfrEX9yZHFs2rFHqXS3PS9K5ytx+2ktG64w26EFQccRsldF1wU0JVorqYAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/4/img_6_2.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/4/img_6_2.webp",
+  "lqip": "data:image/webp;base64,UklGRooAAABXRUJQVlA4IH4AAADQAwCdASoYAA4APu1iqk2ppaQiMAgBMB2JZQC7ABoV8i5ed15/niQA/uzpv+kYmsyht1kytdE/5UOmtXsMI/phxlRTDlkf+D0hGd8fiZ+JLOQJrfRB2rgdJiBLd7TCpxgFVXIYC+EjtK7AQmdtw5Fu3JVwBAkiSpMYCO/CBAA="
+ },
+ "server/assets/story_telling_images/chapters/4/img_8_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/4/img_8_1.webp",
+  "lqip": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAAAwAwCdASoYAA8ALrV2u12jqampiYC0SzgGJsIbn3JHxXAAAP70LWUZPSWp+UTX1qUQLsiC+eLzXNUC4YGnSgAA"
+ },
+ "server/assets/story_telling_images/chapters/4/img_8_2.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_8_2.webp",
+  "lqip": "data:image/webp;base64,UklGRrIAAABXRUJQVlA4IKYAAACQBACdASoYAA4APu1iqU2ppaQiMAgBMB2JbACdL1Ds/wGzuPSIyq8/9ICY/GAA/pfz+cufywU34hdaarzdsOUGVoTpPkXUWabDto6+ylTSgWY6wZb7K1O8mE77I88J/A+e3cM+/v4XmiPSJU4G8xWYZizijpKCCSGpfOb20Hev6tLr6amojs6yup8rjm/E/bFWIIC7yoVgCBSVO5Ntg6QG3184AAAA"
+ },
+ "server/assets/story_telling_images/chapters/4/img_8_3.jpg": {
+  "width": 1280,
+  "height": 720,
+  "src": "server/optimized/story_telling_images/chapters/4/img_8_3.webp",
+  "lqip": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAACwAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JQBYdhA+Px/prfcMYgAD+8t0IC/bWHD0jJ5pXkR8FnMjILRaOSIGUNHQwEC2l3gEVNxIb2FIpbewfA+dmbPvinuqCAtJcvrd9r9RBiioQKXO0VF6QieAA"
+ },
+ "server/assets/story_telling_images/chapters/4/img_9.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/4/img_9.webp",
+  "lqip": "data:image/webp;base64,UklGRrAAAABXRUJQVlA4IKQAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JaACdAYv05a493DMQSh4aagAA+gkRy4r2749tk9DPJGL8+M0+S0hpvd9tRuDOyt81lBvlhEJ7OokDSz8CoDnhRnUU8MghrarLFn5Hu7EYHLAHJin0PUdJn+JeavzVhMBywWccEff0DCqT6UXa2qvztq/VmkM0V5KFojvasf8PGCCTwBXwJr0y6wAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/5/chapter5.png": {
+  "width": 1004,
+  "height": 604,
+  "src": "server/optimized/story_telling_images/chapters/5/chapter5.webp",
+  "lqip": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAADwAwCdASoYAA4APu1iqk2ppaQiMAgBMB2JYgAAXAYhU95NHaCMl+mAAP7zNNIgOu7MMMoOBHCM4fz6qAC8fXGSCeioyJcz2/vb/oY0i+EvVA91aoJzPCda8fCzjQtpygAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/5/img_0_0.png": {
+  "width": 1178,
+  "height": 734,
+  "src": "server/optimized/story_telling_images/chapters/5/img_0_0.webp",
+  "lqip": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAABQBACdASoYAA8APu1orU2ppqSiMAgBMB2JYwBTBNAAHJGwMwkln1Enu+XAAP7ujydV2u27mkP4FmCrgtSG4cTR9i+dpNLQjV+VeK3hwX/TJbu7QzLvAktUSVA0rdsz7eChjTWd/E7NtfT2nY3kKJTsvtAO7+rcfTM/0CgjbYW4Grg/cXV9jf2gzQT8AA=="
+ },
+ "server/assets/story_telling_images/chapters/5/img_0_1.png": {
+  "width": 700,
+  "height": 394,
+  "src": "server/optimized/story_telling_images/chapters/5/img_0_1.webp",
+  "lqip": "data:image/webp;base64,UklGRq4AAABXRUJQVlA4IKIAAABwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZACsAYx2udRCb350uaaPn1vawAD+zEdlmgvCfCPDAe/Cg1j0Pf00CEsaxxVtJA9KxADkwcxbdHDRKXCOKOBfUIg/66+fF/daHk36mgyvU8dFBe1YUgDvDGq++ZQxUx3D2H6ZN4FDG7y7AtR+vR98waqZ2ffdVe72HKWhoFKCPOATwt88wC8AAAA="
+ },
+ "server/assets/story_telling_images/chapters/5/img_0_2.png": {
+  "width": 1740,
+  "height": 978,
+  "src": "server/optimized/story_telling_images/chapters/5/img_0_2.webp",
+  "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAAAQBACdASoYAA0APu1kqU2ppaOiMAgBMB2JZQAAXt8/H3ejFm9CWXQyAAD9/T3BBIUyVBzd+0MDSOgRL1o8MBn4pwgljMOE+WPBxNXxGMVNN1MAcuF4/7sh9qhbRg4VGn4xb3AtuUvmTTFagu2Jj8aKNX85ZJER52+cAA=="
+ },
+ "server/assets/story_telling_images/chapters/5/img_1.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/5/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JYwC/OBxnnkFXx2a+jlr2AAD+3LCPx1jj3UOMxSJFdoQEf9CBQzYpP7oM8VmMvu8SYxBl16Bc22iWO9lkSyJ9H9V1vRgTvFEmWlDBAAA="
+ },
+ "server/assets/story_telling_images/chapters/5/img_10.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/5/img_10.webp",
+  "lqip": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAACwAwCdASoYAA8APu1iqU2ppaQiMAgBMB2JZwC06BbCGsKH7NXEgADN/Ljo0A66SDUq9STykEZSO6Ic70fO06LSIZYFRw4RkArcqnJaWJBP8pZAAAA="
+ },
+ "server/assets/story_telling_images/chapters/5/img_12.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/5/img_12.webp",
+  "lqip": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAADwAwCdASoYAA8APu1iqU2ppaQiMAgBMB2JZQDG9A9cfeN/GAoFVo0YAP1PK+nAJoojAbTgDCbzmfaxitH0QE2gAdyGis+Uwr47SNWaf8f77QF7XdnPeYBGcSrsC/d/AQsr7BVEL/7Yos1XzbEF0OazrnM6p8Roq7uzrxhQBZAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/5/img_13.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/5/img_13.webp",
+  "lqip": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAADwAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JYwC06Bbjb7xwWsvNPXMQAP7NFCC83iu73Fi5T6RE2PZwMG4nCc8AvMeOWRdVTiGxLJdDG1KJjrd24Joiz7exyOGDq7ntps3JNwJ988vs/FrnvalC5Z2yyvbUYvXqTXWhA3f2sGpMXJsAAAA="
+ },
+ "server/assets/story_telling_images/chapters/5/img_14.png": {
+  "width": 954,
+  "height": 536,
+  "src": "server/optimized/story_telling_images/chapters/5/img_14.webp",
+  "lqip": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAADQAwCdASoYAA0APu1kqk4ppaQiMAgBMB2JYwDCgBwvz/ueFbh0KsAA/vKy9kh4xWdrSeUzHMXXtc0377HRr5/umehO0ublzx9SFzKkb1bqfa89u9g7TArHAmn2AAAA"
+ },
+ "server/assets/story_telling_images/chapters/5/img_15.jpg": {
+  "width": 1200,
+  "height": 801,
+  "src": "server/optimized/story_telling_images/chapters/5/img_15.webp",
+  "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoYABAAPu1iqU2ppaOiMAgBMB2JYwCo9B8w6W3+YhSfpSZ+AAD3NgMQJAEWNO7O701ko6tkdtuqTZKmaBtrxGraZ/D1X6WRduhiyyEvEOO7ZIUBmQEkBM36jIPNYkgcSPm2iFIBLRv5XH6b79Td4AAA"
+ },
+ "server/assets/story_telling_images/chapters/5/img_4.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/5/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4IGQAAADwAwCdASoYAA4APu1kqU2ppaOiMAgBMB2JYwCdMoADRz5FEZryS0kQAP7k/Ylzpj6tGp2P8S4lsOVuvqhikJg5ZqfBO+PAUb+ChxT8UWpsq1B+amwSO6oJumW5PQwc7QqbpoQA"
+ },
+ "server/assets/story_telling_images/chapters/5/img_5.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/5/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAADQAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JQBOmUABhrAj7ANBhJSgA/uwuLjVraDPVsDKRg/rsKQVPY55dtJqsAU9gm04o0T4w52XIuTDTwdvMitcDhQrYpkMp82/z6UGm5V+0Bne0L5Spo6RAj97qhVeXSP2usgWX9wO22QPEQCBpuFVUAAAA"
+ },
+ "server/assets/story_telling_images/chapters/5/img_6_1.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/5/img_6_1.webp",
+  "lqip": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4IIYAAABQBACdASoYAA4APu1iqU2ppaQiMAgBMB2JYgCdMoR8eCUOkqbEJhVm1+8gAP0B9ISIjFOUyWbNilCUr2eKB7dfYvVj0U/deLBqSmgKAZrMvcPQA/rfV9dKxMI2uiiXjv8wTMLcq/CoUWYEM/lyp0sQbkebv+K7jMRbibIDVzJaDJqsPiAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/5/img_6_2.jpg": {
+  "width": 460,
+  "height": 307,
+  "src": "server/optimized/story_telling_images/chapters/5/img_6_2.webp",
+  "lqip": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAACQAwCdASoYABAAPu1Ct1apoqakGAEwHYlAAAuQPgel5VG4AYkAAP7wynSQdAQR0K/i3PFqZ7pUrVgq1yCljndHwEWm3yVzPN+ES61kfesB6UJlIZWAAA=="
+ },
+ "server/assets/story_telling_images/chapters/5/img_7.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/5/img_7.webp",
+  "lqip": "data:image/webp;base64,UklGRpoAAABXRUJQVlA4II4AAABwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JQBOnf9gYtrk/xy8gvQ5ra3/ycAD+6EyzHK5vTeS8G8Inna9CBGOVkahxmTuAnpqoPhnsHzVR2Mh/AbMppxXZwwcZHxENueX4KP2r2oYxA937gGEWj1G+70CokM8TKYLMfvgLnFRz30tDKAXw9V/Vn8o4+VgA"
+ },
+ "server/assets/story_telling_images/chapters/5/img_8.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/5/img_8.webp",
+  "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAACQAwCdASoYAA8ALrV2u12jqampiYC0SygGRMH2LX2CSGaWvmq8AP7p7j9dlvkCbCMej642weCpUnf36Ytog3K2qnFlUdPpOjHJ0Wq3siNwtZxgZkc2M8soBgOXpVa4cbRkHN+rDFAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/5/img_9.jpg": {
+  "width": 640,
+  "height": 396,
+  "src": "server/optimized/story_telling_images/chapters/5/img_9.webp",
+  "lqip": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAAAwBACdASoYAA8APu1iqU2ppaQiMAgBMB2JZQAAW4CLh7yrLSKMDeORyiAA/uOszb4KOriF7YaUXZKeeFWnJp3E2KbQCrbA3ZRjpCe7R32EjJPbF3BTV4TLv58zbXiplOEhvbgAAAA="
+ },
+ "server/assets/story_telling_images/chapters/6/chapter6.png": {
+  "width": 1024,
+  "height": 556,
+  "src": "server/optimized/story_telling_images/chapters/6/chapter6.webp",
+  "lqip": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAADwAwCdASoYAA0APu1iqk2ppaQiMAgBMB2JYgC7ACKUeQkc3Ao2d/AAAP70krutL6UFgRJjCGDw3Lay4ycaR6h8h+04UacSAnAAxtY2+AYDu5uy+yykS92/HY094vKSeqKZU6t/oAA="
+ },
+ "server/assets/story_telling_images/chapters/6/img_0_1.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/6/img_0_1.webp",
+  "lqip": "data:image/webp;base64,UklGRq4AAABXRUJQVlA4IKIAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JQBOkBLhWeGbFAe97xLESyADgGgkWq7IPmSEuOaHo81KKSNafLlKoCOKZdX41Plcl1MUuMq5K7B46XAs83ss4IrKgQyKdBDjISmA+fayf7CB7VCRuLZtup+AA7fGZ6lsu0n9HrqOHH1dwh/2RkP5x8c3bWI94QtwItAWoJBNje0EYPD0WLJUgAAA="
+ },
+ "server/assets/story_telling_images/chapters/6/img_0_2.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/6/img_0_2.webp",
+  "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JbACdAf6smpSP5ag5tVzVYsgA9gSKBUcUpgbRdyrVOTMykvbatTTlubz6zaSILOsXc7DdqWsQgLBTOre8P1rIpPcVXsETTE7xb/ajCvJhV5AnmSPqaAoCbE3sAkrI7CE3sAkFDCmJYDifs1OqWiWqvVsJkaf5haJNJyN37/bsAAAA"
+ },
+ "server/assets/story_telling_images/chapters/6/img_1.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/6/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRq4AAABXRUJQVlA4IKIAAABwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZACdMoAlvA6akb705Q07Oc4sgAD+3S7Jb3xk6ixLOwcENC7LU6B+9qZuzqBWuRtFpCA3cP47+sSojS4l7B4UqLjVn6bJT9IkgIrnBCpRTby5nt0fMT3LrLIHePLKJ4LaAEl0C2X37ToAarsQ3dlLy7hNKYz5/CvKMSgN4el5MvnAYXr0pW+wAAA="
+ },
+ "server/assets/story_telling_images/chapters/6/img_2_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/6/img_2_1.webp",
+  "lqip": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAACQAwCdASoYAA8APu1iqk2ppaQiMAgBMB2JZwAAUU09tr1+aWmAAP7r/oUs7SOzoHxw91QILcL9ncdnz6cyBbE42jsnXIA4XJXq0aJpAoWJscco6ZgHrtYmMH59E3xwAAA="
+ },
+ "server/assets/story_telling_images/chapters/6/img_3.jpg": {
+  "width": 640,
+  "height": 396,
+  "src": "server/optimized/story_telling_images/chapters/6/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQAwCdASoYAA8APu1iqU2ppaQiMAgBMB2JZQAAW+wwOj99qeRwAP7mGvTI9fNyfZRa5+yb7WCpMcO3jH69NQ+gHU+k7NJ8DzZXQRexEtCrAyKJrSE+gU0UwtQ2oQCxCVdl9JpHS1E+kBeOAAA="
+ },
+ "server/assets/story_telling_images/chapters/6/img_4.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/6/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAACwAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JQBOgA+wusC9/WmUMgAD0Aansl2jyrkCEnuJdh2t7906MPd4IMmgc6VuqU1niXHWVubXGusz4r/aysaZw+PCWJnkZlRhVX/QtMQgf+e/Y1iBX1tuGHLhuhAo+H+Cj8djhovuBrAAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/7/chapter7.png": {
+  "width": 1010,
+  "height": 560,
+  "src": "server/optimized/story_telling_images/chapters/7/chapter7.webp",
+  "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwAwCdASoYAA0APu1iqU2ppaOiMAgBMB2JYgC7ACICpGFAHllhLpgAAP7zNMbo1sggmMHFGtG6zraMBrKKSmQBWjl7fYKEHyKdXnW2S3hsS7z+I4BDbbk/d0vkFC5VaA1W/16GztAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/7/img_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/7/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAAAQBACdASoYAA8APu1iqk2ppaQiMAgBMB2JZwDImCHQT1tyan4iUFdwAAD+J7atbR5PncabSmvvhOODY5irMG3VMt+ZOfjXTsIjaFTuOhoyfBH3r9bjW2ntcTvTKSbqiqeIq9z5zIRAAA=="
+ },
+ "server/assets/story_telling_images/chapters/7/img_2.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/7/img_2.webp",
+  "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAADwAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JZwDKABuY8C0fzGlWXTAAAP7o8WEHQRLxtzigwndqQJ15PWJ/FemY22p0dysqtIsirYVyDVFG1Rqxan1HAAAA"
+ },
+ "server/assets/story_telling_images/chapters/7/img_2_2.jpg": {
+  "width": 1280,
+  "height": 720,
+  "src": "server/optimized/story_telling_images/chapters/7/img_2_2.webp",
+  "lqip": "data:image/webp;base64,UklGRqAAAABXRUJQVlA4IJQAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JQBadA9gj5T5JCIKMnWy2wAD563PTBGgNXRC+YJcWhrZlVfGaDcb/Sc5Ec1ptLVISXvUtsHfV4NtixJghUSU96oslCzEBKWsBE0eV7dxXH8KhXhqjoEsX+j/fzLs8EpEWMonnEz6O3nQ/u9q84y0goT7zE1M7jyyCDFAA"
+ },
+ "server/assets/story_telling_images/chapters/7/img_3.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/7/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAAAwBACdASoYAA8APu1iqk2ppaQiMAgBMB2JZQC7AB9EiyQU9uCquxHykAAA/bZIJqKdsyDHaTBaRURH9H63C364Q6aABoeGdUw7Cd6Vn4hgz1N5EN2T/GvBc10DScJRr51hC7kKp17p6Gyf5QWP8LWCkBcSvXSv8AA="
+ },
+ "server/assets/story_telling_images/chapters/7/img_4_0.png": {
+  "width": 1148,
+  "height": 696,
+  "src": "server/optimized/story_telling_images/chapters/7/img_4_0.webp",
+  "lqip": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADwAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JZQAALHLfrbCY8v58splQAP7QorvDdyyGxrQcLEgo+DLIrl6kZ5EvJj5lkD9RLvshRZCHk9aB7S1qXf84IPIoREqN5Bf3wh8ZPFP4wxArH5znKi1KZamgrgAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/7/img_4_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/7/img_4_1.webp",
+  "lqip": "data:image/webp;base64,UklGRlQAAABXRUJQVlA4IEgAAABwAwCdASoYAA8APu1iqk2ppaQiMAgBMB2JZ1nyADc1uYP9ngAA/u81ahL3cb6VCOeZilm5PJBnz08Xk62feaV65vH7IpVtgAA="
+ },
+ "server/assets/story_telling_images/chapters/7/img_4_2.jpg": {
+  "width": 1280,
+  "height": 720,
+  "src": "server/optimized/story_telling_images/chapters/7/img_4_2.webp",
+  "lqip": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAACwAwCdASoYAA4APu1kqk4ppaQiMAgBMB2JZwAAUqSbp9Jn3AuZgAD+8U/8Eap3c0fzZqZJQFvbpcBQii4G9jQ5pU8qf/OXj4hbDwV8HgUBgo3ramexN6iY++yupdVH+9+GK7KC0Yl66L19d8tGE3kS3i4AAA=="
+ },
+ "server/assets/story_telling_images/chapters/7/img_4_3.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/7/img_4_3.webp",
+  "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAADwAwCdASoYAA4APu1kqk4ppaQiMAgBMB2JaQAAYf/0Gpt+hdo5h24AAP7p3+ZhI6usnh+Z1FxPpEQB48Znl6dlbhwO9CoP7Xwjl+ldjMLCyGBPEsd6EAAA"
+ },
+ "server/assets/story_telling_images/chapters/7/img_5.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/7/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADQAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JZwAAUoBfRxBBtDqXUgAA/qNnZrx0a7z0NxxuewzonfhHJNHkFZRPkqnVR5CWAOSwd1SQmGNzAVA+0LHW6tKOkQAewOIW25FMxGvJ74uF8HY+9FbYAA=="
+ },
+ "server/assets/story_telling_images/chapters/7/img_6.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/7/img_6.webp",
+  "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAAAQBACdASoYAA8APu1iqU2ppaQiMAgBMB2JZQC7AB05K7m13qk9DstfgAD+2f+o7+cVL88yPXnjD1WcWMCMCM0uPO9RUGrTKGy8lGqMvdCoBiZNTl8KzyAA"
+ },
+ "server/assets/story_telling_images/chapters/7/img_7.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/7/img_7.webp",
+  "lqip": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4IGQAAADQAwCdASoYAA8APu1mqk2ppaQiMAgBMB2JZQAAW+nzbRhOqIyW/AAA/uL3Om3LytA4kCR0G9RUuBY3wzZ9mBdIu1i8FHrCwqNIkY/abRuOxPc/O/Jd4VXo3vqBDP6aL0AVmgQA"
+ },
+ "server/assets/story_telling_images/chapters/7/img_8.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/7/img_8.webp",
+  "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAAAQBACdASoYAA8APu1iqU2ppaQiMAgBMB2JZQDE2CHedVh1fGrtP42/cAD2on+PrkuyJwgDRUfltZ20VEFRVM2gcyA8O9N2nVBOS88+V3pL/QG0j++fpcvvRP6Wq8R4NGSnDRhkbegAAA=="
+ },
+ "server/assets/story_telling_images/chapters/7/img_9.png": {
+  "width": 853,
+  "height": 474,
+  "src": "server/optimized/story_telling_images/chapters/7/img_9.webp",
+  "lqip": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAABwBACdASoYAA0APu1iqU2ppaQiMAgBMB2JQBOiP/wFcGM3f1atMIYWUq7BAAD+h9YBzyAeXYcvX4LKucbZ6rpKP9CVloaEakXwTTawG2kszrhcQdwxjZRvhYFaff3VMeGz6YKXSa72WOGsVFF8cKgBjREt2gfnvwyy4RYExkv7YUPFZXZ3U+nKa5mQAA=="
+ },
+ "server/assets/story_telling_images/chapters/8/chapter8.png": {
+  "width": 1018,
+  "height": 514,
+  "src": "server/optimized/story_telling_images/chapters/8/chapter8.webp",
+  "lqip": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAACQAwCdASoYAAwAPu1iqU2ppaQiMAgBMB2JQAALid1i4cApJbqAAP7zNMbo2QgASw0tmQLzLAPCpYx9uAUGKA8jZNWZ+FG64GVq17DzjY2kAtEFCUEIRYO8mBq+B3sUAAA="
+ },
+ "server/assets/story_telling_images/chapters/8/img_0.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/8/img_0.webp",
+  "lqip": "data:image/webp;base64,UklGRqAAAABXRUJQVlA4IJQAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JbACdAYyoyttiAuOL2/J88AD5TouESdspUacWkrAruZ2ENlHsHRXnXPDHSSier5flWExZwQus0DsnblcAd5B26Ef3vbqa8p73PlysQTUHQ/zKtTRIQYiIv1S6Sc+Wg2mgqfo9Q/VsEkCrDP2sBvVUiqOP+7H7wKEIzAAA"
+ },
+ "server/assets/story_telling_images/chapters/8/img_00.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/8/img_00.webp",
+  "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JYgCw83gAcVwWG3ABYa4USQAA/VKNKv9pzFzDB2qOSHwywVYdlHirBdpCo18KGoVo+wlJoQNoplSw6s53fI7SbQah0R67UcZkToXuG0Pz6GqChnCjJQh2QgIOVSQYTwAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/8/img_000.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/8/img_000.webp",
+  "lqip": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAAAQBACdASoYAA4APu1iqU2ppaQiMAgBMB2JZQAAXKdZXvmFvVTOPlOuAAD+4vsMolia6vol7uSXJwuPjqCQBuNBKMClnbNSnSjnddnpj5M+rHu1pvvIFt63yLR5yVmbbrfq9yGxBM1cv/43wikL0oAA"
+ },
+ "server/assets/story_telling_images/chapters/8/img_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/8/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4IGQAAAAQBACdASoYAA8APu1iqU2ppaOiMAgBMB2JQBdgBEONYGrLv3Y7kjRiAAD+3LxvG7WxgOaLU0yT/jNi6DLhqLHz2a0FTkffvMUogWpfLVULjgBBcFcYmQYCnEaZM2PEEV9NS0AA"
+ },
+ "server/assets/story_telling_images/chapters/8/img_2.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/8/img_2.webp",
+  "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAABwBACdASoYAA8APu1iqU2ppaOiMAgBMB2JYgCdMoACtHyw+E1Z54rW8r5iYAD+5CVeoluzT35N//ydZaZ3uLxTAO3Skg3NnuX5xxCFTX+1YcMPoqirpvT+iLO58Vm3zOWB3tNFRuJQoItoQm1YbLFn9PW70fOznQAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/8/img_3.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/8/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZACdMoACtTwnyuBtXCpECkAA/rxpb0gFXnRfUEJmpjoF34UmaF7+g/CMt/Myl+N3Fe0gkn33IbmLvBL1UFVyAnws0N8CPfJM4njGwL7qB4AA"
+ },
+ "server/assets/story_telling_images/chapters/8/img_4.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/8/img_4.webp",
+  "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAAAwBACdASoYAA8APu1iqk2ppaQiMAgBMB2JYwC26NiDA0i6A5YOUIoGysAA/tkNXgSx+NvifNbs+qAr9skLSI3zRp++MeFWbIwBepoj3Om6fC0fCO3s/g3vbicAdA1VpnZP1LvVZtwAAA=="
+ },
+ "server/assets/story_telling_images/chapters/8/img_5.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/8/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAACwAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JZwAAW+y86IJATTatgAD+7rn4H3PnLwoLuCtatkRUgf2FqGvMwaDAbWhKdGRugXmAAA=="
+ },
+ "server/assets/story_telling_images/chapters/8/img_6.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/8/img_6.webp",
+  "lqip": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAABwAwCdASoYAA8APu1iqk2ppaQiMAgBMB2JZwDLLDBrul/dE5AA/u9VJLG73fejknrP2/xUB3OJRYx3RE4CR3bcK8QL46ACskFKjuMbvqlAAA=="
+ },
+ "server/assets/story_telling_images/chapters/8/img_7.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/story_telling_images/chapters/8/img_7.webp",
+  "lqip": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAACwAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JQBOgAqjD85En7mBdQAD+gqdo8J1tSr+U9IEohrHJbZ2v7bpQrVbtSC9gs03K5gMFndeod/le9v8VET1cUlUaBeWU35Y8J1gMDEwPexkUx61y5+6a/PklU2TTgPF9cCU3eDDDBuo0UOMEAsCTmigUAAA="
+ },
+ "server/assets/story_telling_images/chapters/9/chapter9.png": {
+  "width": 1012,
+  "height": 496,
+  "src": "server/optimized/story_telling_images/chapters/9/chapter9.webp",
+  "lqip": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAACwAwCdASoYAAwAPu1iqU2ppaOiMAgBMB2JQAAKVXmq4RLFLrLEAAD+9DLYpIO/BnfAxUxwiQZf13iIQ02MKMgcPk9tgnw1x6daQ5okiH58yFe3UQAAAA=="
+ },
+ "server/assets/story_telling_images/chapters/9/img_0.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/9/img_0.webp",
+  "lqip": "data:image/webp;base64,UklGRooAAABXRUJQVlA4IH4AAACQAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JZwAAJOGaWTi+r+EAAP6iTmm+PEX1N3VFXovW20po20RemBberjhXcCNWkt2ajcTcZIoNK2U5hvz0/Fd8qohwkfTH4IdduCFMO2Tz84XE9eQOsEeqNI5bpRC15fzqb4i1TmkgAAA="
+ },
+ "server/assets/story_telling_images/chapters/9/img_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/9/img_1.webp",
+  "lqip": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAADwAwCdASoYAA8APu1iqU2ppaOiMAgBMB2JZwAAXsxl93TFncUyzJOAAPsQSEVuPJVj0TB0MjHmmp6/O9FcdQzLqOaHqvpUJMcUYb0NWv99K9SQPgE5k2Yh9JyTX3izf5jI3zQlvaqw7bzHE5XXev+SeAwrb51F/EgsHiIiGlR7uESQZaoYwAAA"
+ },
+ "server/assets/story_telling_images/chapters/9/img_2_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/9/img_2_1.webp",
+  "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAAAQBACdASoYAA8APu1iqU2ppaOiMAgBMB2JaQAIEALyrHFUzvRtbuj5wAD8bi61C1fOPbv1/vDvDbxLFSMvdhrrN6GOLRLfWZNOpp/Voxu7BeoXbh8MTh/2s6Rcs+DSwV/BJ9FZnO7GqfADin+64nz428pDFreax+AAAA=="
+ },
+ "server/assets/story_telling_images/chapters/9/img_2_2.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/9/img_2_2.webp",
+  "lqip": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZwDG9BnU32FhmpO5g5sIc8AA/ujmSb2+olejcG8/F8xvPOdJKlAl8fDPLKojylKY0hMsjReSVOUc/mVx/XYjDH4IcLnnfsQ5LLe3p0I1H+5yHpUrzwDiwNfGvxJYzYR6YdxU79zhdmpBnD7yEwVHgAlUMP1eSAA="
+ },
+ "server/assets/story_telling_images/chapters/9/img_3.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/9/img_3.webp",
+  "lqip": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAADQAwCdASoYAA8APu1iqU2ppaQiMAgBMB2JZwAAW+wmGPTcom/u6AAA/uj43uiwcPz6tw8VfXzUUELwgXy6lFXeT0peCBJw6Nc3Fw18bcKfYb0AAAA="
+ },
+ "server/assets/story_telling_images/chapters/9/img_4_1.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/9/img_4_1.webp",
+  "lqip": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAABQBACdASoYAA8APu1iqU2ppaOiMAgBMB2JZwDG9ywBCMUTfa9pybPGFq4AAM41rjunovDXSLY333tVRGxrXVw8P1GKW+SAqbW1R5It+Og07+a3a8z/9pDyLKfcKUeD51IFzjEwNffJvFqPkSmgwPGYxbbVr7hXyVcorJ4k+Dp3h7PVe30B2raGCEYjLal7ipZz10r/AAA="
+ },
+ "server/assets/story_telling_images/chapters/9/img_4_11.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/9/img_4_11.webp",
+  "lqip": "data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAABwAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JZQC7ACHiAdj+2WAA/u6SLuKFWj779OYL/zs47NfTGcB8AAA="
+ },
+ "server/assets/story_telling_images/chapters/9/img_4_2.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/story_telling_images/chapters/9/img_4_2.webp",
+  "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAADQAwCdASoYAA4APu1iqU2ppaQiMAgBMB2JZwAAS8/SFb+WIHqkooAA/uaLzsYPqqE/OqX6B3qYrbGhfIeNk5+bhzP43NxPODLIRC5uWm7NL86H5Gs5doaNtwXoKK4eYqHJw2UXrvRl3ElmQhNPcioQ/l0cQFeSsSgXmfAA"
+ },
+ "server/assets/story_telling_images/chapters/9/img_4_3.png": {
+  "width": 1362,
+  "height": 736,
+  "src": "server/optimized/story_telling_images/chapters/9/img_4_3.webp",
+  "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAABQAwCdASoYAA0ALrV2u12jqampiYC0SzgABdG65obqzmAZwAD+93y8U2YU0IB4/IkaOBbruoPZ5ur7T+Cq19Fm/LHctf2r/7h2CE0qv2KbK7mhy6MeDgAA"
+ },
+ "server/assets/story_telling_images/chapters/9/img_5.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/9/img_5.webp",
+  "lqip": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAACwAwCdASoYAA8APu1kqU4ppaOiMAgBMB2JZwAAUqvSCJXHCq21+AD+70vGDG2246KloD3Xq0Iy1i8XrdKx9UXfmBMunBVt9o90zbOscjglfe4KYV+dUMYoV05MAAAA"
+ },
+ "server/assets/story_telling_images/chapters/9/img_6.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/9/img_6.webp",
+  "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAAAwBACdASoYAA8APu1iqU2ppaOiMAgBMB2JYwCdACHw1UnymOnto4YP50AA/muwT7gBVkSpiH3NuwhbtyLyDzEHjH1Yhu6+DDr3/eTc879lMCbGr1/kSXDKXPaO6/pXPBbG+RNoH1tipPAAAAA="
+ },
+ "server/assets/story_telling_images/chapters/9/img_7.jpg": {
+  "width": 1264,
+  "height": 783,
+  "src": "server/optimized/story_telling_images/chapters/9/img_7.webp",
+  "lqip": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAAAwBACdASoYAA8APu1iqU2ppaOiMAgBMB2JYwCdABuEoWWcCOD5ANwqGYAA/uqSwwGwueRduwpBIaUkUmaYoHd39txuURgBGdafaMFHHG5gXs/jAn2Nmx9b5n1LJmEhnQfvO7AeTejJILlKLe9CyO+/j7aLwyCCHE66Hq8k/gAAAA=="
+ },
+ "server/assets/card_images/austin_card.png": {
+  "width": 1066,
+  "height": 884,
+  "src": "server/optimized/card_images/austin_card.webp",
+  "lqip": "data:image/webp;base64,UklGRsYAAABXRUJQVlA4ILoAAADQBACdASoYABQAPu1srFEppaQiqAqpMB2JbAC06BEbKLIFW9dCrQJ5qY1j22eYQAD+6jmBgvqVY4P8kekwIF81W5qB42vH2imvmE4Z3wL6F3n+5MdYN9QpLjJYaAJQ3wAMMH1KQabXs15phglvSm0KdqLBr77i68BTXZNXdsXT2AGRAESW/V7KRW6AZhF94HaOGXpnj3Ly3uCYcRg4nPnWrac6hyycQtTZ7ObLOZvm1lBDkbleN3fPIAA="
+ },
+ "server/assets/card_images/boston_card.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/card_images/boston_card.webp",
+  "lqip": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAADwAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JZwDG9CHqIDn6kfSpB+xAAP7Iu4sik3fhMC/7SqGzOUgw979Ppu9Z8/lgsf9E9VDb5DXGzsu9wh1ZEiHcIBo9XwAzBAu1DZwN4sBYAAA="
+ },
+ "server/assets/card_images/jackson_icon.jpg": {
+  "width": 1000,
+  "height": 563,
+  "src": "server/optimized/card_images/jackson_icon.webp",
+  "lqip": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAADQAwCdASoYAA0APu1kqk4ppaQiMAgBMB2JQBadBDsRVA0vbIncUAAA/uqB9NRZM4xrDfsTvawh2Jyflwlk+DUM1J/hx/g3H54zkMQU0oHVT8BdqYIioJhXmOM6cg2j1kiP23W8+QOWAosHl/Ogqyt7iIMtUqUAAAA="
+ },
+ "server/assets/card_images/lincoln_icon.jpg": {
+  "width": 1280,
+  "height": 720,
+  "src": "server/optimized/card_images/lincoln_icon.webp",
+  "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JQBOmXkBCKbArph7ua8hgAAD+QBwZ6ec6kC7jUFD6Vk9yshQF3+0C8YRPXf7PdH2mso//ZTdvQza5SJWtc6CIIPVKGLOoSOdHKn/zV0yWBs7yKNyMOazdkT0pSAAA"
+ },
+ "server/assets/card_images/pittsburgh_icon.png": {
+  "width": 1740,
+  "height": 978,
+  "src": "server/optimized/card_images/pittsburgh_icon.webp",
+  "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAAAQBACdASoYAA0APu1kqU2ppaOiMAgBMB2JZQAAXt8/H3ejFm9CWXQyAAD9/T3BBIUyVBzd+0MDSOgRL1o8MBn4pwgljMOE+WPBxNXxGMVNN1MAcuF4/7sh9qhbRg4VGn4xb3AtuUvmTTFagu2Jj8aKNX85ZJER52+cAA=="
+ },
+ "server/assets/card_images/silver_lake.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/card_images/silver_lake.webp",
+  "lqip": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAAAwBACdASoYAA4APu1iqU2ppaOiMAgBMB2JZwDG9BnU32FhmpO5g5sIc8AA/ujmSb2+olejcG8/F8xvPOdJKlAl8fDPLKojylKY0hMsjReSVOUc/mVx/XYjDH4IcLnnfsQ5LLe3p0I1H+5yHpUrzwDiwNfGvxJYzYR6YdxU79zhdmpBnD7yEwVHgAlUMP1eSAA="
+ },
+ "server/assets/card_images/university.jpg": {
+  "width": 640,
+  "height": 360,
+  "src": "server/optimized/card_images/university.webp",
+  "lqip": "data:image/webp;base64,UklGRqAAAABXRUJQVlA4IJQAAAAQBACdASoYAA4APu1iqU2ppaOiMAgBMB2JbACdAYyoyttiAuOL2/J88AD5TouESdspUacWkrAruZ2ENlHsHRXnXPDHSSier5flWExZwQus0DsnblcAd5B26Ef3vbqa8p73PlysQTUHQ/zKtTRIQYiIv1S6Sc+Wg2mgqfo9Q/VsEkCrDP2sBvVUiqOP+7H7wKEIzAAA"
+ },
+ "server/assets/card_images/utah_icon.jpg": {
+  "width": 1000,
+  "height": 563,
+  "src": "server/optimized/card_images/utah_icon.webp",
+  "lqip": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4IJwAAAAwBACdASoYAA0APu1iqU2ppaOiMAgBMB2JYwC06Buuev0yJehcntms4yAA/eNaVYqLMjxR4lMfavOQZxznROs2ks/2lT6ZuPkqbdZI51ork96aLh2N1ARMNJby7uKCS8Flpjbljne3wxWuaaJzALrL3OovHl0A/yCfEc6nJf++uLf2jqTfQdAHGlBz/uZZMLNqDkiWpDgcjaX4wAA="
+ },
+ "server/assets/large_images/main_background.jpg": {
+  "width": 1920,
+  "height": 1080,
+  "src": "server/optimized/large_images/main_background.webp",
+  "lqip": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAACQAwCdASoYAA4APu1kq04ppaQiMAgBMB2JaQABHoTz3i5kEY8AAP7+SRjPc3ZTCjZUH99+ZTIu+PpKOyvGbP+8R0to26H/CgAAAA=="
+ },
+ "server/assets/marker_icons/Chapter_quarantinezone.png": {
+  "width": 675,
+  "height": 383,
+  "src": "server/optimized/marker_icons/Chapter_quarantinezone.webp",
+  "lqip": "data:image/webp;base64,UklGRjwBAABXRUJQVlA4WAoAAAAQAAAAFwAADQAAQUxQSJsAAAAFcFTb1rJ878NdZ04AxpaBRRAKkMA1ifuYkdOAAu4Ov//wIkSE2rZtGDl9CnxGPBF43vVqRv+mF73ufaVACGF01WSUoQQjNmhiQP4D/Jjo6ulkATEzdP50IVnqbSi+ipEVCEHRYxRIWhcLchkw2POQtaP4KEt310fJsBITCQGZnV9N5etFllwq5ggtrorP4/VUAmiBql9npW6fAQBWUDggegAAAJAEAJ0BKhgADgA+7WKpTamlo6IwCAEwHYlnAMTYHCyHji6nIoth7d+e4vycYAD+ZNAt3el2sAz8rnJI4R0m+5vbP8leumgRe38aMS5WXNJ7g2Ricu52+zakYTYLzrKfjF53v9L5TWXCNSrJky1z3+s8aIDZa23baCgA"
+ },
+ "server/assets/marker_icons/austin.png": {
+  "width": 462,
+  "height": 456,
+  "src": "server/optimized/marker_icons/austin.webp",
+  "lqip": "data:image/webp;base64,UklGRroAAABXRUJQVlA4IK4AAADwBACdASoYABgAPu1irFAppSQisBgIATAdiWkACBZh9HU/pTJ8mR7mLt9ABg1c/AAA/uuzCi6Ftq80/OqIdQ2UCt6tbr/QCQI6JunkKrgzC4x6IJnW6nl2MYpP4WxddqOE53xBBV3XaSBDuu/3zB9vcNqPjCiyPxyZZj90RZ9C56YgesAtmg3zR2KUxR8AP6zZ2w6p4Q/xIK/0v8cTstnPrOGGWhyudRJKWqgAAAA="
+ },
+ "server/assets/marker_icons/collins.jpeg": {
+  "width": 225,
+  "height": 225,
+  "src": "server/optimized/marker_icons/collins.webp",
+  "lqip": "data:image/webp;base64,UklGRsoAAABXRUJQVlA4IL4AAABQBQCdASoYABgAPu1urlIppiQiqAgBMB2JYwC3uywTngYKPZIfmS303wKfqjXQM56J9tAA/uqP2AAPc5rllaGxj8bpgVWZjXsHEU+FDIIsUFxGFI2/mKU9HNHer1W9siAc1yH3sdZQfxObV7wqljtmdSrURtm2+gw7Sc1QdjMW5uNTiAF3Oer9y06UpeOO/DBHHW+P0Nxw5DMTSeEEW7Louzp2PTceGLmhSoSYQ51wK7wqcXaMJXt4KKOEh/AA"
+ },
+ "server/assets/marker_icons/firefly.jpg": {
+  "width": 128,
+  "height": 128,
+  "src": "server/optimized/marker_icons/firefly.webp",
+  "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAABwBACdASoYABgAPu1cqE2ppKOiN/VYATAdiWkADMAAdEjezSr09DMhSK1kAAD+83AoTSPd9a4uLKHhwuh3fxZby3xLp5ZmbnTT7RUG+UBdEadMWrlqYVG5EaqfaN2FPBVkTayHlQ64hk7cZpIJsfIYdWwVct6Mb2XKy76b1l5Q6boqN7Bat2SVzJOqmeqchGsMMgiT2k0IZAAA"
+ },
+ "server/assets/marker_icons/jackson.jpeg": {
+  "width": 225,
+  "height": 225,
+  "src": "server/optimized/marker_icons/jackson.webp",
+  "lqip": "data:image/webp;base64,UklGRk4BAABXRUJQVlA4IEIBAAAQBwCdASoYABgAPu1mqk8ppaOiKA1RMB2JbACsFQd5/+yT0aCEA1fxE6JkNwU+YDL/R2510PwPoZDwE6RoTIZWgAD+8jMMiwXfLwiH03s7iU3qxRiM+heKoAcdhS4AK28NLEVixQsX3+nx2GjgQ6WfEtbp4sEpzgy1pEU7M93BVxWnA9YNopeLpLaAKoRhmMssxo9XIymmd8inbPasN+aByucqP1shkNrvtKm/UidtS9tqNIF+LftcxLHCEu9Apd1a7+6x/cq84D/BS73Nke0r6UZ2bCvYphsarC79f+DjIvKuTcGfZW3BZFuF1S+jti1jgzy1ARtJeq5vXoRCesXuuMkHENnueS6LHO25/JSZF0jP02fwvoJmCMFfvtZhTuwKGVP29V3vVur516icFeWDsuIk8IhM/ZI8+tIAWpJ4xUAA"
+ },
+ "server/assets/marker_icons/lake.png": {
+  "width": 180,
+  "height": 180,
+  "src": "server/optimized/marker_icons/lake.webp",
+  "lqip": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAADQBACdASoYABgAPu1kpU4ppaMiMBgMATAdiWkAAC51k6+cOBE1f8SGsG+0HKlAAAD+nHP73i2ldbxDsxpwibAqjORYo1jIxfNiwVm/bp8UT37GD7/AttUQ0HS4toSn396/nKgdmdJwXngPT0GabpzvBIZore9AAAA="
+ },
+ "server/assets/marker_icons/lincoln.png": {
+  "width": 434,
+  "height": 458,
+  "src": "server/optimized/marker_icons/lincoln.webp",
+  "lqip": "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAADwAgCdASoYABkAPu1urlIppiQjqAgBMB2JZwAAQnjkAAD+8Ixao3mTTgEhJp6jFgAAAA=="
+ },
+ "server/assets/marker_icons/pittsburgh.png": {
+  "width": 526,
+  "height": 522,
+  "src": "server/optimized/marker_icons/pittsburgh.webp",
+  "lqip": "data:image/webp;base64,UklGRsoAAABXRUJQVlA4IL4AAACQBQCdASoYABgAPu1qqFAppiOiqA1RMB2JaQAIEC59ThbZ6EtcZqffMEXIz+4PdaVHcSY4AAD+2J2OmJbJPACqTW2kqUsd6EE00JTL9kLcDoaOIoQaLonwglM+8LG6owlUMy8kyUPZTb9go2mesIpn9n8XuBFbO4ffPRc2H9TvLlb+/8arEMmXRtq8Bd29a+AbdfciLJsdWrPy2A1oFnRVuqPDbRSy7inWc5Ef26lzrPSSyams24IncmLAAAAA"
+ }
+}

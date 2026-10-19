@@ -1,0 +1,6 @@
+/* The map fills the whole map area behind the interface. */
+.map {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg);
+}

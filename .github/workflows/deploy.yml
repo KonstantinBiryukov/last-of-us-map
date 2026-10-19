@@ -1,0 +1,50 @@
+# Optional: deploy from GitHub instead of your own computer.
+#
+# Runs only when you start it by hand (Actions tab → "Deploy to GitHub Pages" →
+# "Run workflow"), so pushing code never publishes anything by surprise.
+#
+# It builds the site and pushes dist/ to the `gh-pages` branch — the same
+# branch `npm run deploy` publishes to, so the URL stays
+# https://konstantinbiryukov.github.io/last-of-us-map/
+#
+# One-time setup: Settings → Secrets and variables → Actions → New repository
+# secret named MAPBOX_TOKEN containing your public "pk." token.
+name: Deploy to GitHub Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed to push to the gh-pages branch
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type-check, test and build
+        run: npm run check
+        env:
+          VITE_MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
+
+      - name: Publish dist/ to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          npx gh-pages --dist dist --branch gh-pages --dotfiles \
+            --message "Deploy ${GITHUB_SHA}" \
+            --repo "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

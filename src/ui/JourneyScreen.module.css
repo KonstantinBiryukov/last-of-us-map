@@ -1,0 +1,180 @@
+/*
+ * Desktop: the map fills the screen; panels float above it.
+ * Phones (< 900 px): map on top, story below, player at the bottom.
+ */
+.screen {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.mapArea {
+  position: absolute;
+  inset: 0;
+}
+
+/* Subtle cinematic vignette at the edges of the map (does not catch clicks). */
+.mapArea::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 60% 45%, transparent 55%, rgba(8, 7, 6, 0.55) 100%);
+}
+
+.brand {
+  position: absolute;
+  top: var(--gutter);
+  left: var(--gutter);
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+}
+.brandTitle {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.brandSub {
+  font-family: var(--font-story);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+.about {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.about:hover {
+  color: var(--color-text);
+  background: rgba(236, 227, 211, 0.08);
+}
+
+.controls {
+  position: absolute;
+  top: var(--gutter);
+  right: var(--gutter);
+  z-index: 3;
+}
+
+.notice {
+  position: absolute;
+  top: calc(var(--gutter) + 52px);
+  left: 50%;
+  z-index: 4;
+  transform: translateX(-50%);
+  max-width: min(520px, calc(100% - 2 * var(--gutter)));
+  padding: 9px 14px;
+  border-radius: var(--radius-m);
+  background: var(--color-surface-raised);
+  border: 1px solid rgba(194, 80, 46, 0.5);
+  color: var(--color-text);
+  font-size: 13.5px;
+  text-align: center;
+}
+
+/* Story column floats on the left, between the brand and the player bar. */
+.story {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--gutter) + 56px);
+  left: var(--gutter);
+  bottom: calc(var(--gutter) + 132px);
+  width: clamp(340px, 30vw, 480px);
+  display: flex;
+  flex-direction: column;
+}
+.story > * {
+  max-height: 100%;
+}
+
+.player {
+  position: absolute;
+  z-index: 2;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: var(--gutter);
+}
+
+/* Explore: the side panel may use the full height (there is no player bar under it). */
+.story[data-mode='explore'] {
+  bottom: var(--gutter);
+}
+
+/* Explore: a small soundtrack bar in the bottom-right corner. */
+.music {
+  position: absolute;
+  z-index: 2;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  width: min(380px, calc(100% - 2 * var(--gutter)));
+  padding: 10px 14px;
+  border-radius: var(--radius-l);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-panel);
+}
+
+/* ───────── Phones and small tablets ───────── */
+@media (max-width: 899px) {
+  .screen {
+    display: flex;
+    flex-direction: column;
+  }
+  .mapArea {
+    position: relative;
+    flex: none;
+    height: 42vh;
+    height: 42svh;
+  }
+  .brand {
+    padding: 4px 6px;
+    gap: 6px;
+  }
+  .brandTitle {
+    font-size: 13px;
+  }
+  .brandSub {
+    display: none;
+  }
+  .story {
+    position: static;
+    flex: 1;
+    min-height: 0;
+    width: auto;
+    padding: 0 var(--gutter);
+    margin-top: calc(-1 * var(--gutter));
+  }
+  .story > * {
+    flex: 1;
+  }
+  .player {
+    position: static;
+    flex: none;
+    padding: var(--gutter);
+    padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
+  }
+  .music {
+    position: static;
+    flex: none;
+    width: auto;
+    margin: var(--gutter);
+    margin-bottom: max(var(--gutter), env(safe-area-inset-bottom));
+  }
+}

@@ -1,0 +1,203 @@
+/* Fixed 16:9 frame: the space is reserved before any image loads (no layout shift). */
+.frame {
+  position: relative;
+  margin: 0;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: #050504;
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+/* Each layer starts transparent and fades in once its image is ready. */
+.layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background-size: cover;
+  background-position: center;
+  transition: opacity 1s var(--ease-cinematic);
+}
+.layer::before {
+  /* The tiny blurred preview, softened further, fills letterbox areas behind title cards. */
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: inherit;
+  filter: blur(18px) brightness(0.5);
+}
+.visible {
+  opacity: 1;
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+}
+.cover {
+  object-fit: cover;
+}
+.contain {
+  object-fit: contain;
+  background: #000;
+}
+
+/* Slow drift for a cinematic feel. Only transform is animated (cheap for the GPU). */
+.kenBurns {
+  animation-name: ken-burns;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+@keyframes ken-burns {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.09) translate3d(-1.2%, -0.8%, 0);
+  }
+}
+.contain.kenBurns {
+  animation-name: ken-burns-soft;
+}
+@keyframes ken-burns-soft {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.03);
+  }
+}
+
+.missing {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-faint);
+  font-family: var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Prev/next buttons appear on hover/focus (always visible on touch screens). */
+.nav {
+  position: absolute;
+  top: calc(50% - 40px);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 56px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: rgba(10, 9, 8, 0.55);
+  color: var(--color-text);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.25s, background 0.2s;
+}
+.prev {
+  left: 8px;
+}
+.next {
+  right: 8px;
+}
+.frame:hover .nav,
+.nav:focus-visible {
+  opacity: 1;
+}
+.nav:hover {
+  background: rgba(10, 9, 8, 0.8);
+}
+.nav:disabled {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+@media (hover: none) {
+  .nav {
+    opacity: 0.85;
+  }
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px 11px;
+  background: linear-gradient(to bottom, rgba(10, 9, 8, 0.9), rgba(10, 9, 8, 0.98));
+}
+
+.counter {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.counterTotal {
+  color: var(--color-text-faint);
+}
+
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dot {
+  display: block;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+.dot::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 6px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-line-strong);
+  transition: background 0.3s;
+}
+.dotSeen::after {
+  background: rgba(232, 163, 61, 0.45);
+}
+.dotActive::after {
+  background: var(--color-accent);
+  height: 3px;
+  top: 5.5px;
+}
+
+.progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: transparent;
+  pointer-events: none;
+}
+.progressFill {
+  height: 100%;
+  background: var(--color-accent);
+  opacity: 0.85;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
