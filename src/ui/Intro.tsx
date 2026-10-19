@@ -106,8 +106,7 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
         </div>
 
         <p className={styles.warning}>
-          <strong>Warning:</strong> the journey contains major spoilers for the entire game. Do not proceed before
-          completing it. 18+. Best experienced with sound on.
+          <strong>Warning:</strong> The journey contains major spoilers for the entire game. Best experienced with sound on.
         </p>
       </div>
     </div>

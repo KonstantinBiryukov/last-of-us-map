@@ -32,25 +32,17 @@
   right: 0;
   top: 11px;
   height: 4px;
-  display: flex;
-  gap: 3px;
 }
 .segment {
-  flex-basis: 0;
+  position: absolute; /* left/width set inline from the chapter's start and length */
+  top: 0;
+  bottom: 0;
+  overflow: hidden; /* clips the fill to this chapter, keeping the gap to the next one visible */
   border-radius: 2px;
   background: var(--color-line-strong);
 }
 
-.fillClip {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 11px;
-  height: 4px;
-  overflow: hidden;
-  border-radius: 2px;
-  pointer-events: none;
-}
+/* The played part of one chapter: full width, scaled horizontally from the left (0…1). */
 .fill {
   width: 100%;
   height: 100%;

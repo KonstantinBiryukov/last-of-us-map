@@ -41,9 +41,14 @@ type Listener = () => void;
 
 /** Comfortable on-screen speed of the travellers, in pixels per second. */
 const TARGET_SCREEN_SPEED_PX = 28;
-/** Zoom limits while following (4 ≈ several states visible, 11.5 ≈ a town). */
+/**
+ * Zoom limits while following (4 ≈ several states visible, 15.5 ≈ city blocks).
+ * The upper limit matters for slow city walks (Boston, Lincoln): with a cap of 11.5 a
+ * walk of a few blocks moved only ~4 px per second on screen, which looked like walking
+ * on the spot. At street level the same walk visibly crosses the city.
+ */
 const MIN_FOLLOW_ZOOM = 4.2;
-const MAX_FOLLOW_ZOOM = 11.5;
+const MAX_FOLLOW_ZOOM = 15.5;
 /** Camera tilt while following, in degrees (0 = straight down). */
 const FOLLOW_PITCH = 52;
 /** Smoothing speeds (bigger = snappier). Jumps use faster zoom so the swoop fits in 4.5 s. */
@@ -83,8 +88,12 @@ export class CameraDirector {
   private readonly options: CameraOptions;
   /** Marker coordinates (copied from the options for convenience). */
   private readonly locationCoords: readonly (readonly [number, number])[];
-  /** Precomputed comfortable zoom per detailed leg (index = leg index). */
-  private readonly legZoom: number[];
+  /**
+   * Precomputed comfortable zoom per leg PART, keyed "chapterIndex:spanIndex". Per part, not
+   * per leg, because one leg can be travelled at very different speeds (Boston → Lincoln is
+   * a slow city walk in Boston and a fast, compressed walk to Lincoln).
+   */
+  private readonly spanZoom: Map<string, number>;
   /**
    * True in "Explore the map": the camera then belongs to the user completely and
    * story jumps are ignored (the story is not on screen in that mode).
@@ -105,7 +114,7 @@ export class CameraDirector {
     this.engine = engine;
     this.options = options;
     this.locationCoords = options.locationCoords;
-    this.legZoom = this.computeLegZooms();
+    this.spanZoom = this.computeSpanZooms();
 
     // Any camera movement that comes from a real mouse/touch/keyboard event means "the user is in control".
     for (const type of ['dragstart', 'rotatestart', 'pitchstart', 'zoomstart'] as const) {
@@ -321,7 +330,7 @@ export class CameraDirector {
     const leg = this.engine.route.legs[frame.legIndex];
     journey.pointAt(frame.distance, this.target);
     const jumping = leg !== undefined && isJumpKind(leg.kind);
-    let zoom = this.legZoom[frame.legIndex] ?? 9;
+    let zoom = this.spanZoom.get(`${frame.chapterIndex}:${frame.spanIndex}`) ?? 9;
     if (jumping) zoom = this.zoomForJump(frame.legIndex);
     // Look ~90 px ahead along the route so the travellers sit a little behind centre.
     const ahead = jumping ? 0 : metersPerPixel(zoom, this.target[1]) * 90;
@@ -342,22 +351,22 @@ export class CameraDirector {
   }
 
   /**
-   * For each detailed leg, the zoom where the travellers move at a comfortable on-screen speed.
+   * For each detailed leg part, the zoom where the travellers move at a comfortable on-screen speed.
    * Maths: pixels/second = (metres/second) ÷ (metres per pixel at that zoom), and
    * metersPerPixel(z) = C·cos(lat) / (512·2^z). Solving for z:
    *     z = log2( C·cos(lat)·pixelsPerSecond / (512·metresPerSecond) )
    */
-  private computeLegZooms(): number[] {
-    const zooms: number[] = this.engine.route.legs.map(() => 9);
+  private computeSpanZooms(): Map<string, number> {
+    const zooms = new Map<string, number>();
     for (const chapter of this.engine.timeline.chapters) {
-      for (const span of chapter.legSpans) {
+      for (const [spanIndex, span] of chapter.legSpans.entries()) {
         if (isJumpKind(span.kind)) continue;
         const metres = span.endDistance - span.startDistance;
         const seconds = Math.max(span.end - span.start, 0.1);
         const speed = Math.max(metres / seconds, 1);
         const lat = this.engine.route.legs[span.legIndex]!.coordinates[0]![1];
         const z = Math.log2((40_075_016.686 * Math.cos((lat * Math.PI) / 180) * TARGET_SCREEN_SPEED_PX) / (512 * speed));
-        zooms[span.legIndex] = Math.min(MAX_FOLLOW_ZOOM, Math.max(MIN_FOLLOW_ZOOM, z));
+        zooms.set(`${chapter.index}:${spanIndex}`, Math.min(MAX_FOLLOW_ZOOM, Math.max(MIN_FOLLOW_ZOOM, z)));
       }
     }
     return zooms;

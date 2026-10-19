@@ -74,20 +74,6 @@ describe('timeline built from the real story data', () => {
     }
   });
 
-  it('pace stays continuous where a leg is split between two chapters', () => {
-    const spans = timeline.chapters.flatMap((c) => c.legSpans);
-    for (let i = 1; i < spans.length; i++) {
-      const a = spans[i - 1]!;
-      const b = spans[i]!;
-      if (a.legIndex !== b.legIndex) continue; // only split legs
-      const speedA = (a.endDistance - a.startDistance) / (a.end - a.start);
-      const speedB = (b.endDistance - b.startDistance) / (b.end - b.start);
-      // Within 25 %: no visible lurch at the chapter boundary.
-      expect(speedB / speedA).toBeGreaterThan(0.75);
-      expect(speedB / speedA).toBeLessThan(1.33);
-    }
-  });
-
   it('jumps and time skips take the fixed jump time', () => {
     for (const span of timeline.chapters.flatMap((c) => c.legSpans)) {
       if (isJumpKind(span.kind)) expect(span.end - span.start).toBeCloseTo(4.5);
@@ -123,6 +109,55 @@ describe('timeline built from the real story data', () => {
     // Leg 6 is shared by Chapter V and VI; at the end of Chapter V it is not complete yet.
     const endOfFive = timeline.chapters[4]!.end - 0.01;
     expect(completedLegCount(timeline, endOfFive)).toBe(6);
+  });
+
+  it('Lakeside Resort follows the game: ride with wounded Joel 40 %, Ellie alone 30 %, Joel alone 20 %, together 10 %', () => {
+    const spans = timeline.chapters[8]!.legSpans; // Chapter IX
+    const km = (sp: (typeof spans)[number]) => (sp.endDistance - sp.startDistance) / 1000;
+    const total = spans.reduce((sum, sp) => sum + km(sp), 0);
+    const share = (pick: (sp: (typeof spans)[number]) => boolean) => spans.filter(pick).reduce((a, sp) => a + km(sp), 0) / total;
+    const alone = (who: string) => (sp: (typeof spans)[number]) => sp.party.length === 1 && sp.party[0] === who;
+    expect(share((sp) => sp.wounded && sp.mode === 'horse')).toBeCloseTo(0.4, 2);
+    expect(share(alone('ellie'))).toBeCloseTo(0.3, 2);
+    expect(share(alone('joel'))).toBeCloseTo(0.2, 2);
+    expect(spans.filter(alone('ellie')).every((sp) => sp.mode === 'walk')).toBe(true);
+    expect(spans.filter(alone('joel')).every((sp) => sp.mode === 'walk')).toBe(true);
+    // Order: ride → Ellie alone → Joel alone → together (the last 10 %).
+    expect(spans[0]!.wounded).toBe(true);
+    const last = spans.at(-1)!;
+    expect(last.party).toEqual(['joel', 'ellie']);
+    expect(km(last) / total).toBeCloseTo(0.1, 2);
+    for (const span of timeline.chapters[9]!.legSpans) expect(span.party).toEqual(['joel', 'ellie']);
+  });
+
+  it('Tess is with them for most of The Outskirts (she dies near its end, at the Capitol)', () => {
+    const c = timeline.chapters[2]!;
+    const trio = c.legSpans.find((s) => s.party.includes('tess'))!;
+    expect((trio.end - trio.start) / (c.end - c.start)).toBeGreaterThan(0.6);
+  });
+
+  it('Boston and Lincoln companions appear exactly where the game has them', () => {
+    const parties = (chapter: number) => timeline.chapters[chapter]!.legSpans.filter((s) => s.kind === 'detailed').map((s) => s.party.join('+'));
+    expect(parties(1)).toEqual(['joel+tess', 'joel+tess+ellie']); // QZ: Joel & Tess, then Ellie joins
+    expect(parties(2)).toEqual(['joel+tess+ellie', 'joel+ellie']); // downtown with Tess, then without her
+    expect(parties(3)).toEqual(['joel+ellie', 'joel+bill+ellie', 'joel+ellie']); // into Lincoln, with Bill, then the truck
+    for (let c = 4; c < 12; c++) {
+      for (const s of timeline.chapters[c]!.legSpans) {
+        expect(s.party.includes('tess') || s.party.includes('bill')).toBe(false);
+      }
+    }
+  });
+
+  it("Bill's Town ends with Bill's truck (last 20 %) and the Epilogue walks only its last 20 %", () => {
+    const bills = timeline.chapters[3]!;
+    const truck = bills.legSpans.at(-1)!;
+    expect(truck.mode).toBe('vehicle');
+    expect((truck.end - truck.start) / (bills.end - bills.start)).toBeCloseTo(0.2, 5);
+    const epilogue = timeline.chapters[11]!;
+    const walk = epilogue.legSpans.at(-1)!;
+    expect(walk.mode).toBe('walk');
+    expect((walk.end - walk.start) / (epilogue.end - epilogue.start)).toBeCloseTo(0.2, 5);
+    expect(epilogue.legSpans.slice(0, -1).every((s) => s.mode === 'vehicle')).toBe(true);
   });
 
   it('locate is deterministic: the same time always gives the same frame', () => {

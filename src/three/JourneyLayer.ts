@@ -32,11 +32,22 @@
 import * as THREE from 'three';
 import type { CustomLayerInterface, Map as MapboxMap } from 'mapbox-gl';
 import type { PlaybackEngine } from '../playback/engine';
-import type { TravelMode } from '../data/types';
+import type { TravelMode, Traveller } from '../data/types';
 import { isJumpKind } from '../playback/timeline';
 import { mercatorX, mercatorY, meterInMercatorUnits } from '../geo/mercator';
 import type { MutableLngLat } from '../geo/polyline';
-import { createCharacter, ELLIE, JOEL, poseIdle, poseSeated, poseWalk, type Character } from './models/character';
+import {
+  BILL,
+  createCharacter,
+  ELLIE,
+  JOEL,
+  poseIdle,
+  poseSeated,
+  poseWalk,
+  poseWounded,
+  TESS,
+  type Character,
+} from './models/character';
 import { createHorse, poseHorse, poseHorseIdle, type Horse } from './models/horse';
 import { createTruck, poseTruck, type Truck } from './models/truck';
 import { disposeGeometries, disposeMaterials } from './materials';
@@ -67,9 +78,38 @@ const DUST_RATE: Record<TravelMode, number> = { walk: 0, horse: 14, vehicle: 24 
 /** Shadow footprint in model metres (width, length). */
 const SHADOW_SIZE: Record<TravelMode, [number, number]> = { walk: [2.2, 1.6], horse: [1.5, 3.2], vehicle: [2.8, 6.2] };
 /** Walk/gallop cycles per second, and how fast the truck "drives" for its wheel spin (m/s). */
-const JOEL_STEPS_HZ = 1.05;
-const ELLIE_STEPS_HZ = 1.25; // shorter legs → quicker steps
 const HORSE_GAIT_HZ = 1.3;
+/** Every character that can walk on the map. */
+const TRAVELLERS: readonly Traveller[] = ['joel', 'ellie', 'tess', 'bill'];
+/** Steps per second: shorter legs take quicker steps. */
+const STEPS_HZ: Record<Traveller, number> = { joel: 1.05, ellie: 1.25, tess: 1.12, bill: 1.0 };
+/** Phase offsets (radians) so nobody walks perfectly in step with the others. */
+const PHASE_OFFSET: Record<Traveller, number> = { joel: 0, ellie: 1.3, tess: 2.4, bill: 3.6 };
+/**
+ * Walking formations (x = metres to the right of the route, z = metres BEHIND the leader),
+ * for 1, 2 and 3 travellers, in party order. Example for three: left, middle (half a step
+ * ahead), right.
+ */
+const WALK_FORMATION: readonly (readonly (readonly [number, number])[])[] = [
+  [[0, 0]],
+  [
+    [-0.42, 0],
+    [0.48, 0.35],
+  ],
+  [
+    [-0.75, 0.1],
+    [0.05, -0.25],
+    [0.85, 0.35],
+  ],
+];
+/**
+ * Wounded Joel lying across the horse: height of his body above the horse's centre
+ * (the horse's back is at +0.33), where along the horse he lies (behind Ellie), and where
+ * his hips sit sideways (0 = centred on the spine; his body hangs down both flanks).
+ */
+const WOUNDED_BACK_HEIGHT = 0.46;
+const WOUNDED_Z = 0.3;
+const WOUNDED_HIP_X = 0;
 const TRUCK_VISUAL_SPEED = 9;
 /** Distance used to measure "pixels per metre" at the travellers' position. */
 const MEASURE_METRES = 100;
@@ -95,7 +135,7 @@ export class JourneyLayer implements CustomLayerInterface {
   private readonly subject = new THREE.Group();
   /** The three ways of travelling; exactly one is visible at a time. `!` = assigned in onAdd. */
   private rigs!: {
-    walk: { group: THREE.Group; joel: Character; ellie: Character };
+    walk: { group: THREE.Group; people: Record<Traveller, Character> };
     horse: { group: THREE.Group; horse: Horse; joel: Character; ellie: Character };
     vehicle: { group: THREE.Group; truck: Truck; joel: Character; ellie: Character };
   };
@@ -177,15 +217,18 @@ export class JourneyLayer implements CustomLayerInterface {
     this.map = null;
   }
 
-  /** Builds the three rigs. Each rig has its own Joel and Ellie posed for that way of travelling. */
+  /** Builds the three rigs. Each rig has its own figures posed for that way of travelling. */
   private buildRigs(): void {
-    // Walking: Joel on the left, Ellie a step behind on his right.
+    // Walking: everyone who ever walks with them (Joel, Ellie, Tess, Bill) has a figure;
+    // the current party decides who is shown and where (see poseRigs).
     const walkGroup = new THREE.Group();
-    const walkJoel = createCharacter(JOEL);
-    const walkEllie = createCharacter(ELLIE);
-    walkJoel.root.position.set(-0.42, 0, 0);
-    walkEllie.root.position.set(0.48, 0, 0.35);
-    walkGroup.add(walkJoel.root, walkEllie.root);
+    const people: Record<Traveller, Character> = {
+      joel: createCharacter(JOEL),
+      ellie: createCharacter(ELLIE),
+      tess: createCharacter(TESS),
+      bill: createCharacter(BILL),
+    };
+    for (const name of TRAVELLERS) walkGroup.add(people[name].root);
 
     // Horseback: Joel in the saddle holding the reins, Ellie behind him.
     const horseGroup = new THREE.Group();
@@ -207,7 +250,7 @@ export class JourneyLayer implements CustomLayerInterface {
 
     this.subject.add(walkGroup, horseGroup, truckGroup);
     this.rigs = {
-      walk: { group: walkGroup, joel: walkJoel, ellie: walkEllie },
+      walk: { group: walkGroup, people },
       horse: { group: horseGroup, horse, joel: horseJoel, ellie: horseEllie },
       vehicle: { group: truckGroup, truck, joel: truckJoel, ellie: truckEllie },
     };
@@ -234,7 +277,11 @@ export class JourneyLayer implements CustomLayerInterface {
     const legIndex = Math.max(0, frame.legIndex);
     const leg = route.legs[legIndex]!;
     const jumping = isJumpKind(leg.kind);
-    const mode = leg.mode;
+    // The current part of the chapter decides HOW they travel and WHO travels (in Lakeside
+    // Resort Ellie and Joel are separated), so read both from the timeline span.
+    const span = engine.timeline.chapters[frame.chapterIndex]!.legSpans[frame.spanIndex]!;
+    const mode = span.mode;
+    const party = span.party;
 
     // 2) How many metres one screen pixel covers EXACTLY at the travellers' position.
     //    We project the point and another point 100 m east of it, and measure the
@@ -270,7 +317,7 @@ export class JourneyLayer implements CustomLayerInterface {
     // Smoothed heading: look 40 px behind and ahead along the route (at least 250/600 m).
     const bearingWindow = Math.max(metresPerPixel * 40, mode === 'walk' ? 250 : 600);
     this.subject.rotation.y = -route.journey.bearingAt(distance, bearingWindow) * DEG;
-    this.poseRigs(mode, frame.travelling, storyTime);
+    this.poseRigs(mode, party, span.wounded, frame.travelling, storyTime);
     const [sw, sl] = SHADOW_SIZE[mode];
     this.shadow.setSize(sw, sl);
 
@@ -345,31 +392,59 @@ export class JourneyLayer implements CustomLayerInterface {
    * Shows the rig for the current travel mode and poses it.
    * All animation phases come from STORY time: frozen when paused, identical after
    * seeking, and continuous across leg and chapter boundaries.
+   *
+   * @param party   who travels, in walking order (see data/chapters.ts)
+   * @param wounded Joel lies wounded across the horse while Ellie rides
    */
-  private poseRigs(mode: TravelMode, travelling: boolean, storyTime: number): void {
+  private poseRigs(mode: TravelMode, party: readonly Traveller[], wounded: boolean, travelling: boolean, storyTime: number): void {
     const { walk, horse, vehicle } = this.rigs;
     walk.group.visible = mode === 'walk';
     horse.group.visible = mode === 'horse';
     vehicle.group.visible = mode === 'vehicle';
     const TAU = Math.PI * 2; // one full cycle in radians
+    const joelHere = party.includes('joel');
+    const ellieHere = party.includes('ellie');
 
     if (mode === 'walk') {
-      if (travelling) {
-        poseWalk(walk.joel, storyTime * TAU * JOEL_STEPS_HZ);
-        poseWalk(walk.ellie, storyTime * TAU * ELLIE_STEPS_HZ + 1.3); // +1.3 = out of step with Joel
-      } else {
-        // Only at the very end of the story: standing in Jackson.
-        poseIdle(walk.joel, storyTime);
-        poseIdle(walk.ellie, storyTime + 2);
+      // Walking formation: everyone in the party side by side across the route, in the
+      // party's order, the middle person a step ahead. Unused characters are hidden.
+      const slots = WALK_FORMATION[Math.min(party.length, 3) - 1] ?? WALK_FORMATION[0]!;
+      for (const name of TRAVELLERS) {
+        const character = walk.people[name];
+        const slot = party.indexOf(name);
+        character.root.visible = slot >= 0;
+        if (slot < 0) continue;
+        const [x, z] = slots[slot] ?? [0, 0];
+        character.root.position.set(x, 0, z);
+        if (travelling) poseWalk(character, storyTime * TAU * STEPS_HZ[name] + PHASE_OFFSET[name]);
+        else poseIdle(character, storyTime + PHASE_OFFSET[name]); // standing (only at the very end)
       }
     } else if (mode === 'horse') {
       const phase = storyTime * TAU * HORSE_GAIT_HZ;
       if (travelling) poseHorse(horse.horse, phase);
       else poseHorseIdle(horse.horse, storyTime);
-      poseSeated(horse.joel, travelling ? phase : 0, true);
-      poseSeated(horse.ellie, travelling ? phase + 0.4 : 0, false);
+      horse.joel.root.visible = joelHere;
+      horse.ellie.root.visible = ellieHere;
+      // Ellie takes the front of the saddle (and the reins) when Joel is not riding normally.
+      const ellieInFront = !joelHere || wounded;
+      const ellieSeat = ellieInFront ? horse.horse.saddleFront : horse.horse.saddleBack;
+      horse.ellie.root.position.set(ellieSeat.x, ellieSeat.y - horse.ellie.hipHeight, ellieSeat.z);
+      poseSeated(horse.ellie, travelling ? phase + 0.4 : 0, ellieInFront);
+      if (wounded) {
+        // Lying across the horse's back behind Ellie. poseWounded turns the body so the hips
+        // end up hipHeight metres to the LEFT (−x) of the root — so the root goes hipHeight
+        // to the right to put the hips on the horse's spine.
+        horse.joel.root.position.set(WOUNDED_HIP_X + horse.joel.hipHeight, WOUNDED_BACK_HEIGHT, WOUNDED_Z);
+        poseWounded(horse.joel, travelling ? phase : 0);
+      } else {
+        const seat = horse.horse.saddleFront;
+        horse.joel.root.position.set(seat.x, seat.y - horse.joel.hipHeight, seat.z);
+        poseSeated(horse.joel, travelling ? phase : 0, true);
+      }
     } else {
       poseTruck(vehicle.truck, storyTime * TRUCK_VISUAL_SPEED, storyTime, travelling ? 1 : 0);
+      vehicle.joel.root.visible = joelHere;
+      vehicle.ellie.root.visible = ellieHere;
       poseSeated(vehicle.joel, 0, true);
       poseSeated(vehicle.ellie, 0, false);
     }

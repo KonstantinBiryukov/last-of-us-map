@@ -212,6 +212,16 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
   2. *Jumps become arcs* — five features had only 2 points (the real path is unknown).
      They are replaced by smooth 64-point arcs from the previous leg's end to the next
      leg's start, drawn dashed with arrow heads.
+  3. *Boston streets* — the original Boston section of the Boston → Lincoln leg meandered
+     within ~1 km of downtown (the travellers seemed to walk on the spot). It is replaced by
+     a 3.8 km walking route through the game's places, following real streets:
+     QZ (North End) → Robert at the docks → the Fireflies (Government Center) → beyond the
+     wall → Downtown (Downtown Crossing) → The Museum (Old State House) → The Capitol
+     (State House), then the original line from the State House to Lincoln. It was generated
+     once with the Mapbox Directions API — `npm run build:boston` (script
+     `scripts/build-boston-route.mjs`, output `public/server/info/boston-streets.geojson`,
+     which also records each stop's distance along the line). The game's places are
+     fictionalised; each stop is a real place chosen to match the story.
   Long straight interstate stretches (points 2–6 km apart on the 500–700 km legs in
   Wyoming/Colorado) are valid road geometry and are kept; a test flags any hop > 10 km.
   The legs are then glued into one `journey` polyline (`legStart`/`legEnd` give each
@@ -228,6 +238,33 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
 - **Chapters** (`data/chapters.ts`) link it together: location, season, slides, the
   leg parts travelled during the chapter (every chapter has at least one), and the
   `ambience` particle moods for that place.
+- **Leg parts** can override who travels and how:
+  `{ leg, from, to, party, mode, wounded, note }`. `party` is a list of characters in walking
+  order (default `['joel', 'ellie']`); `wounded` lays Joel across the horse behind Ellie.
+  Used exactly where the game has them:
+  - *Quarantine Zone* — Joel and Tess cross the QZ to Robert and the Fireflies; Ellie joins
+    when Marlene hands her over; the three slip beyond the wall.
+  - *The Outskirts* — the game's sections Downtown → The Museum → The Capitol Building, the
+    three of them (~70 % of the chapter); Tess stays behind at the Capitol; Joel and Ellie
+    then walk out of Boston to just outside Lincoln (compressed into the last 30 %).
+  - *Bill's Town* — starts right outside Lincoln; into the town, through it with Bill; the
+    last 20 % is Bill's truck driving out of Lincoln (the drive continues in *Pittsburgh*).
+  - *Lakeside Resort* — 40 % Ellie riding with wounded Joel lying across the horse (the
+    escape after the university), 30 % Ellie alone on foot, 20 % Joel alone on foot
+    searching for her, and the last 10 % together again.
+  - *Epilogue* — by car most of the way; only the last 20 % on foot, home to Jackson.
+  The 3D layer shows only the party (Tess and Bill have their own looks); the story panel
+  shows "Joel & Tess", "Joel, Bill & Ellie", "Ellie, alone", "Ellie, with Joel wounded", etc.
+- **Which chapter travels where** follows each chapter's images: Boston chapters stay in
+  Boston; *Bill's Town* stays between Boston's edge and Lincoln; Bill's truck drive opens
+  *Pittsburgh* (as in the game); *Bus Depot* starts with the jump to Utah and stays near Salt
+  Lake City. Tests in `data.test.ts` check every chapter against real coordinates.
+- **Pacing inside a chapter** weighs each part by length ÷ mode speed (walk 1, horse 2.5,
+  truck 5), so a short walk is not rushed through at truck speed. A part can instead take a
+  fixed share of its chapter with `timeShare` (e.g. `0.2` = 20 %), used where distance alone
+  would mislead (a long walk compressed into the end of a chapter, the Epilogue's last walk).
+- **Camera zoom** is chosen per part so the travellers always visibly move (about 28 px/s
+  on screen), up to street level (zoom 15.5) for the slow city walks in Boston and Lincoln.
 
 ## 8. Add or modify a story location
 
@@ -293,7 +330,9 @@ frame. To add a mood: add a name to `AmbienceKind` (`data/types.ts`), a recipe i
 to their speed and swoops out over jumps; *Overview* frames the whole journey;
 *Free* never moves on its own (dragging the map, zoom buttons, or "Explore the map").
 Any story navigation — next/previous chapter, clicking a location, releasing the
-timeline — switches back to Follow and flies there. Every flight carries an id so an
+timeline — switches back to Follow and flies there. Users can pan and zoom but **not rotate
+or tilt** (right-click/Ctrl-drag, two-finger twist and tilt, Shift+arrows are disabled):
+tilt and heading are the director's choices. Every flight carries an id so an
 interrupted flight cannot hand control back early (the cause of an earlier bug where
 the camera stopped following after quick chapter clicks).
 
@@ -388,6 +427,7 @@ In the repository settings, Pages must stay on *Deploy from a branch → gh-page
 | No music | Browser autoplay policy — press the music play button once. |
 | Slow or hot laptop | Map settings (layers icon) → turn off *3D terrain* and *Particles & dust*. Low-core machines start with them off. |
 | Camera does not move | You are in *free* mode (you dragged the map or chose Explore). Press *Follow* (F) or pick a chapter. |
+| Want to see the frame rate | Open the page with `?stats` before the `#` (see Appendix A). |
 | `npm install` warns about engines | Use Node 24 LTS or newer (`brew upgrade node`). |
 | Images load slowly after adding new ones | Run `npm run optimize:images`. |
 | Map white after the GPU reset/sleep | The app rebuilds the map automatically after a WebGL context loss; reload if it persists. |
@@ -418,15 +458,39 @@ chunks; source maps not published. Mapbox v3 controls the canvas pixel ratio its
 takes ~1.5 ms in TypeScript, and per-frame work is microseconds — WebAssembly would
 add a second toolchain for no measurable gain.
 
-Frame rate could not be measured inside the development tool's browser pane (it
-throttles hidden pages to 1 fps). To check FPS yourself: Chrome DevTools →
-Performance → record 10 s of playback, or Rendering → "Frame rendering stats".
+**Measured frame rate:** 120 fps (8.3 ms average, worst frame 8.7–9.4 ms) on a 120 Hz
+Apple Silicon display, in Lakeside Resort with 3D terrain, snow crystals and the horse /
+walker models — i.e. every frame met the display's refresh. (Measured in a 900×600 window;
+a full-screen window has more pixels to fill, so check on your own machine.)
+
+**Check it yourself:** add `?stats` to the address before the `#`, e.g.
+`http://localhost:5173/last-of-us-map/?stats#/path` — a small meter shows fps, average and
+worst frame time. Chrome DevTools → Performance also works for deeper profiling.
+
+## Appendix C — How well the route matches the game
+
+The game never shows a map, so "correct" means *consistent with the places the game and the
+chapter images show*. Checked against real coordinates (automated in `data.test.ts`):
+
+| Check | Result |
+| --- | --- |
+| Markers: Austin, Boston (North End = the game's QZ), Lincoln, Pittsburgh, Jackson, Fort Collins (CSU = University of Eastern Colorado) | within 0–5 km of the real places ✔ |
+| Silver Lake marker | ~11 km east of Silver Lake in the Boulder watershed — fine at map scale |
+| Salt Lake City marker | ~26 km **west** of downtown (near Magna); the route itself ends downtown. Not moved — could be placed at downtown / St. Mark's Hospital (the basis of the game's St. Mary's) |
+| *Bill's Town* showed Connecticut/Pennsylvania | **fixed** — it starts right outside Lincoln (< 3 km), and only its last 20 % drives out of Lincoln in Bill's truck; the drive west continues in *Pittsburgh* |
+| Boston chapters walked on the spot | **fixed** — a street route through the game's places (§7, correction 3); the split points (Ellie joins at the Fireflies, Tess stays at the Capitol) are tested to land within 150 m of those places |
+| *Bus Depot* walked through Colorado | **fixed** — the Colorado mountain walk belongs to *Lakeside Resort*; *Bus Depot* starts with the jump to Utah and stays within 80 km of Salt Lake City (the original jump lands near Provo); *The Firefly Lab* is the last 14 km into the city |
+| Boston chapters | stay in Boston (QZ within 3 km, Outskirts within 8 km of the State House) ✔ |
+| Leg order and travel modes (truck, horse) | match the game's chapters ✔ |
+| Prologue drive | ends ~47 km south-west of Austin — longer than the game's drive to the outskirts (harmless) |
+| Entry into Salt Lake City | from the south (via Provo); the wiki text says they appear to enter from the west — the game doesn't confirm either |
+| Gaps / straight shortcuts | ~1 km gaps closed; 2-point stretches drawn as clearly-marked jumps (§7) ✔ |
 
 ## Appendix B — Data migration from the Vue version
 
 | Old | New |
 | --- | --- |
-| `markers.geojson` (8 features) | `src/data/locations.ts` — same values; Austin's broken `\n` split into paragraphs |
+| `markers.geojson` (8 features) | `src/data/locations.ts` — same values; Austin's broken `\n` split into paragraphs. The descriptions match The Last of Us Wiki (Fandom) 2019–2020 revisions, so they are credited as CC BY-SA 3.0 in About and README |
 | `PathCardsFlux.vue` image list (134) | `src/data/chapters.ts` — grouped by their existing `chapters/N` folders, order unchanged |
 | `PathVizualization.vue` timers (17 legs) | `src/data/legs.ts` + timeline; gaps closed; hidden 2-point features → jump arcs / time skip |
 | `ThePlayer.vue` (Howler, 6 songs) | `src/data/soundtrack.ts` + `MusicPlayer.ts`, same order and looping |

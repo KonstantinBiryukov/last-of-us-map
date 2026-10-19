@@ -77,7 +77,8 @@ const RECIPES: Record<AmbienceKind, Recipe> = {
   // Autumn leaves: tumble and flip as they fall.
   leaves: { count: 180, colorA: 0xc4511d, colorB: 0xe8a531, velocity: [0.02, -0.05, 0.008], sway: 0.06, size: 13, shape: SHAPE.leaf, twinkle: 0, twinkleSpeed: 0, spin: 2.5, opacity: 0.95, additive: false, height: 0.15 },
   // Snow: many flakes falling and drifting with the wind.
-  snow: { count: 800, colorA: 0xf4f7ff, colorB: 0xd9e4f5, velocity: [0.018, -0.07, 0.006], sway: 0.025, size: 7, shape: SHAPE.flake, twinkle: 0.15, twinkleSpeed: 3, spin: 0, opacity: 0.9, additive: false, height: 0.2 },
+  // Snow: crystals (about half, bigger, slowly turning) mixed with soft round distant flakes.
+  snow: { count: 700, colorA: 0xffffff, colorB: 0xe6eefb, velocity: [0.018, -0.07, 0.006], sway: 0.025, size: 13, shape: SHAPE.flake, twinkle: 0.1, twinkleSpeed: 3, spin: 0.6, opacity: 0.95, additive: false, height: 0.2 },
   // Spring pollen: tiny bright specks drifting gently upward.
   pollen: { count: 240, colorA: 0xfff1a8, colorB: 0xffffff, velocity: [0.008, 0.01, 0.004], sway: 0.06, size: 3, shape: SHAPE.glow, twinkle: 0.5, twinkleSpeed: 2.2, spin: 0, opacity: 0.7, additive: true, height: 0.1 },
   // Pale blossom petals fluttering down.
@@ -164,8 +165,32 @@ const fragmentShader = /* glsl */ `
       float d = length(vec2(uv.x * 2.4, uv.y * 1.3 + uv.x * uv.x * 2.0));
       alpha = smoothstep(0.5, 0.42, d);
       alpha *= 1.0 - 0.35 * smoothstep(0.03, 0.0, abs(uv.x)); // darker centre vein
-    } else if (uShape == 2) {          // snowflake: soft disc with a faint sparkle cross
-      alpha = smoothstep(1.0, 0.45, r) + 0.4 * smoothstep(0.08, 0.0, min(abs(uv.x), abs(uv.y))) * smoothstep(1.0, 0.0, r);
+    } else if (uShape == 2) {          // snow: a mix of ice crystals and soft distant flakes
+      if (vMix > 0.45) {
+        // A six-armed crystal, drawn with a symmetry trick: the angle around the centre is
+        // folded into one 60° wedge (mod), so describing ONE arm draws all six.
+        float l = length(uv);                       // 0 at the centre … 0.5 at the sprite edge
+        float a = atan(uv.y, uv.x);
+        float wedge = 1.0471976;                    // 60° in radians
+        float fa = mod(a + wedge * 0.5, wedge) - wedge * 0.5; // angle to the nearest arm (−30°…30°)
+        float x = l * cos(fa);                      // distance ALONG the arm
+        float y = abs(l * sin(fa));                 // distance AWAY from the arm's centre line
+        float arm = smoothstep(0.03, 0.012, y) * smoothstep(0.46, 0.40, x);
+        // Two pairs of small side branches leaning outward at 60°, like a real dendrite.
+        float branches = 0.0;
+        for (int i = 0; i < 2; i++) {
+          float b = i == 0 ? 0.2 : 0.31;            // where the branch leaves the arm
+          vec2 q = vec2(x - b, y);
+          float along = dot(q, vec2(0.5, 0.866));   // position along the branch direction
+          float across = abs(dot(q, vec2(-0.866, 0.5)));
+          float len = i == 0 ? 0.11 : 0.07;
+          branches = max(branches, smoothstep(0.024, 0.01, across) * step(0.0, along) * smoothstep(len, len - 0.02, along));
+        }
+        float core = smoothstep(0.07, 0.045, l);    // small solid hexagon-ish centre
+        alpha = max(max(arm, branches), core);
+      } else {
+        alpha = smoothstep(0.5, 0.15, r);           // small soft round flake (reads as further away)
+      }
     } else if (uShape == 3) {          // smoke: very soft blob
       alpha = smoothstep(1.0, 0.0, r);
       alpha *= alpha;

@@ -143,7 +143,7 @@ export function ExplorePanel({ selected, onSelect, onStartJourney }: ExplorePane
         {location.description.map((paragraph, i) => (
           <p key={i}>{paragraph}</p>
         ))}
-        <p className={styles.source}>Location notes from the original project.</p>
+        <p className={styles.source}>Adapted from The Last of Us Wiki (Fandom), CC BY-SA 3.0.</p>
       </div>
     </section>
   );

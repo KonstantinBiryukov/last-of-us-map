@@ -47,6 +47,8 @@ export interface PlaybackSnapshot {
   slideIndex: number;
   /** Leg being travelled (index into route.legs). */
   legIndex: number;
+  /** Which part of the chapter's travel (index into timeline.chapters[c].legSpans). */
+  spanIndex: number;
 }
 
 /** Fired when the story position changes discontinuously (seek/jump), so the camera can fly there. */
@@ -286,6 +288,7 @@ export class PlaybackEngine {
       chapterIndex: this.frame.chapterIndex,
       slideIndex: this.frame.slideIndex,
       legIndex: this.frame.legIndex,
+      spanIndex: this.frame.spanIndex,
     };
   }
 
@@ -297,7 +300,8 @@ export class PlaybackEngine {
       s.status === this.state.status &&
       s.chapterIndex === f.chapterIndex &&
       s.slideIndex === f.slideIndex &&
-      s.legIndex === f.legIndex
+      s.legIndex === f.legIndex &&
+      s.spanIndex === f.spanIndex
     ) {
       return; // nothing React shows has changed → no re-render
     }

@@ -20,12 +20,15 @@
  *   • Travel fills the WHOLE chapter: from its first to its last second the
  *     travellers are moving. There is no waiting and no hold, so wherever you
  *     click on the timeline they are on their way somewhere.
- *   • Jumps and time skips (no detailed path) take a fixed 4.5 s.
+ *   • Jumps and time skips (no detailed path) take a fixed 4.5 s, and a part may ask
+ *     for a fixed share of the chapter (`timeShare`, e.g. the Epilogue's walk = 20 %).
  *   • The remaining time is shared by the detailed leg parts in proportion to
- *     their length — so the pace is even within a chapter, and naturally slower
- *     in chapters with many images and a short distance (more time to look).
+ *     their "travel effort": length ÷ relative speed of the travel mode. So in a
+ *     chapter that has both a long truck drive and a short walk (Pittsburgh), the
+ *     walk is not rushed through at truck speed. Chapters with many images and a
+ *     short distance are naturally slower (more time to look).
  */
-import type { Chapter, LegKind } from '../data/types';
+import type { Chapter, LegKind, TravelMode, Traveller } from '../data/types';
 import type { Route } from '../geo/route';
 
 export interface TimelineConfig {
@@ -33,12 +36,21 @@ export interface TimelineConfig {
   slideSeconds: number;
   /** Fixed duration of a jump or time skip (no detailed path → the camera swoops over it). */
   jumpSeconds: number;
+  /**
+   * How fast each travel mode is relative to walking. Only RATIOS matter: within one
+   * chapter, a truck part covers 5× more distance per second than a walking part.
+   */
+  modeSpeed: Readonly<Record<TravelMode, number>>;
 }
 
 export const DEFAULT_TIMELINE_CONFIG: TimelineConfig = {
   slideSeconds: 5,
   jumpSeconds: 4.5,
+  modeSpeed: { walk: 1, horse: 2.5, vehicle: 5 },
 };
+
+/** Who travels when a leg part does not say otherwise. */
+export const DEFAULT_PARTY: readonly Traveller[] = ['joel', 'ellie'];
 
 /** When one leg part is travelled, both on the clock and on the journey line. */
 export interface LegSpan {
@@ -52,6 +64,14 @@ export interface LegSpan {
   /** Which slice of the leg: 0 = leg start, 1 = leg end. */
   from: number;
   to: number;
+  /** Who travels this slice, in walking order (e.g. Joel, Tess and Ellie in Boston). */
+  party: readonly Traveller[];
+  /** Joel lies wounded across the horse's back while Ellie rides. */
+  wounded: boolean;
+  /** How they travel this slice (the part's override, else the leg's mode). */
+  mode: TravelMode;
+  /** Text for the story panel (the part's override, else the leg's note). */
+  note: string;
   /** Metres along the journey line where this part starts / ends. */
   startDistance: number;
   endDistance: number;
@@ -149,26 +169,41 @@ export function buildTimeline(
     const parts = chapter.legs.map((part) => {
       const leg = route.legs[part.leg];
       if (!leg) throw new Error(`Chapter ${chapter.number} references unknown leg ${part.leg}`);
-      return { legIndex: part.leg, kind: leg.kind, from: part.from ?? 0, to: part.to ?? 1 };
+      return {
+        legIndex: part.leg,
+        kind: leg.kind,
+        from: part.from ?? 0,
+        to: part.to ?? 1,
+        timeShare: part.timeShare,
+        party: part.party ?? DEFAULT_PARTY,
+        wounded: part.wounded ?? false,
+        mode: part.mode ?? leg.mode,
+        note: part.note ?? leg.note,
+      };
     });
 
     // Fixed time for jumps (shrunk if a short chapter could not otherwise fit them).
     const jumpCount = parts.filter((p) => isJumpKind(p.kind)).length;
     const jumpSeconds = Math.min(config.jumpSeconds, (window * 0.6) / Math.max(jumpCount, 1));
-    const flexibleSeconds = window - jumpCount * jumpSeconds;
+    // Parts with a fixed share of the chapter take it off the top, like jumps.
+    const fixedShareSeconds = parts.reduce((sum, p) => sum + (p.timeShare !== undefined ? window * p.timeShare : 0), 0);
+    const flexibleSeconds = window - jumpCount * jumpSeconds - fixedShareSeconds;
 
-    // Detailed parts share the rest by length (metres of the slice they cover).
+    // Detailed parts share the rest by effort = metres of the slice ÷ relative speed of its mode.
     const lengths = parts.map((p) =>
-      isJumpKind(p.kind) ? 0 : route.legLines[p.legIndex]!.length * (p.to - p.from),
+      isJumpKind(p.kind) || p.timeShare !== undefined
+        ? 0
+        : (route.legLines[p.legIndex]!.length * (p.to - p.from)) / config.modeSpeed[p.mode],
     );
     const totalLength = lengths.reduce((a, b) => a + b, 0);
-    const detailedCount = parts.length - jumpCount;
+    const detailedCount = parts.filter((p) => !isJumpKind(p.kind) && p.timeShare === undefined).length;
 
     const legSpans: LegSpan[] = [];
     let t = start;
     parts.forEach((p, i) => {
       let seconds: number;
-      if (isJumpKind(p.kind)) seconds = detailedCount === 0 ? window / parts.length : jumpSeconds;
+      if (isJumpKind(p.kind)) seconds = detailedCount === 0 && fixedShareSeconds === 0 ? window / parts.length : jumpSeconds;
+      else if (p.timeShare !== undefined) seconds = window * p.timeShare;
       else seconds = totalLength > 0 ? (flexibleSeconds * lengths[i]!) / totalLength : flexibleSeconds / detailedCount;
       const legStart = route.legStart[p.legIndex]!;
       const legLength = route.legEnd[p.legIndex]! - legStart;
@@ -179,6 +214,10 @@ export function buildTimeline(
         end: t + seconds,
         from: p.from,
         to: p.to,
+        party: p.party,
+        wounded: p.wounded,
+        mode: p.mode,
+        note: p.note,
         startDistance: legStart + legLength * p.from,
         endDistance: legStart + legLength * p.to,
       });

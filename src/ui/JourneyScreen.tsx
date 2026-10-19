@@ -38,6 +38,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { HomeIcon, InfoIcon } from './icons';
 import { ExplorePanel } from './ExplorePanel';
 import { MusicControls } from './MusicControls';
+import { STATS_ENABLED, StatsMeter } from './StatsMeter';
 import type { LocationId } from '../data/types';
 import type { ViewMode } from './viewMode';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
@@ -136,6 +137,7 @@ export function JourneyScreen({ route, covered, onAbout, onMenu, navigate }: Jou
 
   return (
     <div className={styles.screen} inert={covered}>
+      {STATS_ENABLED && <StatsMeter />}
       <div ref={mapAreaRef} className={styles.mapArea} style={{ ['--map-centre-x' as string]: centreX }}>
         {mapUnavailable ? (
           <FallbackMap padding={padding} mode={mode} selectedLocation={selectedLocation} onLocationSelect={setSelectedLocation} />
