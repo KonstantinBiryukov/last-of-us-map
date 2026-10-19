@@ -1,11 +1,18 @@
 /**
  * About.tsx — credits, how to use the map, and honest notes about the data.
  *
- * Credits and the contact link are carried over from the original About page.
+ * Credits are carried over from the original About page,
+ * extended with copyright/trademark notices, a no-affiliation statement, the
+ * licence attribution for the location texts (CC BY-SA, required by that licence).
  */
 import { useEffect, useRef } from 'react';
 import { CloseIcon } from './icons';
 import styles from './About.module.css';
+
+/** Source of the location descriptions (verified against its 2019–2020 page revisions). */
+const WIKI_URL = 'https://thelastofus.fandom.com/wiki/The_Last_of_Us_Wiki';
+/** The licence of that wiki's text (Fandom wikis use CC BY-SA). */
+const CC_BY_SA_URL = 'https://creativecommons.org/licenses/by-sa/3.0/';
 
 export function About({ onClose }: { onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -70,18 +77,36 @@ export function About({ onClose }: { onClose: () => void }) {
           <li>Joel, Ellie, the horse and the truck are lightweight stylised 3D models made for this map.</li>
         </ul>
 
-        <h3>Credits</h3>
+        <h3>Credits &amp; copyright</h3>
         <p className={styles.credits}>
-          All images are from <em>The Last of Us</em> (2013) and <em>The Last of Us Remastered</em> (2014), Naughty
-          Dog. Music: <em>The Last of Us</em> original soundtrack, Gustavo Santaolalla. Location notes from the
-          original project. This is a non-commercial fan project.
+          <strong>Unofficial fan project.</strong> This is a personal, non-commercial project. It is not affiliated
+          with, endorsed by, or sponsored by Sony Interactive Entertainment or Naughty Dog.
         </p>
+        <p className={styles.credits}>
+          <em>The Last of Us</em> is a trademark of Sony Interactive Entertainment LLC. The game was developed by
+          Naughty Dog. All images shown are from <em>The Last of Us</em> (2013) and <em>The Last of Us
+          Remastered</em> (2014); music from <em>The Last of Us</em> original soundtrack, composed by Gustavo
+          Santaolalla. All game images and soundtrack recordings are © their respective owners and are used here
+          for non-commercial fan purposes only.
+        </p>
+        <p className={styles.credits}>
+          Location descriptions are adapted from{' '}
+          <a className={styles.contact} href={WIKI_URL} target="_blank" rel="noreferrer">
+            The Last of Us Wiki
+          </a>{' '}
+          on Fandom (2019–2020 versions) and are available under the{' '}
+          <a className={styles.contact} href={CC_BY_SA_URL} target="_blank" rel="noreferrer">
+            Creative Commons Attribution-ShareAlike 3.0
+          </a>{' '}
+          licence.
+        </p>
+        <p className={styles.credits}>
+          Map data © Mapbox © OpenStreetMap contributors (see the attribution in the map corner). Fonts: Barlow
+          Condensed and Source Serif 4, SIL Open Font License. The code and the 3D models of the travellers were
+          made for this project.
+        </p>
+        <p className={styles.author}>Made by Konstantin Biriukov.</p>
         <p className={styles.stack}>Built with React, TypeScript, Mapbox GL JS and Three.js.</p>
-        <p>
-          <a className={styles.contact} href="https://konstantinbiryukov.github.io/website" target="_blank" rel="noreferrer">
-            Contact the author
-          </a>
-        </p>
       </div>
     </div>
   );

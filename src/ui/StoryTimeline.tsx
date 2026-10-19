@@ -4,8 +4,9 @@
  * Under the hood it is a native <input type="range">, made invisible and laid
  * over our own drawing. That gives keyboard support (arrow keys, Home/End)
  * and screen-reader support for free, while we draw:
- *   • 12 segments, one per chapter, sized by chapter length;
- *   • the played part in amber;
+ *   • 12 segments, one per chapter, sized by chapter length, with small gaps;
+ *   • the played part in amber — drawn INSIDE each segment (each chapter fills
+ *     separately), so the gaps between chapters stay visible over the played part;
  *   • a playhead.
  *
  * Fast updates: the fill, playhead and time text are written directly to the
@@ -30,7 +31,8 @@ export const StoryTimeline = memo(function StoryTimeline() {
 
   // Direct references to DOM nodes we update every frame.
   const inputRef = useRef<HTMLInputElement>(null);
-  const fillRef = useRef<HTMLDivElement>(null);
+  /** One amber fill per chapter segment (index = chapter index). */
+  const fillRefs = useRef<(HTMLDivElement | null)[]>([]);
   const headRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
   /** True while a pointer (mouse/finger) is dragging the slider. A ref, not state: no re-render needed. */
@@ -41,11 +43,21 @@ export const StoryTimeline = memo(function StoryTimeline() {
   // Per-frame DOM updates (registered once with the shared loop; the cleanup unregisters it).
   useEffect(() => {
     let lastSecond = -1;
+    // Last value written to each segment, so unchanged segments are not touched (most frames
+    // only the current chapter's segment changes).
+    const lastFill = timeline.chapters.map(() => -1);
     return loop.add(() => {
       const t = engine.time;
       const fraction = duration > 0 ? t / duration : 0;
-      // `transform: scaleX` is GPU-accelerated and does not trigger a page re-layout.
-      if (fillRef.current) fillRef.current.style.transform = `scaleX(${fraction})`;
+      timeline.chapters.forEach((c, i) => {
+        // 0 before the chapter, 1 after it, in between while it plays.
+        const f = Math.min(1, Math.max(0, (t - c.start) / (c.end - c.start)));
+        if (f === lastFill[i]) return;
+        lastFill[i] = f;
+        // `transform: scaleX` is GPU-accelerated and does not trigger a page re-layout.
+        const el = fillRefs.current[i];
+        if (el) el.style.transform = `scaleX(${f})`;
+      });
       if (headRef.current) headRef.current.style.left = `${fraction * 100}%`;
       const second = Math.floor(t);
       if (second !== lastSecond) {
@@ -59,7 +71,7 @@ export const StoryTimeline = memo(function StoryTimeline() {
       }
     });
     // chapterLabel only reads data that never changes.
-  }, [loop, engine, duration]);
+  }, [loop, engine, duration, timeline]);
 
   // End a drag wherever the pointer is released, and commit the final position.
   useEffect(() => {
@@ -97,14 +109,27 @@ export const StoryTimeline = memo(function StoryTimeline() {
         0:00
       </span>
       <div className={styles.track} onPointerMove={onPointerMove} onPointerLeave={() => setHover(null)}>
-        {/* One grey segment per chapter; flexGrow = chapter length, so widths are proportional. */}
+        {/* One grey segment per chapter (width proportional to its length), each with its own amber fill. */}
         <div className={styles.segments} aria-hidden="true">
           {timeline.chapters.map((c, i) => (
-            <div key={i} className={styles.segment} style={{ flexGrow: c.end - c.start }} />
+            <div
+              key={i}
+              className={styles.segment}
+              // Placed at the chapter's exact share of the timeline (so it lines up with the
+              // playhead and with where a click lands), minus 1.5 px on each side for the gap.
+              style={{
+                left: `calc(${(c.start / duration) * 100}% + 1.5px)`,
+                width: `calc(${((c.end - c.start) / duration) * 100}% - 3px)`,
+              }}
+            >
+              <div
+                ref={(el) => {
+                  fillRefs.current[i] = el;
+                }}
+                className={styles.fill}
+              />
+            </div>
           ))}
-        </div>
-        <div className={styles.fillClip} aria-hidden="true">
-          <div ref={fillRef} className={styles.fill} />
         </div>
         <div ref={headRef} className={styles.head} aria-hidden="true" />
         {hover && (

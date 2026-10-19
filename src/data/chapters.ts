@@ -20,14 +20,24 @@
  * Chapter titles are copied from the title-card images themselves.
  * Seasons follow the game's own season title screens (Summer, Fall, Winter, Spring).
  *
- * HOW SHARED LEGS ARE SPLIT
- * Some legs are travelled across two chapters. The split fraction is chosen so
- * the travellers keep the SAME pace across the chapter boundary (no sudden
- * speed-up or slow-down). For two chapters A and B sharing one leg:
- *     fraction for A = (time A spends on that leg) ÷ (time A + time B on that leg)
- * Each chapter lasts 5 s per slide; jumps and time skips take a fixed 4.5 s.
- * The worked numbers are written next to each split below, and a unit test
- * (timeline.test.ts) checks that the pace really stays continuous.
+ * WHERE EACH CHAPTER TRAVELS (matched to the game and to the chapter's images)
+ * Every chapter only moves through the place its images show, and the travellers
+ * are always moving. Fractions of leg 2 (Boston → Lincoln, 35.1 km) come from the
+ * generated Boston street route (public/server/info/boston-streets.geojson, which
+ * records each stop's distance) and from measuring the line (IMPLEMENTATION_GUIDE.md,
+ * Appendix C):
+ *     0      Boston QZ (North End)            0.0154  Robert's place at the docks
+ *     0.0401 the Fireflies (Ellie joins)      0.0526  beyond the wall
+ *     0.0747 Downtown                         0.0879  the Museum
+ *     0.1081 the Capitol (Tess stays behind)  0.8651  within 3 km of Lincoln
+ *     0.9038 within 2 km of Lincoln (with Bill from here)
+ * Bill's truck (leg 3) starts at the end of "Bill's Town" and drives on in "Pittsburgh";
+ * "Bus Depot" starts with the jump to Utah and stays near Salt Lake City.
+ *
+ * WHO TRAVELS (party): Joel and Ellie by default. Tess and Bill join exactly where
+ * the game has them, and Lakeside Resort separates Joel and Ellie like the game.
+ * `timeShare` gives a part a fixed share of its chapter's time where distance alone
+ * would be misleading (a long walk compressed into the end of a chapter).
  */
 import type { Chapter, Slide, SlideKind } from './types';
 
@@ -96,10 +106,14 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_8.jpg',
       'img_9.jpg',
     ]),
-    // The time skip plays during the title + "20 years later" cards, then they walk out
-    // through the Boston QZ. Split of leg 2: Chapter II has 40 − 4.5 = 35.5 s for it,
-    // Chapter III 60 s → 35.5 ÷ 95.5 ≈ 0.37.
-    legs: [{ leg: 1 }, { leg: 2, from: 0, to: 0.37 }],
+    // The time skip plays during the title + "20 years later" cards. Then the Boston QZ, on
+    // real streets: Joel and Tess from the North End to Robert at the docks and on to the
+    // Fireflies, where Marlene hands Ellie over; the three of them slip beyond the wall.
+    legs: [
+      { leg: 1 },
+      { leg: 2, from: 0, to: 0.0401, party: ['joel', 'tess'], note: 'Joel and Tess cross the Quarantine Zone to Robert and the Fireflies' },
+      { leg: 2, from: 0.0401, to: 0.0526, party: ['joel', 'tess', 'ellie'], note: 'Marlene entrusts Ellie to them — beyond the wall' },
+    ],
     ambience: ['spores', 'dust'],
   },
   {
@@ -122,7 +136,13 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_15.jpg',
       'img_16.jpg',
     ]),
-    legs: [{ leg: 2, from: 0.37 }],
+    // The game's own sections: Downtown → The Museum → The Capitol Building, the three of them
+    // (about 70 % of the chapter; Tess dies near its end). Then Joel and Ellie leave Boston and
+    // walk west, arriving close to Lincoln — that long walk is compressed into the last 30 %.
+    legs: [
+      { leg: 2, from: 0.0526, to: 0.1081, party: ['joel', 'tess', 'ellie'], note: 'Downtown, the Museum, the Capitol' },
+      { leg: 2, from: 0.1081, to: 0.8651, timeShare: 0.3, note: 'Without Tess — out of Boston, towards Lincoln' },
+    ],
     ambience: ['spores', 'fireflies'],
   },
   {
@@ -148,7 +168,13 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_13.jpg',
       'img_14.jpg',
     ]),
-    legs: [{ leg: 3 }, { leg: 4 }, { leg: 5 }],
+    // Starts right outside Lincoln. Into the town, then through it with Bill; at the end
+    // Bill's truck runs again and they drive out of Lincoln (the last 20 % of the chapter).
+    legs: [
+      { leg: 2, from: 0.8651, to: 0.9038, note: 'Arriving in Lincoln' },
+      { leg: 2, from: 0.9038, party: ['joel', 'bill', 'ellie'], note: 'Through Lincoln with Bill' },
+      { leg: 3, from: 0, to: 0.1, timeShare: 0.2, note: "Bill's truck — leaving Lincoln" },
+    ],
     ambience: ['fireflies', 'dust'],
   },
   {
@@ -176,8 +202,9 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_14.png',
       'img_15.jpg',
     ]),
-    // Split of leg 6: Chapter V lasts 85 s, Chapter VI 35 s → 85 ÷ 120 ≈ 0.71.
-    legs: [{ leg: 6, from: 0, to: 0.71 }],
+    // Opens on the road west in Bill's truck (the game starts this chapter in the truck,
+    // entering Pittsburgh), then on foot through the city.
+    legs: [{ leg: 3, from: 0.1 }, { leg: 4 }, { leg: 5 }, { leg: 6, from: 0, to: 0.71 }],
     ambience: ['dust', 'fireflies'],
   },
   {
@@ -195,7 +222,7 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_3.jpg',
       'img_4.jpg',
     ]),
-    // The second part of the walk out of Pittsburgh (see the split under Chapter V).
+    // The rest of the walk, out of Pittsburgh into its suburbs.
     legs: [{ leg: 6, from: 0.71 }],
     ambience: ['fireflies', 'dust'],
   },
@@ -267,7 +294,21 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_6.jpg',
       'img_7.jpg',
     ]),
-    legs: [{ leg: 10 }],
+    // As in the game: it starts with Ellie riding Callus while wounded Joel lies across the
+    // horse behind her (the escape after the university); in winter Ellie hunts and survives
+    // on her own; Joel, recovered, searches for her alone; they end the chapter together.
+    // Distances: leg 10 = 105.6 km, leg 11 = 64.6 km, together 170.2 km →
+    //   ride with wounded Joel 40 % (68.1 km) = leg 10, 0 → 0.645
+    //   Ellie alone on foot    30 % (51.1 km) = leg 10, 0.645 → 1  +  leg 11, 0 → 0.21
+    //   Joel alone on foot     20 % (34.0 km) = leg 11, 0.21 → 0.737
+    //   together again         10 % (17.0 km) = leg 11, 0.737 → 1
+    legs: [
+      { leg: 10, from: 0, to: 0.645, mode: 'horse', wounded: true, note: 'Ellie rides on, wounded Joel lying across the horse' },
+      { leg: 10, from: 0.645, party: ['ellie'], mode: 'walk', note: 'Ellie hunts and survives alone while Joel recovers' },
+      { leg: 11, from: 0, to: 0.21, party: ['ellie'], note: 'Ellie alone in the snow' },
+      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], note: 'Joel, barely recovered, searches for Ellie alone' },
+      { leg: 11, from: 0.737, note: 'Together again' },
+    ],
     ambience: ['snow'],
   },
   {
@@ -288,10 +329,9 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_7.jpg',
       'img_8.jpg',
     ]),
-    // Split of leg 13 (83 km): Chapter X has 50 − 4.5 = 45.5 s for leg 11 (65 km) plus a
-    // fraction x of leg 13; Chapter XI has 40 s for the rest. Equal pace means
-    // (65 + 83x) ÷ 45.5 = 83(1 − x) ÷ 40  →  x ≈ 0.17.
-    legs: [{ leg: 11 }, { leg: 12 }, { leg: 13, from: 0, to: 0.17 }],
+    // Spring: the jump from Colorado to Utah plays during the title card, then they walk
+    // into Salt Lake City (they are together again).
+    legs: [{ leg: 12 }, { leg: 13, from: 0, to: 0.8 }],
     ambience: ['pollen', 'petals'],
   },
   {
@@ -310,8 +350,8 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_6.jpg',
       'img_7.png',
     ]),
-    // The rest of the walk into Salt Lake City, to the hospital (see the split under Chapter X).
-    legs: [{ leg: 13, from: 0.17 }],
+    // The last ~14 km into Salt Lake City, to the Fireflies' hospital.
+    legs: [{ leg: 13, from: 0.8 }],
     ambience: ['fireflies', 'pollen'],
   },
   {
@@ -328,7 +368,13 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_3_2.png',
       'img_4.jpeg',
     ]),
-    legs: [{ leg: 14 }, { leg: 15 }, { leg: 16 }],
+    // Most of the way by car; only the last 20 % on foot, walking the road home to Jackson.
+    legs: [
+      { leg: 14 },
+      { leg: 15 },
+      { leg: 16, from: 0, to: 0.8, mode: 'vehicle', note: 'Driving north towards Jackson' },
+      { leg: 16, from: 0.8, timeShare: 0.2, note: 'The last stretch home to Jackson, on foot' },
+    ],
     ambience: ['petals', 'fireflies'],
   },
 ];

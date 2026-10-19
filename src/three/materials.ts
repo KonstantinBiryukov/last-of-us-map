@@ -23,6 +23,15 @@ export const PALETTE = {
   ellieShirt: 0x6b7350,
   elliePants: 0x3f526b,
   ellieHair: 0x7a3b22,
+  // Tess: light tan jacket, dark jeans, dark-brown hair tied back.
+  tessJacket: 0x9a7b55,
+  tessPants: 0x343a46,
+  tessHair: 0x2e2420,
+  // Bill: stocky, olive-drab work jacket, brown trousers, greying short hair and stubble.
+  billJacket: 0x505438,
+  billPants: 0x4a3b2c,
+  billHair: 0x76706a,
+  skinBill: 0xc4937a,
   boots: 0x3a2a1e,
   backpack: 0x6e5a3c,
   strap: 0x2b2118,

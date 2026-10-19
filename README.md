@@ -13,8 +13,21 @@ of the USA with only the locations, where you click a place to read about it.
 - **React + TypeScript (strict)** build the interface: story panel with a synchronised
   slideshow, a single cinematic player bar (journey + soundtrack), map controls.
 
-> ⚠️ Spoilers for the entire game. Images © Naughty Dog; music by Gustavo Santaolalla.
-> Non-commercial fan project.
+> ⚠️ Spoilers for the entire game.
+
+## Copyright & credits
+
+Made by **Konstantin Biriukov**.
+
+Unofficial, non-commercial fan project — not affiliated with, endorsed by, or sponsored by
+Sony Interactive Entertainment or Naughty Dog.
+
+- *The Last of Us* is a trademark of Sony Interactive Entertainment LLC; the game was developed
+  by Naughty Dog. All game images and soundtrack recordings (music by Gustavo Santaolalla)
+  are © their respective owners and are used for non-commercial fan purposes only.
+- Location descriptions are adapted from [The Last of Us Wiki](https://thelastofus.fandom.com/)
+  (Fandom, 2019–2020 revisions) under [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
+- Map data © Mapbox © OpenStreetMap contributors. Fonts under the SIL Open Font License.
 
 ## Quick start (macOS)
 
@@ -41,6 +54,7 @@ Without a token the app still works, using a simplified built-in map (no 3D).
 | `npm run check` | Type check + tests + build (what CI runs) |
 | `npm run deploy` | Build and publish `dist/` to the `gh-pages` branch |
 | `npm run optimize:images` | Regenerate WebP images + blur placeholders |
+| `npm run build:boston` | Regenerate the Boston street route (needs the token in `.env.local`) |
 
 ## Keyboard
 

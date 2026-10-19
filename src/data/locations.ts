@@ -9,6 +9,11 @@
  *      literal text "area.nThe"; it is now split into two paragraphs.
  *
  * The original GeoJSON file is kept in /public for reference.
+ *
+ * SOURCE & LICENCE OF THE TEXT: the descriptions match, word for word, The Last
+ * of Us Wiki on Fandom (thelastofus.fandom.com, 2019–2020 page revisions), whose
+ * text is licensed CC BY-SA 3.0. That licence requires attribution and that
+ * adapted text stays under the same licence — the About page and README credit it.
  */
 import type { StoryLocation } from "./types";
 

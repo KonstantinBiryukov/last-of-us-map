@@ -106,6 +106,13 @@ export interface LegMeta {
   modeSource: TravelModeSource;
   /** Human-readable note explaining the leg (shown in the story panel). */
   note: string;
+  /**
+   * Optional correction: replace the START of this leg with the Boston street route
+   * (public/server/info/boston-streets.geojson), joining the original line at its point
+   * closest to where the street route ends. Used for leg 2, whose original Boston section
+   * meanders on the spot (see geo/route.ts).
+   */
+  replaceStartWithBostonStreets?: boolean;
 }
 
 /** A leg after its coordinates have been loaded, corrected and measured. */
@@ -115,16 +122,34 @@ export interface Leg extends LegMeta {
 }
 
 /**
+ * A character who can appear on the map. Joel and Ellie travel most of the way;
+ * Tess is with them in Boston and Bill in Lincoln, exactly where the game has them.
+ */
+export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill';
+
+/**
  * A slice of a leg travelled during one chapter.
- *   leg  – index into the LEGS list (data/legs.ts)
- *   from – where on the leg the slice starts, as a fraction: 0 = start, 1 = end
- *   to   – where it ends (same scale). Omitted `from`/`to` mean the whole leg.
- * Example: { leg: 6, from: 0, to: 0.7 } = the first 70 % of leg 6.
+ *   leg     – index into the LEGS list (data/legs.ts)
+ *   from/to – which slice of the leg, as fractions: 0 = leg start, 1 = leg end.
+ *             Omitted means the whole leg. Example: { leg: 6, from: 0, to: 0.7 }
+ *   party   – who travels this slice, in walking order (default: Joel and Ellie)
+ *   mode    – overrides the leg's travel mode for this slice (e.g. Joel on foot)
+ *   wounded – Joel lies wounded across the horse's back while Ellie rides
+ *             (the escape after the university, in the game)
+ *   timeShare – a fixed fraction of the chapter's time for this slice (e.g. 0.2 =
+ *             the last 20 % of the Epilogue on foot), instead of the usual share
+ *             by distance and speed
+ *   note    – overrides the leg's note shown in the story panel
  */
 export interface LegPart {
   leg: number;
   from?: number;
   to?: number;
+  party?: readonly Traveller[];
+  mode?: TravelMode;
+  wounded?: boolean;
+  timeShare?: number;
+  note?: string;
 }
 
 /** The four seasons the game is split into (plus the 2013 prologue). */

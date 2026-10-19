@@ -1,0 +1,15 @@
+/* Small monospace box in the top-centre, above the map; ignores the mouse. */
+.meter {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 70;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: var(--radius-s);
+  background: rgba(0, 0, 0, 0.75);
+  color: #9fef9f;
+  font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+  pointer-events: none;
+}

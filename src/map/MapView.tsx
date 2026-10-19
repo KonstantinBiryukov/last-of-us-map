@@ -126,7 +126,16 @@ export function MapView({ padding, onNotice, onUnavailable, mode, selectedLocati
         attributionControl: false,
         logoPosition: 'bottom-right',
         fadeDuration: 150,
+        // Users may pan and zoom, but NOT rotate or tilt: right-click / Ctrl-drag, two-finger
+        // twist and two-finger tilt are all switched off. Tilt and heading are cinematic
+        // choices the camera director makes; letting a stray drag change them left the
+        // camera in a broken, sideways "free-fly" state.
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false,
       });
+      map.touchZoomRotate.disableRotation(); // keep pinch-to-zoom, drop the twist-to-rotate part
+      map.keyboard.disableRotation(); // Shift + arrow keys would rotate/tilt too
     } catch (error) {
       console.error(error);
       onUnavailable('Your browser could not start the 3D map (WebGL is unavailable).');

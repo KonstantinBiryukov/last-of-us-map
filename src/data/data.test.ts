@@ -10,6 +10,7 @@ import { LEG_META } from './legs';
 import { SOUNDTRACK } from './soundtrack';
 import { loadRealRoute } from '../playback/testUtils';
 import { haversineMeters } from '../geo/polyline';
+import { buildTimeline } from '../playback/timeline';
 
 const publicDir = join(process.cwd(), 'public');
 
@@ -109,3 +110,63 @@ describe('route corrections (the original GeoJSON is not perfect)', () => {
     });
   });
 });
+
+describe('each chapter travels only where its images are set', () => {
+  const route = loadRealRoute();
+  const timeline = buildTimeline(CHAPTERS, route);
+  const place = (lng: number, lat: number) => [lng, lat] as const;
+  const STATE_HOUSE = place(-71.0637, 42.3588); // Boston (the game's Capitol)
+  const LINCOLN = place(-71.3042, 42.4259);
+  const SLC = place(-111.891, 40.7608);
+  const PITTSBURGH = place(-79.9959, 40.4406);
+
+  /** Largest distance (km) from `centre` of any point travelled on DETAILED parts of a chapter. */
+  function maxKm(chapterIndex: number, centre: readonly [number, number]): number {
+    let max = 0;
+    for (const span of timeline.chapters[chapterIndex]!.legSpans) {
+      if (span.kind !== 'detailed') continue;
+      for (let d = span.startDistance; d <= span.endDistance; d += 500) {
+        max = Math.max(max, haversineMeters(route.journey.pointAt(d), centre) / 1000);
+      }
+    }
+    return max;
+  }
+
+  it('Quarantine Zone stays in Boston, and the Outskirts trio walks Downtown → Museum → Capitol in Boston', () => {
+    expect(maxKm(1, STATE_HOUSE)).toBeLessThan(2);
+    const trio = timeline.chapters[2]!.legSpans[0]!;
+    expect(trio.party).toContain('tess');
+    for (let d = trio.startDistance; d <= trio.endDistance; d += 100) {
+      expect(haversineMeters(route.journey.pointAt(d), STATE_HOUSE)).toBeLessThan(1500);
+    }
+  });
+
+  it('the Boston chapter split points land on the game places of the street route', () => {
+    const stops = (JSON.parse(readFileSync(join(publicDir, 'server/info/boston-streets.geojson'), 'utf8')) as {
+      features: { geometry: { type: string; coordinates: [number, number] }; properties: { id: string } }[];
+    }).features.filter((f) => f.geometry.type === 'Point');
+    const at = (id: string) => stops.find((f) => f.properties.id === id)!.geometry.coordinates;
+    const point = (span: { startDistance: number }) => route.journey.pointAt(span.startDistance);
+    const [, , qzTrio] = timeline.chapters[1]!.legSpans; // after the time skip and Joel + Tess
+    const [downtownTrio, afterCapitol] = timeline.chapters[2]!.legSpans;
+    expect(haversineMeters(point(qzTrio!), at('fireflies'))).toBeLessThan(150); // Ellie joins at the Fireflies
+    expect(haversineMeters(point(downtownTrio!), at('wall'))).toBeLessThan(150);
+    expect(haversineMeters(point(afterCapitol!), at('capitol'))).toBeLessThan(150); // Tess stays behind
+  });
+
+  it("Bill's Town starts right outside Lincoln and stays there (no Connecticut or Pennsylvania)", () => {
+    const first = timeline.chapters[3]!.legSpans[0]!;
+    expect(haversineMeters(route.journey.pointAt(first.startDistance), LINCOLN) / 1000).toBeLessThan(3.1);
+    expect(maxKm(3, LINCOLN)).toBeLessThan(20); // includes the first few km in Bill's truck
+  });
+  it('Pittsburgh starts with the drive and ends in Pittsburgh; The Suburbs stay near it', () => {
+    expect(timeline.chapters[4]!.legSpans[0]!.mode).toBe('vehicle');
+    expect(haversineMeters(route.journey.pointAt(timeline.chapters[4]!.legSpans.at(-1)!.endDistance), PITTSBURGH) / 1000).toBeLessThan(25);
+    expect(maxKm(5, PITTSBURGH)).toBeLessThan(30);
+  });
+  it('Bus Depot and The Firefly Lab stay near Salt Lake City (no Colorado)', () => {
+    expect(maxKm(9, SLC)).toBeLessThan(80);
+    expect(maxKm(10, SLC)).toBeLessThan(16);
+  });
+});
+

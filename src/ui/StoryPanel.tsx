@@ -19,7 +19,7 @@
 import { memo, useId, useState } from 'react';
 import { LOCATIONS_BY_ID } from '../data/locations';
 import { SEASON_LABELS } from '../data/chapters';
-import type { TravelMode, TravelModeSource } from '../data/types';
+import type { TravelMode, TravelModeSource, Traveller } from '../data/types';
 import { useJourney, usePlayback } from '../journey/JourneyContext';
 import { Slideshow } from './Slideshow';
 import { ClockIcon, HorseIcon, JumpIcon, TruckIcon, WalkIcon } from './icons';
@@ -27,6 +27,24 @@ import styles from './StoryPanel.module.css';
 
 /** Human wording for each travel mode. */
 const MODE_LABEL: Record<TravelMode, string> = { walk: 'On foot', horse: 'On horseback', vehicle: 'By truck' };
+
+/** Display names of the characters. */
+const NAMES: Record<Traveller, string> = { joel: 'Joel', ellie: 'Ellie', tess: 'Tess', bill: 'Bill' };
+
+/**
+ * Who is travelling, in words — shown only when it is NOT the usual Joel and Ellie:
+ *   ['joel','tess']          → "Joel & Tess"
+ *   ['joel','tess','ellie']  → "Joel, Tess & Ellie"
+ *   ['ellie']                → "Ellie, alone"
+ *   wounded                  → "Ellie, with Joel wounded"
+ */
+function partyLabel(party: readonly Traveller[], wounded: boolean): string | null {
+  if (wounded) return 'Ellie, with Joel wounded';
+  if (party.length === 2 && party.includes('joel') && party.includes('ellie')) return null;
+  if (party.length === 1) return `${NAMES[party[0]!]}, alone`;
+  const names = party.map((p) => NAMES[p]);
+  return `${names.slice(0, -1).join(', ')} & ${names.at(-1)}`;
+}
 
 /** Picks the icon matching the travel mode. */
 function TravelIcon({ mode }: { mode: TravelMode }) {
@@ -47,6 +65,9 @@ export const StoryPanel = memo(function StoryPanel() {
   const location = LOCATIONS_BY_ID.get(chapter.locationId)!;
   // The leg being travelled (undefined only after the very end of the story).
   const leg = playback.legIndex >= 0 ? engine.route.legs[playback.legIndex] : undefined;
+  // The current part of the chapter's travel: its own mode, party and note (see data/chapters.ts).
+  const span = engine.timeline.chapters[playback.chapterIndex]!.legSpans[playback.spanIndex];
+  const who = span ? partyLabel(span.party, span.wounded) : null;
   const finished = playback.status === 'finished';
   /** Whether the "About …" text is expanded. */
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -100,9 +121,13 @@ export const StoryPanel = memo(function StoryPanel() {
           </>
         ) : (
           <>
-            <TravelIcon mode={leg.mode} />
+            <TravelIcon mode={span?.mode ?? leg.mode} />
             <span>
-              <strong>{MODE_LABEL[leg.mode]}</strong> · {leg.note}
+              <strong>
+                {who ? `${who} · ` : ''}
+                {MODE_LABEL[span?.mode ?? leg.mode]}
+              </strong>{' '}
+              · {span?.note ?? leg.note}
               <span className={styles.travelMeta}>{travelDescription(leg.modeSource)}</span>
             </span>
           </>
@@ -125,7 +150,7 @@ export const StoryPanel = memo(function StoryPanel() {
           {location.description.map((paragraph, i) => (
             <p key={i}>{paragraph}</p>
           ))}
-          <p className={styles.source}>Location notes from the original project.</p>
+          <p className={styles.source}>Adapted from The Last of Us Wiki (Fandom), CC BY-SA 3.0.</p>
         </div>
       </div>
     </section>

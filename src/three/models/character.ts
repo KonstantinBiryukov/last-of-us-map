@@ -28,7 +28,8 @@ import * as THREE from 'three';
 import { part, type PaletteKey } from '../materials';
 
 export interface CharacterLook {
-  name: 'joel' | 'ellie';
+  /** Also used as a key for caching each character's geometry sizes. */
+  name: 'joel' | 'ellie' | 'tess' | 'bill';
   /** Overall size multiplier (Joel = 1). */
   scale: number;
   /** Shoulder width multiplier (Joel is broader). */
@@ -176,6 +177,32 @@ export function createCharacter(look: CharacterLook): Character {
   return { root, hips, torso, head, armL, armR, forearmL, forearmR, thighL, thighR, shinL, shinR, ponytail, hipHeight };
 }
 
+/** Tess: adult woman, a little shorter than Joel, hair tied back, tan jacket. */
+export const TESS: CharacterLook = {
+  name: 'tess',
+  scale: 0.93,
+  build: 0.95,
+  skin: 'skinEllie',
+  shirt: 'tessJacket',
+  pants: 'tessPants',
+  hair: 'tessHair',
+  beard: false,
+  ponytail: true,
+};
+
+/** Bill: stocky and broad, greying hair with stubble, olive work jacket. */
+export const BILL: CharacterLook = {
+  name: 'bill',
+  scale: 0.97,
+  build: 1.22,
+  skin: 'skinBill',
+  shirt: 'billJacket',
+  pants: 'billPants',
+  hair: 'billHair',
+  beard: true,
+  ponytail: false,
+};
+
 // ───────────────────────── poses ─────────────────────────
 // Sign convention: a positive X rotation swings a down-hanging limb FORWARD (towards −Z).
 
@@ -235,6 +262,7 @@ export function poseIdle(c: Character, time: number): void {
  * the ride; `reins` raises the forearms as if holding reins/steering wheel.
  */
 export function poseSeated(c: Character, bounce: number, reins: boolean): void {
+  c.root.rotation.set(0, 0, 0); // undo poseWounded's tipped-over body if it was used before
   c.thighL.rotation.set(1.35, 0, -0.35);
   c.thighR.rotation.set(1.35, 0, 0.35);
   c.shinL.rotation.x = -1.25;
@@ -251,4 +279,39 @@ export function poseSeated(c: Character, bounce: number, reins: boolean): void {
     c.ponytail.rotation.x = 0.5 + Math.sin(bounce * 2) * 0.1;
     c.ponytail.rotation.z = 0;
   }
+}
+
+/**
+ * Joel lying wounded ACROSS the horse's back behind Ellie, like in the game's escape
+ * from the university: belly on the horse, head and arms hanging down its left side,
+ * legs down its right side.
+ *
+ * How the body is turned (two rotations, applied in this order thanks to 'YXZ'):
+ *   1. −90° about X tips the standing figure forward: head points ahead, face down;
+ *   2. +90° about Y then swings that lying figure sideways: head points to the
+ *      horse's LEFT (−X), feet to its right.
+ * In this turned frame, joints that hang DOWN from their pivot (legs, and arms in a
+ * standing pose) swing towards the ground with POSITIVE angles; joints that point UP
+ * from their pivot (torso, head) need NEGATIVE angles to droop. The values were tuned
+ * by measuring joint positions so the body drapes OUTSIDE the horse's flanks.
+ * `bounce` (radians) lets the limp body sway with the horse's gait.
+ */
+export function poseWounded(c: Character, bounce: number): void {
+  c.root.rotation.order = 'YXZ';
+  c.root.rotation.set(-Math.PI / 2, Math.PI / 2, 0);
+  c.hips.position.y = c.hipHeight;
+  c.hips.rotation.y = 0;
+  const sway = Math.sin(bounce * 2) * 0.05;
+  c.torso.rotation.set(-0.7 + sway, 0, 0); // upper body droops over the left flank
+  c.head.rotation.set(-0.5, 0.2, 0); // head hanging, turned slightly
+  // Arms swung past the head (≈155°) so they dangle towards the ground beside the horse.
+  c.armL.rotation.set(2.7 + Math.sin(bounce) * 0.1, 0, -0.2);
+  c.armR.rotation.set(2.7 - Math.sin(bounce) * 0.1, 0, 0.2);
+  c.forearmL.rotation.x = 0.15;
+  c.forearmR.rotation.x = 0.15;
+  c.thighL.rotation.set(0.5 - sway, 0, -0.08); // thighs over the right side of the back…
+  c.thighR.rotation.set(0.5 - sway, 0, 0.08);
+  c.shinL.rotation.x = 1.1; // …and lower legs hanging down the right flank
+  c.shinR.rotation.x = 1.1;
+  if (c.ponytail) c.ponytail.rotation.set(0.5, 0, 0);
 }
