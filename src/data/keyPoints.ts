@@ -30,7 +30,6 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     // Boston places from scripts/build-street-routes.mjs (the street route's stops).
     // BOSTON_SCALE: see below.
     { name: '20 Years Later', prop: 'checkpoint', coord: [-71.0547, 42.3637], basis: 'North End — the Quarantine Zone (the wiki: the QZ corresponds to the North End)', scale: BOSTON_SCALE },
-    { name: 'The Slums', prop: 'slums', coord: [-71.0528, 42.3622], basis: 'the North End waterfront, inside the zone', scale: BOSTON_SCALE },
     // On LAND by the water: the route reaches Long Wharf and turns west along State Street;
     // the containers stand south of it, by Atlantic Avenue (the harbour is to the east).
     { name: 'The Cargo', prop: 'cargo', coord: [-71.0525, 42.3593], basis: "the waterfront by Long Wharf — Robert's place at the docks", scale: BOSTON_SCALE },
@@ -39,11 +38,10 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   3: [
     { name: 'Outside', prop: 'trees', coord: [-71.0621, 42.3598], basis: 'Bowdoin Street, Beacon Hill — just past the wall', scale: BOSTON_SCALE },
     { name: 'Downtown', prop: 'towers', coord: [-71.0603, 42.3555], basis: 'Downtown Crossing', scale: BOSTON_SCALE },
-    { name: 'The Museum', prop: 'museum', coord: [-71.0575, 42.3588], basis: "Old State House (a museum; the game's museum is fictional)", scale: BOSTON_SCALE },
     // The Capitol Building is the Massachusetts State House (its gold dome: 42.35778 N,
     // 71.06361 W). The trio reaches it as the Boston walk ends (where Tess stays behind),
     // as in the game's last Outskirts section — passing right by it, then on to Lincoln.
-    { name: 'The Capitol Building', prop: 'capitol', coord: [-71.06361, 42.35778], basis: 'Massachusetts State House', close: true, scale: BOSTON_SCALE },
+    { name: 'The Capitol Building', prop: 'capitol', coord: [-71.06361, 42.35778], basis: 'Massachusetts State House', close: true, scale: BOSTON_SCALE * 0.9 }, // ≈ 40 % larger than it stood before (it used to be shrunk to fit its site)
   ],
   4: [
     // Lincoln, Massachusetts — Bill's town. The route crosses it from the east to the centre.
@@ -54,8 +52,8 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   ],
   5: [
     // On foot through Pittsburgh: downtown and along the rivers.
-    { name: 'Hotel Lobby', prop: 'hotel', coord: [-80.0045, 40.4425], basis: 'downtown Pittsburgh (the game’s hotel is fictional)' },
-    { name: 'Financial District', prop: 'towers', coord: [-80.0125, 40.452], basis: 'the river front by the Golden Triangle' },
+    { name: 'Hotel Lobby', prop: 'hotel', coord: [-79.9966, 40.441], basis: 'the Omni William Penn Hotel, downtown (the game’s hotel is fictional)' },
+    { name: 'Financial District', prop: 'towers', coord: [-80.0028, 40.4408], basis: 'PPG Place / Market Square, downtown' },
     // The famous yellow bridges ("Three Sisters") link downtown and the North Side across the
     // Allegheny; the game's Pittsburgh bridges are styled on them. Exactly in place, along its axis.
     {
@@ -63,7 +61,7 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
       prop: 'bridge',
       coord: [-80.00361, 40.44556],
       basis: 'the Roberto Clemente (Sixth Street) Bridge across the Allegheny, downtown ↔ North Side',
-      exact: { heading: 350 },
+      exact: { heading: 344 }, // the deck's real axis (the walking route over it runs at 344°)
     },
   ],
   6: [
@@ -71,8 +69,13 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     { name: 'Suburbs', prop: 'suburb', coord: [-80.0941, 40.651], basis: "Pittsburgh's northern suburbs" },
   ],
   7: [
-    { name: 'Hydroelectric Dam', prop: 'dam', coord: [-110.69, 43.31], basis: "the Snake River south of Jackson (Tommy's dam is fictional)" },
-    { name: 'Ranch House', prop: 'ranch', coord: [-110.76, 43.47], basis: 'ranch land just outside Jackson' },
+    // The dam stands just north of ("up from", on the north-up map) the Jackson marker, its front
+    // — where Tommy and Maria wait — facing south, towards the camera; ten times the usual size
+    // (`scale: 10`). At that size its footprint is ~31 km in radius, so its centre is placed one
+    // radius plus a little (~34 km) north of the marker (43.4746 N → 43.784 N).
+    { name: 'Hydroelectric Dam', prop: 'dam', coord: [-110.810617, 43.784], basis: "just north of Jackson (Tommy's dam is fictional)", exact: { heading: 180 }, scale: 10, moment: 0.8 }, // reached as Tommy and Maria are met
+    // The ranch: right beside the route as they arrive at Jackson (`close`), five times the usual size.
+    { name: 'Ranch House', prop: 'ranch', coord: [-110.775, 43.47], basis: 'ranch land at the edge of Jackson', close: true, scale: 5 },
   ],
   8: [
     // The University of Eastern Colorado is modelled on Colorado State University, Fort Collins.
@@ -84,13 +87,14 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)' },
   ],
   10: [
-    // The giraffes, met around the bus depot — out in the southern Salt Lake Valley, well
-    // before the city and the hospital (the game's depot is fictional).
-    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.885, 40.5], basis: 'the southern Salt Lake Valley, by the bus depot (fictional)' },
+    // The giraffes, met around the bus depot — in the city's southern part, on the valley side
+    // west of I-15 (not the mountains), well before the hospital (the game's depot is fictional).
+    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.93, 40.62], basis: 'southern Salt Lake City (Taylorsville / West Jordan), by the bus depot (fictional)', scale: 2 }, // twice the usual size
   ],
   // The walk ends right at the hospital, which stands beside the route's end.
-  11: [{ name: 'The Hospital', prop: 'hospital', coord: [-111.857112, 40.686071], basis: "St. Mark's Hospital (the basis of St. Mary's)", close: true }],
-  12: [{ name: 'Jackson', prop: 'town', coord: [-110.762, 43.4799], basis: 'Jackson, Wyoming' }],
+  11: [{ name: 'The Hospital', prop: 'hospital', coord: [-111.857112, 40.686071], basis: "St. Mark's Hospital (the basis of St. Mary's)", close: true, scale: 1.4 }],
+  // Home: the town stands right beside the end of the journey (`close`).
+  12: [{ name: 'Jackson', prop: 'town', coord: [-110.762, 43.4799], basis: 'Jackson, Wyoming', close: true }],
 };
 
 /**

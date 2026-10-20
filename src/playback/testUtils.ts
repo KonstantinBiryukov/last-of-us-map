@@ -20,6 +20,7 @@ export function loadRealRoute(): Route {
       boston: read('boston-streets.geojson'),
       hospital: read('hospital-streets.geojson'),
       escape: read('escape-streets.geojson'),
+      pittsburgh: read('pittsburgh-streets.geojson'),
     });
   }
   return cached;

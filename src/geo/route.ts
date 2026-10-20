@@ -31,6 +31,8 @@
  *    (scripts/build-street-routes.mjs → boston-streets.geojson). The original line is
  *    re-joined at its point closest to the Capitol (the State House) and followed from
  *    there to Lincoln. See `spliceStart()`.
+ * 5. Pittsburgh wandered: the truck now stops downtown (`trimEnd()`) and a generated street
+ *    route walks from it straight across the Roberto Clemente Bridge (`spliceStart()`).
  * 4. Salt Lake City ends early. The original line stops downtown; the game ends at the
  *    Fireflies' hospital (St. Mary's, based on the real St. Mark's Hospital, ~10 km
  *    away). A generated street route continues the leg there (`appendEnd()`), and a
@@ -135,6 +137,20 @@ export function spliceStart(original: readonly LngLat[], replacement: readonly L
   return [...replacement, ...original.slice(best + 1)];
 }
 
+/** Ends `original` at its point closest to `place` (that point included). */
+export function trimEnd(original: readonly LngLat[], place: LngLat): LngLat[] {
+  let best = 0;
+  let bestDistance = Infinity;
+  original.forEach((p, i) => {
+    const d = haversineMeters(p, place);
+    if (d < bestDistance) {
+      bestDistance = d;
+      best = i;
+    }
+  });
+  return original.slice(0, best + 1);
+}
+
 /** Continues `original` with `extension`, whose first point is the original's last point. */
 export function appendEnd(original: readonly LngLat[], extension: readonly LngLat[]): LngLat[] {
   return [...original, ...extension.slice(1)];
@@ -170,6 +186,7 @@ export function buildRoute(geojson: unknown, meta: readonly LegMeta[] = LEG_META
     }
     let coordinates: LngLat[] = (feature.geometry.coordinates as unknown[]).filter(isLngLat).map((c) => [c[0], c[1]] as const);
     if (coordinates.length < 2) throw new Error(`Route feature ${m.featureIndex} has fewer than 2 points`);
+    if (m.trimEndAt) coordinates = trimEnd(coordinates, m.trimEndAt);
     const file = m.streets ? streets[m.streets.route] : undefined;
     if (m.streets && file !== undefined) {
       const line = streetsLine(file, m.streets.route);

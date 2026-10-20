@@ -11,8 +11,8 @@ describe('chapter key points', () => {
   const timeline = buildTimeline(CHAPTERS, route);
   const placed = placeKeyPoints(timeline, CHAPTERS, route);
 
-  it('every chapter has its key points (27 in all)', () => {
-    expect(placed).toHaveLength(27);
+  it('every chapter has its key points (25 in all)', () => {
+    expect(placed).toHaveLength(25);
     for (const chapter of CHAPTERS) expect(KEY_POINTS[chapter.number]?.length).toBeGreaterThan(0);
     expect(placed.filter((p) => p.chapterIndex === 9).map((p) => p.name)).toEqual(['The Giraffes']);
   });
@@ -77,14 +77,14 @@ describe('chapter key points', () => {
     expect(haversineMeters([capitol.lng, capitol.lat], capitol.coord)).toBeLessThan(150);
   });
 
-  it('neighbouring props share one size: Pittsburgh, and the giraffe with the hospital', () => {
+  it('neighbouring props share one size (Pittsburgh), and the bridge stands exactly in place', () => {
     const size = (name: string) => placed.find((p) => p.name === name)!.metresPerModel;
     expect(size('Financial District')).toBeCloseTo(size('Hotel Lobby'), 6);
     expect(size('Escape the City')).toBeCloseTo(size('Hotel Lobby'), 6);
     // The bridge stands exactly on the Roberto Clemente Bridge, along its axis.
     const bridge = placed.find((p) => p.name === 'Escape the City')!;
     expect(haversineMeters([bridge.lng, bridge.lat], bridge.coord)).toBeLessThan(1);
-    expect(bridge.heading).toBe(350);
+    expect(bridge.heading).toBe(344);
     // Nothing stands in front of it (south, as the north-looking camera sees it).
     for (const p of placed.filter((p) => p !== bridge)) {
       const east = (p.lng - bridge.lng) * 111_320 * Math.cos((bridge.lat * Math.PI) / 180);
@@ -92,10 +92,15 @@ describe('chapter key points', () => {
       const inFront = north < 0 && north > -5 * bridge.radiusMetres && Math.abs(east) < bridge.radiusMetres + p.radiusMetres;
       expect(inFront, p.name).toBe(false);
     }
-    // All four — Joel, Ellie, Henry and Sam — are together when they reach the bridge.
-    const atBridge = timeline.chapters[4]!.legSpans.find((s) => bridge.distance >= s.startDistance && bridge.distance <= s.endDistance)!;
-    expect([...atBridge.party].sort()).toEqual(['ellie', 'henry', 'joel', 'sam']);
-    expect(size('The Giraffes')).toBeCloseTo(size('The Hospital'), 6);
+    // All four — Joel, Ellie, Henry and Sam — are together for the WHOLE crossing (from where
+    // they are first drawn on the deck), and already well before it, in the city.
+    const partyAt = (d: number) =>
+      [...timeline.chapters[4]!.legSpans.find((s) => d >= s.startDistance && d <= s.endDistance)!.party].sort();
+    const four = ['ellie', 'henry', 'joel', 'sam'];
+    expect(partyAt(bridge.crossing!.from - 2000)).toEqual(four);
+    expect(partyAt(bridge.crossing!.from)).toEqual(four);
+    expect(partyAt(bridge.distance)).toEqual(four);
+    expect(partyAt(bridge.crossing!.to)).toEqual(four);
   });
 
   it('props stand near their real places (as near as the route allows)', () => {

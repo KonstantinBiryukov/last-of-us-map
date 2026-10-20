@@ -4,6 +4,7 @@
  *   npm run build:streets -- boston     → public/server/info/boston-streets.geojson
  *   npm run build:streets -- hospital   → public/server/info/hospital-streets.geojson
  *   npm run build:streets -- escape     → public/server/info/escape-streets.geojson
+ *   npm run build:streets -- pittsburgh → public/server/info/pittsburgh-streets.geojson
  *
  * WHY
  *   boston   – the original route's Boston section meanders within ~1 km of downtown,
@@ -12,6 +13,9 @@
  *   hospital – the original route ends in downtown Salt Lake City; the game's last stop,
  *              the Fireflies' hospital (St. Mary's, based on the real St. Mark's Hospital),
  *              is ~10 km further. This route continues there.
+ *   pittsburgh – the original walk wandered back and forth around the river front. This route
+ *              starts where they leave Bill's truck near Monroeville, walks into the city through the game's places
+ *              and crosses the Roberto Clemente Bridge straight to the North Side.
  *   escape   – the drive away (Epilogue) originally starts back downtown; with the journey
  *              now ending at the hospital, this DRIVING route takes Joel and Ellie from the
  *              hospital to the original drive's interstate (I-80), ~4 km north.
@@ -62,9 +66,26 @@ const ESCAPE_STOPS = [
   { id: 'interstate', name: 'Onto the interstate', basis: 'point 193 of feature 14 (I-80)', coord: [-111.83625, 40.717327] },
 ];
 
+/**
+ * Pittsburgh: leave the truck near Monroeville, east of the city (the drive is cut there, see
+ * data/legs.ts), walk into the city to the hotel and the Financial District, then straight across the Roberto
+ * Clemente (Sixth Street) Bridge to the North Side, and on north to where the original walk
+ * heads for the suburbs (its point ~8.2 km in).
+ */
+const PITTSBURGH_STOPS = [
+  { id: 'truck', name: 'Leaving the truck', basis: 'by Monroeville, where the drive into Pittsburgh ends (point 2676 of feature 5)', coord: [-79.790291, 40.442253] },
+  { id: 'hotel', name: 'Hotel Lobby', basis: 'Omni William Penn Hotel', coord: [-79.9966, 40.441] },
+  { id: 'financial', name: 'Financial District', basis: 'PPG Place / Market Square', coord: [-80.0028, 40.4408] },
+  // Both bridge waypoints lie ON the deck, so the route does not detour to reach them.
+  { id: 'bridge-south', name: 'The bridge (south end)', basis: 'Roberto Clemente Bridge, south end of the deck', coord: [-80.00317, 40.44492] },
+  { id: 'bridge-north', name: 'The bridge (north end)', basis: 'Roberto Clemente Bridge, north end of the deck', coord: [-80.0039, 40.44686] },
+  { id: 'north-side', name: 'Out through the North Side', basis: 'the original walk heading north', coord: [-79.9982, 40.4573] },
+];
+
 const ROUTES = {
   boston: { stops: BOSTON_STOPS, file: 'public/server/info/boston-streets.geojson', title: 'Boston streets — Quarantine Zone to the Capitol' },
   hospital: { stops: HOSPITAL_STOPS, file: 'public/server/info/hospital-streets.geojson', title: "Salt Lake City streets — downtown to St. Mary's Hospital" },
+  pittsburgh: { stops: PITTSBURGH_STOPS, file: 'public/server/info/pittsburgh-streets.geojson', title: 'Pittsburgh streets — from the truck across the Roberto Clemente Bridge' },
   escape: { stops: ESCAPE_STOPS, file: 'public/server/info/escape-streets.geojson', title: 'Salt Lake City streets — the drive away from the hospital', profile: 'driving' },
 };
 const which = process.argv[2];
@@ -150,6 +171,44 @@ for (let i = 0; i < STOPS.length; i++) {
     line.push(coords[k]);
   }
   stops.push({ ...stop, distanceAlong: Math.round(total) });
+}
+
+/**
+ * Removes out-and-back spurs: Directions reaches a waypoint that is a little off its path by
+ * walking to it and straight back, which leaves A → B → A in the line (the travellers would
+ * step forward and back). Any point whose neighbours (nearly) coincide is such a turn-around:
+ * drop it and the repeated point, and keep going until none are left.
+ */
+function removeSpurs(points) {
+  const out = [...points];
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = 1; i < out.length - 1; i++) {
+      if (haversine(out[i - 1], out[i + 1]) < 4) {
+        out.splice(i, 2); // the tip of the spur and the point that repeats its start
+        changed = true;
+        break;
+      }
+    }
+  }
+  return out;
+}
+const cleaned = removeSpurs(line);
+if (cleaned.length !== line.length) {
+  console.log(`removed ${line.length - cleaned.length} spur points`);
+  line.splice(0, line.length, ...cleaned);
+  // Re-measure the stops' distances along the cleaned line (each stop: its nearest line point).
+  const along = [0];
+  for (let k = 1; k < line.length; k++) along.push(along[k - 1] + haversine(line[k - 1], line[k]));
+  total = along.at(-1);
+  let from = 0;
+  for (const s of stops) {
+    let best = from;
+    for (let k = from; k < line.length; k++) if (haversine(line[k], s.coord) < haversine(line[best], s.coord)) best = k;
+    s.distanceAlong = Math.round(along[best]);
+    from = best;
+  }
 }
 
 const geojson = {

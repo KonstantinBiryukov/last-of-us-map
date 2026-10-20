@@ -15,8 +15,8 @@
  *      near each other, seen at similar zooms), the smallest of theirs, so nearby buildings
  *      are in proportion (the giraffe is no taller than the hospital next to it).
  *
- * EXACT LANDMARKS (`exact`: Pittsburgh's yellow bridge): a real structure the travellers cross;
- * it stands exactly at its coordinate, turned along its real axis, rules 1 and 3 aside. Placed
+ * EXACT LANDMARKS (`exact`: Pittsburgh's yellow bridge, Tommy's dam): they stand exactly at
+ * their coordinate, turned along the given heading, rules 1 and 3 aside. Placed
  * first with the close places; everything else avoids it.
  *
  * CLOSE PLACES (`close`: Joel's house where the drive starts, the State House where the
@@ -49,7 +49,7 @@ import type { Route } from '../geo/route';
 import { KEY_POINTS, PROP_RADIUS } from '../data/keyPoints';
 import { metersPerPixel } from '../geo/mercator';
 import { comfortableZoom } from './followZoom';
-import { isJumpKind, type LegSpan, type Timeline } from './timeline';
+import { isJumpKind, locate, type LegSpan, type Timeline } from './timeline';
 
 /** A key point placed beside the route. */
 export interface KeyPointPlacement extends KeyPoint {
@@ -108,7 +108,7 @@ const SHIFTS = [0, 0.5, -0.5, 1, -1, 1.5, -1.5, 2, -2];
 /** Nudges allowed for `close` places (smaller: they mark a moment of the story). */
 const CLOSE_SHIFTS = [0, 0.5, -0.5, 1, -1];
 /** How far from its real coordinate a close place may stand and still count as on its site (m). */
-const REAL_SITE_METRES = 60;
+const REAL_SITE_METRES = 120;
 /** Two candidate spots within this many metres of the same distance count as a tie. */
 const TIE_METRES = 30;
 /**
@@ -166,12 +166,13 @@ function flatDistance(aLng: number, aLat: number, bLng: number, bLat: number): n
 
 /**
  * Would a prop at (lng, lat) with footprint `radius` stand in front of `landmark` as the follow
- * camera sees it? Only exact landmarks (the bridge) count. The camera looks north (tilted), so
+ * camera sees it? Only exact landmarks the travellers cross (the bridge) count. The camera looks north (tilted), so
  * "in front" is a corridor running SOUTH from the landmark: VIEW_CORRIDOR landmark radii deep,
  * as wide as the landmark plus the prop. Tall downtown towers there hid Pittsburgh's bridge.
  */
 function blocksView(lng: number, lat: number, radius: number, landmark: KeyPointPlacement): boolean {
-  if (landmark.heading === undefined) return false;
+  // Only landmarks the travellers cross (the bridge) need the clear view; the dam does not.
+  if (landmark.heading === undefined || !(landmark.prop in DECK_HALF_LENGTH)) return false;
   const kx = METRES_PER_DEGREE * Math.cos(landmark.lat * DEG);
   const east = (lng - landmark.lng) * kx;
   const north = (lat - landmark.lat) * METRES_PER_DEGREE;
@@ -258,7 +259,11 @@ export function placeKeyPoints(
     spansOf[chapterIndex] = [...spans];
     let previousIdeal = -Infinity; // ideal spots must follow the game order
     for (const keyPoint of keyPoints[chapter.number] ?? []) {
-      const ideal = closestDistance(route, spans, keyPoint.coord, previousIdeal);
+      // The moment it is reached: given in the data (`moment`), or when they pass closest to it.
+      const ideal =
+        keyPoint.moment !== undefined
+          ? locate(timeline, timeline.chapters[chapterIndex]!.start + (timeline.chapters[chapterIndex]!.end - timeline.chapters[chapterIndex]!.start) * keyPoint.moment).distance
+          : closestDistance(route, spans, keyPoint.coord, previousIdeal);
       previousIdeal = ideal;
       const span = spanAt(spans, ideal)!;
       route.journey.pointAt(ideal, point);

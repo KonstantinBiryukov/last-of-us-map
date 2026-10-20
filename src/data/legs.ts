@@ -33,9 +33,12 @@ export const LEG_META: readonly LegMeta[] = [
   // 3–5 — Bill's truck heading west to Pittsburgh (4 has no detailed path).
   { featureIndex: 3, kind: 'detailed', mode: 'vehicle', modeSource: 'canon', note: "Driving west in Bill's truck" },
   { featureIndex: 4, kind: 'jump', mode: 'vehicle', modeSource: 'canon', note: "Bill's truck, further west (no detailed path in the source data)" },
-  { featureIndex: 5, kind: 'detailed', mode: 'vehicle', modeSource: 'canon', note: "Bill's truck, into Pittsburgh" },
+  //    5 ends near Monroeville, east of Pittsburgh, where they leave the truck (the drive is cut there).
+  { featureIndex: 5, kind: 'detailed', mode: 'vehicle', modeSource: 'canon', note: "Bill's truck, towards Pittsburgh", trimEndAt: [-79.790291, 40.442253] },
   // 6 — Through Pittsburgh and out into the suburbs (shared by Chapters V and VI).
-  { featureIndex: 6, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'On foot through Pittsburgh and its suburbs' },
+  //    6 starts with a generated street route: from the truck near Monroeville into the city and straight across
+  //    the Roberto Clemente Bridge, re-joining the original line on the North Side.
+  { featureIndex: 6, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'On foot through Pittsburgh and its suburbs', streets: { route: 'pittsburgh', at: 'start' } },
   // 7 — Months pass: summer to fall, Pennsylvania to Wyoming.
   { featureIndex: 7, kind: 'jump', mode: 'walk', modeSource: 'default', note: 'Summer turns to fall — Pittsburgh to Wyoming (no detailed path in the source data)' },
   // 8 — Towards Tommy's dam near Jackson.
@@ -64,4 +67,4 @@ export function streetsUrl(route: StreetRoute): string {
 }
 
 /** All generated street routes the app loads. */
-export const STREET_ROUTES: readonly StreetRoute[] = ['boston', 'hospital', 'escape'];
+export const STREET_ROUTES: readonly StreetRoute[] = ['boston', 'hospital', 'escape', 'pittsburgh'];

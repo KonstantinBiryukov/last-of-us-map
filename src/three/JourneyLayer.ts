@@ -142,9 +142,13 @@ const WOUNDED_BACK_HEIGHT = 0.46;
 const WOUNDED_Z = 0.3;
 const WOUNDED_HIP_X = 0;
 const TRUCK_VISUAL_SPEED = 9;
-/** Smoothing of the drawn route: ±this many screen pixels (see smoothedPointAt), at most SMOOTH_MAX_M metres. */
-const SMOOTH_PX = 10;
-const SMOOTH_MAX_M = 3000;
+/**
+ * Smoothing of the drawn route: ±this many screen pixels (see smoothedPointAt), at most
+ * SMOOTH_MAX_M metres. Rides and drives are smoothed more: they cover long, winding mountain
+ * roads quickly (Lakeside Resort's ride), where the raw switchbacks read as zig-zagging.
+ */
+const SMOOTH_PX: Record<TravelMode, number> = { walk: 10, horse: 25, vehicle: 20 };
+const SMOOTH_MAX_M = 6000;
 /** Fraction of a bridge crossing (at each end) over which the drawn path slides onto the deck. */
 const CROSSING_BLEND = 0.12;
 /** Distance used to measure "pixels per metre" at the travellers' position. */
@@ -346,8 +350,9 @@ export class JourneyLayer implements CustomLayerInterface {
     //    camera tilt and perspective — so the truck no longer looks huge when it
     //    sits near the bottom (closest part) of a tilted view or during flights.
     const unitsPerMeter = meterInMercatorUnits(lat);
-    const metresPerPixel = this.measureMetresPerPixel(map, lng, lat);
-    this.smoothWindow = jumping ? 0 : Math.min(metresPerPixel * SMOOTH_PX, SMOOTH_MAX_M);
+    const elevation = map.getTerrain() ? (map.queryTerrainElevation([lng, lat]) ?? 0) : 0;
+    const metresPerPixel = this.measureMetresPerPixel(map, lng, lat, elevation);
+    this.smoothWindow = jumping ? 0 : Math.min(metresPerPixel * SMOOTH_PX[mode], SMOOTH_MAX_M);
 
     // 3) Visibility: during a jump the travellers fade out and a comet takes over;
     //    they fade back in at the far end. (Fades take the first/last 15 % of the jump.)
@@ -360,7 +365,6 @@ export class JourneyLayer implements CustomLayerInterface {
     // 4) Build the matrix that puts our local metres at the travellers' map position:
     //    move to the position (translate) → metres to mercator units (scale; −y because
     //    mercator y points south) → turn Three's "y up" into the map's "z up" (rotate).
-    const elevation = map.getTerrain() ? (map.queryTerrainElevation([lng, lat]) ?? 0) : 0;
     this.modelMatrix
       .makeTranslation(mercatorX(lng), mercatorY(lat), elevation * unitsPerMeter)
       .multiply(this.scaleMatrix.makeScale(unitsPerMeter, -unitsPerMeter, unitsPerMeter))
@@ -373,7 +377,8 @@ export class JourneyLayer implements CustomLayerInterface {
     this.subject.scale.setScalar(Math.max(scale, 1e-6)); // never exactly 0 (Three dislikes it)
     this.subject.visible = travellers > 0.001;
     // Smoothed heading: look 40 px behind and ahead along the route (at least 250/600 m).
-    const bearingWindow = Math.max(metresPerPixel * 40, mode === 'walk' ? 250 : 600);
+    // (Rides and drives look further: they turn at every bend of a winding road otherwise.)
+    const bearingWindow = Math.max(metresPerPixel * (mode === 'walk' ? 40 : 80), mode === 'walk' ? 250 : 600);
     let heading = route.journey.bearingAt(distance, bearingWindow);
     // On a bridge: face along the deck (blended in and out with the walk onto it).
     const crossing = this.crossingAt(distance);
@@ -443,11 +448,17 @@ export class JourneyLayer implements CustomLayerInterface {
    * Metres covered by one screen pixel at (lng, lat), measured through the real camera.
    * Falls back to a safe value if the point is behind the camera (can happen mid-flight).
    */
-  private measureMetresPerPixel(map: MapboxMap, lng: number, lat: number): number {
-    const a = map.project([lng, lat]);
+  private measureMetresPerPixel(map: MapboxMap, lng: number, lat: number, elevation: number): number {
+    // Both points at the SAME height (the travellers'): left to itself, Mapbox projects each
+    // point onto its own terrain height, and on a steep mountainside the point 100 m east can
+    // be far higher or lower — the measured size (and so the horse's size) jumped frame to
+    // frame in Lakeside Resort's mountains. Mapbox's project() takes an altitude in metres as a
+    // second argument (missing from its TypeScript types).
+    const project = map.project.bind(map) as (lngLat: [number, number], altitude?: number) => { x: number; y: number };
+    const a = project([lng, lat], elevation);
     // 100 m east, expressed in degrees of longitude at this latitude.
     const dLng = (MEASURE_METRES * meterInMercatorUnits(lat) * 360);
-    const b = map.project([lng + dLng, lat]);
+    const b = project([lng + dLng, lat], elevation);
     const pixels = Math.hypot(b.x - a.x, b.y - a.y);
     if (!Number.isFinite(pixels) || pixels < 1e-6) return 1000;
     return MEASURE_METRES / pixels;

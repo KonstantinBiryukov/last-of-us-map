@@ -228,7 +228,13 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
      → `hospital-streets.geojson`), and the Epilogue drive (leg 14) starts there with a
      5.5 km driving route that joins the original line on I-80 (`build:streets -- escape`
      → `escape-streets.geojson`). The Salt Lake City marker moved to the hospital too.
-  Each correction is a `streets: { route, at: 'start' | 'end' }` entry in `data/legs.ts`.
+  5. *Pittsburgh* — the original walk wandered back and forth along the river front. Bill's
+     truck now stops near Monroeville, east of the city (`trimEndAt` on leg 5), and leg 6 starts
+     with a 23 km walking route (`build:streets -- pittsburgh`): into the city, past the hotel and
+     the Financial District, then straight across the Roberto Clemente Bridge to the North Side, re-joining
+     the original line where it heads for the suburbs. The generator now also removes the
+     out-and-back spurs Directions adds at off-path waypoints.
+  Each correction is a `streets: { route, at: 'start' | 'end' }` (or `trimEndAt`) entry in `data/legs.ts`.
   Only regenerate a route you need: chapter split points are measured on the committed files.
   Long straight interstate stretches (points 2–6 km apart on the 500–700 km legs in
   Wyoming/Colorado) are valid road geometry and are kept; a test flags any hop > 10 km.
@@ -248,8 +254,7 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
   `ambience` particle moods for that place.
 - **Leg parts** can override who travels and how:
   `{ leg, from, to, party, mode, wounded, timeShare, note }`. `party` is a list of characters
-  in walking order (default `['joel', 'ellie']`; companions: Tess, Bill, Henry, Sam,
-  David); `wounded` lays Joel across the horse behind Ellie.
+  in walking order (default `['joel', 'ellie']`; companions: Tess, Bill, Henry, Sam); `wounded` lays Joel across the horse behind Ellie.
   Used exactly where the game has them:
   - *Quarantine Zone* — Joel and Tess cross the QZ to Robert and the Fireflies; Ellie joins
     when Marlene hands her over; the three slip beyond the wall.
@@ -262,9 +267,9 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
     walk with them through *The Suburbs*.
   - *Tommy's Dam* — Tommy and his wife Maria do not walk with them: they stand at the dam (part
     of the dam's key-point prop, the same blocky characters, held in a standing pose).
-  - *Lakeside Resort* — 50 % Ellie riding with wounded Joel lying across the horse (the
-    escape after the university), 20 % Ellie on foot (alone, then with David), 20 % Joel
-    alone on foot searching for her, and the last 10 % together again.
+  - *Lakeside Resort* — of the chapter's time: 50 % Ellie riding with wounded Joel lying across
+    the horse (the escape after the university), 30 % Ellie alone, 10 % Joel alone searching
+    for her, and the last 10 % together again.
   - *Epilogue* — by car most of the way; only the last 20 % on foot, home to Jackson.
   The 3D layer shows only the party (each companion has their own look, in the same
   low-poly style); the story panel shows "Joel & Tess", "Joel, Henry, Sam & Ellie",
@@ -356,11 +361,13 @@ true`: Joel's house where the drive starts, the Massachusetts State House at the
 Boston walk, the Fireflies' hospital) stand right beside the route — the travellers brush past
 them — preferably on their real site (the State House: within 60 m of its real dome, between
 the streets the trio walks). *Exact* landmarks (`exact: { heading }`: Pittsburgh's yellow
-Roberto Clemente Bridge) stand exactly at their coordinate along their real axis; nothing may
+Roberto Clemente Bridge; Tommy's dam, just north of the Jackson marker, facing the camera) stand
+exactly at their coordinate along the given heading (an optional `moment` says when in the chapter
+such a point counts as reached); for the bridge nothing may
 stand in front of them as the north-looking camera sees them, and while the travellers cross
 the bridge they are drawn walking straight along its deck (`crossing`, JourneyLayer). The drawn
-path is also lightly smoothed (±10 screen pixels) so fast mountain stretches with switchbacks
-(Lakeside's ride) don't make the travellers snap from side to side. When an ideal spot
+path is also smoothed (±10 screen pixels on foot, ±25 on horseback, ±20 by truck) so fast
+mountain stretches with switchbacks (Lakeside's ride) read as a straight course. When an ideal spot
 breaks a rule, placement tries the other side, standing a little further out, small nudges along
 the route, and only then a smaller size for the whole group. Nothing changes at runtime: fixed
 size and spot, all props on the map from the first frame (far off-screen ones skipped while
@@ -371,8 +378,8 @@ prop shape: add a `PropKind`, its `PROP_RADIUS` and a builder in `three/models/p
 
 **Per-part camera** (`camera` on a leg part in `data/chapters.ts`): `zoom` brings the follow
 camera closer (+) or further (−) than usual for that part; `heading: 'route'` turns the map so
-the travellers move up the screen (used for Lakeside Resort's southbound ride, where they would
-otherwise ride straight down into their own trail). Key-point props follow the adjusted zoom.
+the travellers move up the screen (available, currently unused: Lakeside Resort keeps north up
+and only zooms closer). Key-point props follow the adjusted zoom.
 
 **Camera** (`map/camera.ts`). *Follow* glides after the travellers at a zoom matched
 to their speed and swoops out over jumps; *Overview* frames the whole journey;

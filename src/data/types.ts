@@ -117,10 +117,16 @@ export interface LegMeta {
    *                on from downtown Salt Lake City to the Fireflies' hospital).
    */
   streets?: { route: StreetRoute; at: 'start' | 'end' };
+  /**
+   * Optional correction: end this leg early, at its point closest to this place (leg 5: Bill's
+   * truck stops near Monroeville, east of Pittsburgh, where they leave it and walk into the
+   * city, instead of driving on across the river).
+   */
+  trimEndAt?: LngLat;
 }
 
 /** The generated street routes (files in public/server/info/<route>-streets.geojson). */
-export type StreetRoute = 'boston' | 'hospital' | 'escape';
+export type StreetRoute = 'boston' | 'hospital' | 'escape' | 'pittsburgh';
 
 /** A leg after its coordinates have been loaded, corrected and measured. */
 export interface Leg extends LegMeta {
@@ -287,6 +293,12 @@ export interface KeyPoint {
   exact?: { heading: number };
   /** Size factor on top of the usual size (e.g. 1.4 = 40 % larger, 0.5 = half size). */
   scale?: number;
+  /**
+   * When in the chapter the point counts as reached (fraction 0‥1 of the chapter's time), for a
+   * landmark that stands away from the route (the dam north of Jackson): otherwise it is the
+   * moment the travellers pass closest to `coord`.
+   */
+  moment?: number;
 }
 
 /** One song of the soundtrack. */
