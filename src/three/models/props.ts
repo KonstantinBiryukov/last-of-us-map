@@ -22,6 +22,7 @@ import { part, type PaletteKey } from '../materials';
 import { createCharacter, MARIA, MARLENE, poseIdle, TOMMY } from './character';
 import { addEmitter } from '../fire';
 import { fireflySign } from '../graffiti';
+import { marqueeFace } from '../marquee';
 
 export interface Prop {
   root: THREE.Group;
@@ -91,6 +92,41 @@ function windows(g: THREE.Group, count: number, width: number, y: number, z: num
 function autumnTree(g: THREE.Group, x: number, z: number, height = 1.6, leaves: PaletteKey = 'leafAutumn'): void {
   cyl(g, 0.08, height * 0.4, 'trunk', x, 0, z, 1, 5);
   box(g, height * 0.42, height * 0.62, height * 0.42, leaves, x, height * 0.36, z);
+}
+
+/**
+ * One decayed school bus (the bus depot in the game), built along X with its front (hood) at
+ * +X: a long faded-yellow body on four flat, sunken tyres, a row of dark broken windows
+ * between yellow pillars, two black rub rails along each side, rust streaks, moss and weeds
+ * growing on the roof, and a stubby hood in front. 2.6 long, 0.62 wide, 0.82 tall (model metres).
+ */
+function schoolBus(g: THREE.Group, x: number, z: number, turn: number, tilt = 0): void {
+  const bus = new THREE.Group();
+  bus.position.set(x, 0, z);
+  bus.rotation.set(0, turn, tilt); // turned, and slumped a little on its flat tyres
+  box(bus, 2.2, 0.6, 0.62, 'busYellow', -0.15, 0.14, 0); // the body
+  box(bus, 2.24, 0.07, 0.64, 'busYellowDark', -0.15, 0.74, 0); // the roof
+  box(bus, 0.42, 0.38, 0.6, 'busYellow', 1.16, 0.14, 0); // the hood (lower, in front)
+  box(bus, 0.04, 0.26, 0.5, 'windowDark', 0.96, 0.44, 0); // windscreen
+  for (const side of [-1, 1]) {
+    const zSide = side * 0.315;
+    // Windows: a dark band, divided by yellow pillars every 0.27.
+    box(bus, 1.9, 0.2, 0.01, 'windowDark', -0.2, 0.47, zSide);
+    for (let px = -1.15; px <= 0.8; px += 0.27) box(bus, 0.04, 0.2, 0.012, 'busYellow', px, 0.47, zSide);
+    // Two black rub rails along the side.
+    for (const y of [0.27, 0.36]) box(bus, 2.2, 0.025, 0.012, 'asphalt', -0.15, y, zSide);
+    // Rust streaks under the windows.
+    for (const [rx, w] of [[-0.9, 0.12], [-0.3, 0.08], [0.45, 0.14]] as const) box(bus, w, 0.18, 0.013, 'rust', rx, 0.18, zSide);
+    // Flat tyres, sunk into the ground.
+    for (const wx of [-0.85, 0.85]) {
+      const tyre = cyl(bus, 0.13, 0.08, 'tyre', wx, 0, zSide);
+      tyre.rotation.x = Math.PI / 2; // turned on its side: an axle across the bus
+      tyre.position.y = 0.09; // sunken (a flat tyre)
+    }
+  }
+  // Moss and weeds on the roof.
+  for (const [mx, mz, w] of [[-0.8, 0.1, 0.5], [0.1, -0.12, 0.4], [0.6, 0.15, 0.3]] as const) box(bus, w, 0.04, 0.3, 'leaf', mx, 0.78, mz);
+  g.add(bus);
 }
 
 /** A simple low-poly tree: trunk and a cone or a lumpy crown. */
@@ -320,6 +356,7 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
   // The beached boat from the game's Suburbs, standing on its own on the ground — no base
   // under it, so it looks stranded in the landscape.
   boat: (g) => {
+    g.userData['noBase'] = true; // stands straight on the ground: sampled under its middle (three/keyPoints.ts)
     // A small blue fishing boat run aground,
     // listing to one side — a pointed bow, a rusty keel stripe and a pale trim line, a grimy
     // wheelhouse with dark windows and a railing on its roof, a railing round the foredeck, an
@@ -467,9 +504,17 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
   // A few trees in their autumn orange across the road from the university — it is fall in
   // Fort Collins. Standing straight on the ground (no base), in two shades of orange.
   autumnTrees: (g) => {
+    g.userData['noBase'] = true; // stands straight on the ground: sampled under its middle (three/keyPoints.ts)
     autumnTree(g, -0.7, 0.2, 1.7);
     autumnTree(g, 0.25, -0.25, 1.4, 'leafAutumnDark');
     autumnTree(g, 0.85, 0.45, 1.55);
+  },
+  // The bus depot in the game: two decayed school buses left at angles to each other (no
+  // base: they stand straight on the ground).
+  schoolBuses: (g) => {
+    g.userData['noBase'] = true; // stands straight on the ground: sampled under its middle (three/keyPoints.ts)
+    schoolBus(g, -0.45, 0.5, 0.18, 0.03);
+    schoolBus(g, 0.55, -0.55, -0.3, -0.025);
   },
   // The science building: a flat block with a rooftop dish and vents.
   lab: (g) => {
@@ -582,7 +627,7 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     g.add(rabbit);
     g.userData['huntRabbit'] = rabbit; // Ellie's target (JourneyLayer shoots it; it then lies on its side)
   },
-  // A house on fire in Buda, Texas, on the night of the outbreak: charred walls, the windows
+  // A house on fire in Bluff Springs, south Austin, on the night of the outbreak: charred walls, the windows
   // and door glowing (emissive), and real particle fire and smoke (three/fire.ts): flames
   // pouring out of the roof and the windows, smoke billowing up and drifting away.
   burningHouse: (g) => {
@@ -597,8 +642,45 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
       addEmitter(g, { kind: 'fire', count: 18, origin: [x, 0.6, -0.85], spread: 0.3, height: 0.7, size: 0.22 }); // out of the windows
     }
   },
+  // The old theatre, as on the game's outbreak night (here in Buda, Texas): an old brick
+  // picture house with a tall vertical neon sign rising from its front, a glowing marquee over
+  // the entrance (wordless: neon, a star and a blank lit board — three/marquee.ts), lit
+  // upstairs windows — and in the street in front of it, a car on fire (particle flames and
+  // smoke). The front (−Z) faces the camera (`faceCamera` in data/keyPoints.ts).
+  theatre: (g) => {
+    pad(g, 3.4, 2.6);
+    box(g, 2.6, 2.1, 1.4, 'brick', 0, 0, 0.45); // the building (front wall at z −0.25)
+    box(g, 2.7, 0.12, 1.5, 'roofDark', 0, 2.1, 0.45); // flat roof with a parapet
+    for (const x of [-0.85, 0.85]) {
+      box(g, 0.34, 0.42, 0.04, 'windowLit', x, 1.45, -0.27); // upstairs windows, lit warm
+    }
+    // The vertical neon sign: a tall narrow red blade standing out from the front, white neon
+    // edges, rising above the roof, with a glowing star on top.
+    box(g, 0.24, 1.7, 0.26, 'neonRed', 0, 1.2, -0.38); // its back touches the wall (z −0.25)
+    for (const x of [-0.13, 0.13]) box(g, 0.03, 1.7, 0.27, 'neonWhite', x, 1.2, -0.38);
+    const star = box(g, 0.22, 0.22, 0.06, 'neonWhite', 0, 2.95, -0.38);
+    star.rotation.z = Math.PI / 4;
+    // The marquee over the entrance: a deep box with the glowing sign on its front.
+    box(g, 2.0, 0.6, 0.45, 'roofDark', 0, 0.82, -0.47);
+    const face = marqueeFace();
+    face.position.set(0, 1.12, -0.705); // centred on the marquee's front (it is 0.6 tall)
+    face.scale.setScalar(1.95);
+    g.add(face);
+    box(g, 1.2, 0.8, 0.04, 'windowLit', 0, 0, -0.27); // the lit lobby doors under the marquee
+    // In the street: a car on fire.
+    const car = new THREE.Group();
+    car.position.set(-0.85, 0, -0.95);
+    car.rotation.y = 0.35;
+    box(car, 0.95, 0.28, 0.45, 'charred', 0, 0.08, 0); // body
+    box(car, 0.5, 0.2, 0.42, 'charred', -0.05, 0.36, 0); // cabin
+    for (const x of [-0.3, 0.3]) for (const z of [-0.22, 0.22]) cyl(car, 0.09, 0.08, 'tyre', x, 0, z);
+    g.add(car);
+    addEmitter(g, { kind: 'fire', count: 60, origin: [-0.85, 0.4, -0.95], spread: 0.7, height: 0.9, size: 0.32 });
+    addEmitter(g, { kind: 'smoke', count: 26, origin: [-0.85, 0.9, -0.95], spread: 0.5, height: 2.4, size: 0.7 });
+  },
   // The giraffe of Salt Lake City: blocky, patched, neck stretched forward and up.
   giraffe: (root) => {
+    root.userData['noBase'] = true; // stands straight on the ground: sampled under its middle (three/keyPoints.ts)
     // No ground pad: the giraffe stands right on the map (its hooves on the ground).
     // Built at full size, then scaled to 75 % so it stays clearly shorter than the hospital.
     const g = new THREE.Group();

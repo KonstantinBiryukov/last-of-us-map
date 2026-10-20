@@ -23,8 +23,8 @@
 import { assetUrl } from '../config/assets';
 import { UI_CLICK_SOUND } from '../data/soundtrack';
 
-/** How loud the click is (0‥1): a soft tick under the music. */
-const VOLUME = 0.25;
+/** How loud the click is (0‥1): a soft tick under the music (0.25, made 30 % louder). */
+const VOLUME = 0.25 * 1.3;
 
 let bytes: Promise<ArrayBuffer> | null = null;
 let context: AudioContext | null = null;

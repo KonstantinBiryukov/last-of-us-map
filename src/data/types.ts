@@ -157,6 +157,9 @@ export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | '
  *             chapter (it gets longer; its slides are spread over the longer time), so every
  *             other part of the chapter keeps exactly its pace
  *   hunt    – during the pause, Ellie aims her bow at the rabbit of The Hunt and shoots it
+ *   blizzard – a snowstorm: wind-driven snow streaks across the screen (on top of the
+ *             chapter's own weather), and the walkers fight their way through it — leaning
+ *             into the wind, head down, an arm up to shield the face, short labouring steps
  *   timeShare – a fixed fraction of the chapter's time for this slice (e.g. 0.2 =
  *             the last 20 % of the Epilogue on foot), instead of the usual share
  *             by distance and speed
@@ -177,6 +180,7 @@ export interface LegPart {
   bow?: boolean;
   pauseSeconds?: number;
   hunt?: boolean;
+  blizzard?: boolean;
   timeShare?: number;
   note?: string;
   camera?: PartCamera;
@@ -217,6 +221,7 @@ export type AmbienceKind =
   | 'fireflies' // blinking yellow-green lights wandering (also a nod to the Fireflies)
   | 'leaves' // orange/red/yellow leaves tumbling down
   | 'snow' // snowflakes falling and drifting with the wind
+  | 'blizzard' // dense snow driven sideways by a strong wind (added by parts with `blizzard`)
   | 'pollen' // tiny bright specks drifting upward in spring air
   | 'petals'; // pale pink/white petals fluttering down
 
@@ -266,7 +271,9 @@ export type PropKind =
   | 'wall' // a stretch of concrete wall with a breach
   | 'trees' // a small wood
   | 'hunt' // a snowy wood with a deer and a rabbit (Silver Lake)
-  | 'burningHouse' // a house on fire (Buda, Texas, outbreak night)
+  | 'schoolBuses' // two decayed school buses in an overgrown lot (Saratoga Springs, Utah)
+  | 'theatre' // an old theatre with its neon and a burning car (Buda, Texas)
+  | 'burningHouse' // a house on fire (Bluff Springs, south Austin, outbreak night)
   | 'towers' // a cluster of high-rise towers (downtown)
   | 'museum' // a columned museum front
   | 'capitol' // a domed capitol building

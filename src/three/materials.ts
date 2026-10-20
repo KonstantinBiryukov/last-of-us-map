@@ -120,15 +120,22 @@ export const PALETTE = {
   rottenWood: 0x3f3324,
   // The beached boat in the Suburbs: faded marine blue, on a sandy bank.
   boatBlue: 0x3e5fa8,
+  // The decayed school buses (Bus Depot): faded yellow and a darker roof.
+  busYellow: 0xc79a3c,
+  busYellowDark: 0x9c7a34,
   mud: 0x5a5a34, // the green, weedy mud it is stuck in
   mudDark: 0x404426,
   sand: 0xb9a97f,
   seaweed: 0x3e5a2a,
-  // The burning house in Buda: charred walls and glowing flames (emissive, see material()).
+  // The burning house in Bluff Springs (south Austin): charred walls and glowing flames (emissive, see material()).
   charred: 0x2b2622,
   fireOrange: 0xff6a1a,
   fireYellow: 0xffc23d,
   smoke: 0x3d3833,
+  // The old theatre (Buda): red and white neon and lit windows.
+  neonRed: 0xff3b2a,
+  neonWhite: 0xfff1d6,
+  windowLit: 0xffc77a,
 } as const;
 
 export type PaletteKey = keyof typeof PALETTE;
@@ -140,8 +147,8 @@ export function material(key: PaletteKey): THREE.MeshLambertMaterial {
   let m = cache.get(key);
   if (!m) {
     m = new THREE.MeshLambertMaterial({ color: PALETTE[key], flatShading: true });
-    if (key === 'headlight' || key === 'fireOrange' || key === 'fireYellow') {
-      // Light sources glow by themselves (emissive): headlights and the flames in Buda.
+    if (key === 'headlight' || key === 'fireOrange' || key === 'fireYellow' || key === 'neonRed' || key === 'neonWhite' || key === 'windowLit') {
+      // Light sources glow by themselves (emissive): headlights and the flames in Bluff Springs.
       m.emissive = new THREE.Color(PALETTE[key]);
       m.emissiveIntensity = key === 'headlight' ? 1.2 : 1.6;
     }

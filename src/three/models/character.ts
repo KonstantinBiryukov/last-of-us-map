@@ -445,3 +445,21 @@ export function poseAim(c: Character, aim: number, draw: number): void {
   c.forearmR.rotation.x = 0.15 + 2.25 * draw;
   c.torso.rotation.y = -0.25 * aim; // a slight archer's turn: the bow shoulder leads
 }
+
+/**
+ * Walking into a blizzard (Lakeside Resort): the walk cycle with shorter, labouring steps,
+ * then the struggle on top — the body leans hard into the wind, the head is bowed, the right
+ * forearm is raised in front of the face as a shield, and the whole figure staggers a little
+ * from side to side with the gusts. The left arm keeps swinging (Ellie's bow stays in it).
+ */
+export function poseWalkIntoWind(c: Character, phase: number): void {
+  poseWalk(c, phase, 0.65); // short, heavy steps
+  c.torso.rotation.x = 0.32; // leaning into the wind
+  c.head.rotation.x = 0.22; // head down against the snow
+  c.armR.rotation.set(2.0, 0, -0.45); // right arm up and across, in front of the face…
+  c.forearmR.rotation.x = 1.5; // …forearm folded back as a shield
+  const gust = Math.sin(phase * 0.5) * 0.06 + Math.sin(phase * 1.3 + 1) * 0.03; // uneven buffeting
+  c.hips.rotation.z = gust; // staggering side to side
+  c.torso.rotation.z = -gust * 0.6;
+  if (c.ponytail) c.ponytail.rotation.set(1.1 + Math.sin(phase * 3) * 0.15, 0, 0.4); // whipped back by the wind
+}

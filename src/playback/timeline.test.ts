@@ -151,6 +151,10 @@ describe('timeline built from the real story data', () => {
     expect(hunt[0]!.end - hunt[0]!.start).toBeCloseTo(5);
     expect(hunt[0]!.endDistance).toBe(hunt[0]!.startDistance);
     expect(hunt[0]!.party).toEqual(['ellie']);
+    // After the hunt, a snowstorm: Ellie's walk on, then Joel's search, fight through it.
+    const storm = chapter.legSpans.filter((sp) => sp.blizzard);
+    expect(storm.map((sp) => sp.party.join('+'))).toEqual(['ellie', 'ellie', 'joel']);
+    expect(storm[0]!.start).toBeCloseTo(hunt[0]!.end);
     expect(spans.slice(1).every((sp) => sp.camera.heading === undefined)).toBe(true);
     for (const span of timeline.chapters[9]!.legSpans) expect(span.party).toEqual(['joel', 'ellie']);
   });

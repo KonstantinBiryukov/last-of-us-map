@@ -32,30 +32,14 @@
 import * as THREE from 'three';
 import type { CustomLayerInterface, Map as MapboxMap } from 'mapbox-gl';
 import type { PlaybackEngine } from '../playback/engine';
-import type { TravelMode, Traveller } from '../data/types';
+import type { AmbienceKind, TravelMode } from '../data/types';
 import { isJumpKind } from '../playback/timeline';
 import { mercatorX, mercatorY, meterInMercatorUnits } from '../geo/mercator';
 import type { MutableLngLat } from '../geo/polyline';
-import {
-  BILL,
-  createCharacter,
-  DAVID,
-  ELLIE,
-  HENRY,
-  JOEL,
-  SAM,
-  TOMMY,
-  poseIdle,
-  poseSeated,
-  poseWalk,
-  poseWounded,
-  TESS,
-  type Character,
-} from './models/character';
-import { createHorse, poseHorse, poseHorseIdle, type Horse } from './models/horse';
-import { createTruck, poseTruck, type Truck } from './models/truck';
+import { createRigs, poseRigs, type Rigs } from './travellers';
 import { disposeGeometries, disposeMaterials } from './materials';
 import { disposeGraffiti } from './graffiti';
+import { disposeMarquee } from './marquee';
 import { Beacon, BlobShadow, Comet, createSharedTexture, Dust, Trail, TRAIL_POINTS, TRAIL_STYLE } from './effects';
 import { Ambience } from './ambience';
 import { KeyPointProps } from './keyPoints';
@@ -88,70 +72,6 @@ const MODEL_HEIGHT_M: Record<TravelMode, number> = { walk: 1.85, horse: 2.6, veh
 const DUST_RATE: Record<TravelMode, number> = { walk: 0, horse: 14, vehicle: 24 };
 /** Shadow footprint in model metres (width, length). */
 const SHADOW_SIZE: Record<TravelMode, [number, number]> = { walk: [2.2, 1.6], horse: [1.5, 3.2], vehicle: [2.8, 6.2] };
-/** Walk/gallop cycles per second, and how fast the truck "drives" for its wheel spin (m/s). */
-const HORSE_GAIT_HZ = 1.3;
-/** Every character that can walk on the map. */
-const TRAVELLERS: readonly Traveller[] = ['joel', 'ellie', 'tess', 'bill', 'henry', 'sam', 'tommy', 'david'];
-/** Steps per second: shorter legs take quicker steps. */
-const STEPS_HZ: Record<Traveller, number> = {
-  joel: 1.05,
-  ellie: 1.25,
-  tess: 1.12,
-  bill: 1.0,
-  henry: 1.08,
-  sam: 1.22,
-  tommy: 1.05,
-  david: 1.0,
-};
-/** Phase offsets (radians) so nobody walks perfectly in step with the others. */
-const PHASE_OFFSET: Record<Traveller, number> = {
-  joel: 0,
-  ellie: 1.3,
-  tess: 2.4,
-  bill: 3.6,
-  henry: 4.4,
-  sam: 5.2,
-  tommy: 0.7,
-  david: 2.9,
-};
-/**
- * Walking formations (x = metres to the right of the route, z = metres BEHIND the leader),
- * for 1, 2, 3 and 4 travellers, in party order. Three: left, middle (half a step ahead),
- * right. Four: a shallow V with the middle two in front.
- */
-const WALK_FORMATION: readonly (readonly (readonly [number, number])[])[] = [
-  [[0, 0]],
-  [
-    [-0.42, 0],
-    [0.48, 0.35],
-  ],
-  [
-    [-0.75, 0.1],
-    [0.05, -0.25],
-    [0.85, 0.35],
-  ],
-  [
-    [-1.15, 0.2],
-    [-0.38, -0.2],
-    [0.38, -0.2],
-    [1.15, 0.25],
-  ],
-];
-/**
- * Wounded Joel lying across the horse: height of his body above the horse's centre
- * (the horse's back is at +0.33), where along the horse he lies (behind Ellie), and where
- * his hips sit sideways (0 = centred on the spine; his body hangs down both flanks).
- */
-const WOUNDED_BACK_HEIGHT = 0.46;
-const WOUNDED_Z = 0.3;
-const WOUNDED_HIP_X = 0;
-/**
- * How fast the truck's wheels turn: "visual" metres per story second (the real speed would
- * spin them far too fast to see). 4 m/s ≈ 1.5 turns a second. Faster (it used to be 9, ≈ 3.4
- * turns) and the screen's 60 frames a second sample the spin too coarsely, so the wheels
- * seem to stand still or even turn backwards (the "wagon-wheel" effect).
- */
-const TRUCK_VISUAL_SPEED = 4;
 /**
  * Smoothing of the drawn route: ±this many screen pixels (see smoothedPointAt), at most
  * SMOOTH_MAX_M metres. Rides and drives are smoothed more: they cover long, winding mountain
@@ -186,11 +106,7 @@ export class JourneyLayer implements CustomLayerInterface {
   /** The exaggerated travellers (scaled up to their screen size every frame). */
   private readonly subject = new THREE.Group();
   /** The three ways of travelling; exactly one is visible at a time. `!` = assigned in onAdd. */
-  private rigs!: {
-    walk: { group: THREE.Group; people: Record<Traveller, Character> };
-    horse: { group: THREE.Group; horse: Horse; joel: Character; ellie: Character };
-    vehicle: { group: THREE.Group; truck: Truck; joel: Character; ellie: Character };
-  };
+  private rigs!: Rigs;
   private trail!: Trail;
   private comet!: Comet;
   private dust!: Dust;
@@ -248,6 +164,9 @@ export class JourneyLayer implements CustomLayerInterface {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     this.renderer = new THREE.WebGLRenderer({ canvas: map.getCanvas(), context: gl, antialias: true });
+    // Development only: this layer on `window.__layer`, for profiling from the browser console
+    // (renderer.info.render.calls = draw calls of the last frame, the scene, the props, …).
+    if (import.meta.env.DEV) (window as unknown as { __layer?: JourneyLayer }).__layer = this;
     this.renderer.autoClear = false; // never erase what Mapbox already drew
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -275,7 +194,8 @@ export class JourneyLayer implements CustomLayerInterface {
     const huntSpan = this.engine.timeline.chapters.flatMap((c) => c.legSpans).find((s) => s.hunt);
     this.huntSpan = huntSpan ? { start: huntSpan.start, end: huntSpan.end } : null;
     this.subject.add(this.shadow.mesh);
-    this.buildRigs();
+    this.rigs = createRigs();
+    this.subject.add(this.rigs.walk.group, this.rigs.horse.group, this.rigs.vehicle.group);
   }
 
   /** Mapbox calls this when the layer (or the whole map) is removed: free every GPU resource. */
@@ -290,56 +210,22 @@ export class JourneyLayer implements CustomLayerInterface {
     disposeGeometries();
     disposeMaterials();
     disposeGraffiti();
+    disposeMarquee();
     this.scene.clear();
     this.renderer?.dispose();
     this.renderer = null;
     this.map = null;
   }
 
-  /** Builds the three rigs. Each rig has its own figures posed for that way of travelling. */
-  private buildRigs(): void {
-    // Walking: everyone who ever walks with them (Joel, Ellie and the companions) has a figure;
-    // the current party decides who is shown and where (see poseRigs).
-    const walkGroup = new THREE.Group();
-    const people: Record<Traveller, Character> = {
-      joel: createCharacter(JOEL),
-      ellie: createCharacter(ELLIE),
-      tess: createCharacter(TESS),
-      bill: createCharacter(BILL),
-      henry: createCharacter(HENRY),
-      sam: createCharacter(SAM),
-      tommy: createCharacter(TOMMY),
-      david: createCharacter(DAVID),
-    };
-    for (const name of TRAVELLERS) walkGroup.add(people[name].root);
-
-    // Horseback: Joel in the saddle holding the reins, Ellie behind him.
-    const horseGroup = new THREE.Group();
-    const horse = createHorse();
-    const horseJoel = createCharacter(JOEL);
-    const horseEllie = createCharacter(ELLIE);
-    seat(horseJoel, horse.body, horse.saddleFront);
-    seat(horseEllie, horse.body, horse.saddleBack);
-    horseGroup.add(horse.root);
-
-    // Truck: Joel driving (left seat), Ellie as passenger.
-    const truckGroup = new THREE.Group();
-    const truck = createTruck();
-    const truckJoel = createCharacter(JOEL);
-    const truckEllie = createCharacter(ELLIE);
-    seat(truckJoel, truck.body, truck.driverSeat);
-    seat(truckEllie, truck.body, truck.passengerSeat);
-    truckGroup.add(truck.root);
-
-    this.subject.add(walkGroup, horseGroup, truckGroup);
-    this.rigs = {
-      walk: { group: walkGroup, people },
-      horse: { group: horseGroup, horse, joel: horseJoel, ellie: horseEllie },
-      vehicle: { group: truckGroup, truck, joel: truckJoel, ellie: truckEllie },
-    };
-  }
-
   // ───────────────────────── per-frame drawing ─────────────────────────
+
+  /** Each chapter's weather with the blizzard added (built once per list, so no garbage per frame). */
+  private readonly blizzardKinds = new Map<readonly AmbienceKind[], readonly AmbienceKind[]>();
+  private withBlizzard(kinds: readonly AmbienceKind[]): readonly AmbienceKind[] {
+    let list = this.blizzardKinds.get(kinds);
+    if (!list) this.blizzardKinds.set(kinds, (list = [...kinds, 'blizzard']));
+    return list;
+  }
 
   /** Mapbox calls this every time it paints. Everything here must be fast and allocation-free. */
   render(gl: WebGL2RenderingContext, matrix: number[]): void {
@@ -416,7 +302,7 @@ export class JourneyLayer implements CustomLayerInterface {
     const crossing = this.crossingAt(distance);
     if (crossing) heading += (((crossing.bearing - heading + 540) % 360) - 180) * crossing.weight;
     // During a pause (Ellie's hunt) they stand: the idle pose, not the walk.
-    this.poseRigs(mode, party, span.wounded, frame.travelling && !span.pause, storyTime);
+    poseRigs(this.rigs, mode, party, span.wounded, frame.travelling && !span.pause, storyTime, span.blizzard);
     // Ellie's bow: in her hand only while she hunts alone (parts with `bow`), and only on foot.
     const walkingBow = this.rigs.walk.people.ellie.bow;
     if (walkingBow) walkingBow.visible = span.bow && mode === 'walk';
@@ -465,7 +351,7 @@ export class JourneyLayer implements CustomLayerInterface {
     const zoom = map.getZoom();
     const ambientIntensity = effects && !jumping ? smoothstep(5.5, 7.5, zoom) : 0;
     this.ambience.update({
-      kinds: chapter.ambience,
+      kinds: span.blizzard ? this.withBlizzard(chapter.ambience) : chapter.ambience, // a storm part adds the blizzard
       time: (performance.now() - this.startWallTime) / 1000,
       metersPerPixel: metresPerPixel,
       worldX: mercatorX(lng) / unitsPerMeter,
@@ -514,68 +400,6 @@ export class JourneyLayer implements CustomLayerInterface {
     const pixels = Math.hypot(b.x - a.x, b.y - a.y);
     if (!Number.isFinite(pixels) || pixels < 1e-6) return 1000;
     return MEASURE_METRES / pixels;
-  }
-
-  /**
-   * Shows the rig for the current travel mode and poses it.
-   * All animation phases come from STORY time: frozen when paused, identical after
-   * seeking, and continuous across leg and chapter boundaries.
-   *
-   * @param party   who travels, in walking order (see data/chapters.ts)
-   * @param wounded Joel lies wounded across the horse while Ellie rides
-   */
-  private poseRigs(mode: TravelMode, party: readonly Traveller[], wounded: boolean, travelling: boolean, storyTime: number): void {
-    const { walk, horse, vehicle } = this.rigs;
-    walk.group.visible = mode === 'walk';
-    horse.group.visible = mode === 'horse';
-    vehicle.group.visible = mode === 'vehicle';
-    const TAU = Math.PI * 2; // one full cycle in radians
-    const joelHere = party.includes('joel');
-    const ellieHere = party.includes('ellie');
-
-    if (mode === 'walk') {
-      // Walking formation: everyone in the party side by side across the route, in the
-      // party's order, the middle person a step ahead. Unused characters are hidden.
-      const slots = WALK_FORMATION[Math.min(party.length, WALK_FORMATION.length) - 1] ?? WALK_FORMATION[0]!;
-      for (const name of TRAVELLERS) {
-        const character = walk.people[name];
-        const slot = party.indexOf(name);
-        character.root.visible = slot >= 0;
-        if (slot < 0) continue;
-        const [x, z] = slots[slot] ?? [0, 0];
-        character.root.position.set(x, 0, z);
-        if (travelling) poseWalk(character, storyTime * TAU * STEPS_HZ[name] + PHASE_OFFSET[name]);
-        else poseIdle(character, storyTime + PHASE_OFFSET[name]); // standing (only at the very end)
-      }
-    } else if (mode === 'horse') {
-      const phase = storyTime * TAU * HORSE_GAIT_HZ;
-      if (travelling) poseHorse(horse.horse, phase);
-      else poseHorseIdle(horse.horse, storyTime);
-      horse.joel.root.visible = joelHere;
-      horse.ellie.root.visible = ellieHere;
-      // Ellie takes the front of the saddle (and the reins) when Joel is not riding normally.
-      const ellieInFront = !joelHere || wounded;
-      const ellieSeat = ellieInFront ? horse.horse.saddleFront : horse.horse.saddleBack;
-      horse.ellie.root.position.set(ellieSeat.x, ellieSeat.y - horse.ellie.hipHeight, ellieSeat.z);
-      poseSeated(horse.ellie, travelling ? phase + 0.4 : 0, ellieInFront);
-      if (wounded) {
-        // Lying across the horse's back behind Ellie. poseWounded turns the body so the hips
-        // end up hipHeight metres to the LEFT (−x) of the root — so the root goes hipHeight
-        // to the right to put the hips on the horse's spine.
-        horse.joel.root.position.set(WOUNDED_HIP_X + horse.joel.hipHeight, WOUNDED_BACK_HEIGHT, WOUNDED_Z);
-        poseWounded(horse.joel, travelling ? phase : 0);
-      } else {
-        const seat = horse.horse.saddleFront;
-        horse.joel.root.position.set(seat.x, seat.y - horse.joel.hipHeight, seat.z);
-        poseSeated(horse.joel, travelling ? phase : 0, true);
-      }
-    } else {
-      poseTruck(vehicle.truck, storyTime * TRUCK_VISUAL_SPEED, storyTime, travelling ? 1 : 0);
-      vehicle.joel.root.visible = joelHere;
-      vehicle.ellie.root.visible = ellieHere;
-      poseSeated(vehicle.joel, 0, true);
-      poseSeated(vehicle.ellie, 0, false);
-    }
   }
 
   /** Samples the route behind the travellers and turns it into the glowing ribbon. */
@@ -730,12 +554,6 @@ export class JourneyLayer implements CustomLayerInterface {
     this.beacon.mesh.position.y = destElevation - elevation;
     this.beacon.update(x, z, metresPerPixel * 34, storyTime, 0.85);
   }
-}
-
-/** Puts a character on a seat: its hip joint lands exactly on the seat point. */
-function seat(character: Character, parent: THREE.Object3D, seatPoint: THREE.Vector3): void {
-  character.root.position.set(seatPoint.x, seatPoint.y - character.hipHeight, seatPoint.z);
-  parent.add(character.root);
 }
 
 /** 0 below edge0, 1 above edge1, smooth S-curve in between (same as GLSL's smoothstep). */

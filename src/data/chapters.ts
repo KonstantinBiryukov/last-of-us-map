@@ -300,14 +300,14 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_6.jpg',
       'img_7.jpg',
     ]),
-    // The long ride from Jackson (the first half of the chapter, quicker), then the last 3.6 km
-    // onto the campus for the whole second half (slower): the university's key-point props
-    // stand right where that stretch begins (leg 9 at 0.9951), so they are on screen for half
-    // the chapter instead of only its last moments. The camera comes in close for the slow
-    // stretch, and the props are sized for that view.
+    // The long ride from Jackson (the first quarter of the chapter, at a gallop), then the last
+    // 3.6 km onto the campus for the remaining three quarters (slow): the university's key-point
+    // props stand right where that stretch begins (leg 9 at 0.9951), so they are on screen for
+    // 75 % of the chapter instead of only its last moments. The camera comes in close for the
+    // slow stretch, and the props are sized for that view.
     legs: [
       { leg: 9, from: 0, to: 0.995 },
-      { leg: 9, from: 0.995, timeShare: 0.5, note: 'Riding onto the university campus' },
+      { leg: 9, from: 0.995, timeShare: 0.75, note: 'Riding onto the university campus' },
     ],
     ambience: ['leaves', 'dust'],
   },
@@ -355,9 +355,11 @@ export const CHAPTERS: readonly Chapter[] = [
       // chapter is split by distance: 0.0381 / 0.194 of it before the pause, the rest after.
       { leg: 10, from: 0.806, to: 0.8441, party: ['ellie'], mode: 'walk', bow: true, timeShare: 0.0354, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
       { leg: 10, from: 0.8441, to: 0.8441, party: ['ellie'], mode: 'walk', bow: true, pauseSeconds: 5, hunt: true, note: 'Ellie hunts — a rabbit for Joel', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
-      { leg: 10, from: 0.8441, party: ['ellie'], mode: 'walk', bow: true, timeShare: 0.1446, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
-      { leg: 11, from: 0, to: 0.21, party: ['ellie'], bow: true, timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
-      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], timeShare: 0.1, note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },
+      // After the hunt a snowstorm closes in (`blizzard`): Ellie, then Joel, fight their way
+      // through wind and snow.
+      { leg: 10, from: 0.8441, party: ['ellie'], mode: 'walk', bow: true, blizzard: true, timeShare: 0.1446, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      { leg: 11, from: 0, to: 0.21, party: ['ellie'], bow: true, blizzard: true, timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], blizzard: true, timeShare: 0.1, note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },
       { leg: 11, from: 0.737, timeShare: 0.1, note: 'Together again', camera: { zoom: 0.8 } },
     ],
     ambience: ['snow'],

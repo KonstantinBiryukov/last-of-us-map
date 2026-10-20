@@ -37,8 +37,12 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   // The escape drive starts at Joel's house: the house stands right where the route begins.
   1: [
     { name: 'Hometown', prop: 'house', coord: [-97.619095, 30.175858], basis: "south-east Austin, where the escape drive starts (Joel's house is in the Austin suburbs)", close: true, scale: 0.5 },
-    // Driving out of Austin through the outbreak: a house burning in Buda, beside the road.
-    { name: 'Outbreak Night', prop: 'burningHouse', coord: [-97.84, 30.082], basis: 'Buda, Texas, south of Austin on the escape route', scale: 0.5 }, // same size as the Hometown house
+    // Driving out of Austin through the outbreak: a house burning in Bluff Springs, beside the
+    // road, its front (windows and door ablaze) turned to the camera (`faceCamera`).
+    { name: 'Outbreak Night', prop: 'burningHouse', coord: [-97.7764, 30.1335], basis: 'Bluff Springs, south Austin, on the escape route', scale: 0.5, faceCamera: true }, // same size as the Hometown house
+    // Then south through Buda: the old theatre of the game's outbreak night, neon blazing,
+    // a car on fire in front of it, facing the camera.
+    { name: 'The Old Theatre', prop: 'theatre', coord: [-97.84, 30.082], basis: 'Buda, Texas, on the escape route south of Austin (the game’s theatre is fictional)', scale: 0.5, faceCamera: true },
   ],
   2: [
     // Boston places from scripts/build-street-routes.mjs (the street route's stops).
@@ -110,6 +114,12 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: LAKESIDE_SCALE * 2 }, // twice the usual size
   ],
   10: [
+    // Walking north through Provo: two decayed school buses (the game's bus depot) in north
+    // Provo by the Orem line, east of the walk on the flat valley floor — inland, away from
+    // Utah Lake (west of the town) and clear of the mountain slopes further east, where they
+    // floated above the rising ground. Beside the walk (`close`). 1.2× the usual size: twice
+    // as large as they stood in Spanish Fork (785 → ~1570 real metres per model metre).
+    { name: 'The Bus Depot', prop: 'schoolBuses', coord: [-111.672, 40.283], basis: 'north Provo, Utah, by the Orem line (the game’s bus depot is fictional)', close: true, scale: 1.2 },
     // The giraffes, met around the bus depot — in the valley's south (Riverton), on the valley
     // side west of I-15 (not the mountains). Far enough south that they are passed in the middle
     // of "Bus Depot", not at its very end, where they were still on screen in "The Firefly Lab"
@@ -136,6 +146,8 @@ export const PROP_RADIUS: Readonly<Record<PropKind, number>> = {
   trees: 1.8,
   hunt: 1.9,
   burningHouse: 1.6,
+  theatre: 1.9,
+  schoolBuses: 1.7,
   towers: 1.9,
   museum: 2.1,
   capitol: 2.3,

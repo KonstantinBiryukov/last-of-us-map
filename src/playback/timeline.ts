@@ -77,6 +77,8 @@ export interface LegSpan {
   pause: boolean;
   /** During the pause Ellie shoots the rabbit (data/types.ts LegPart). */
   hunt: boolean;
+  /** A snowstorm: wind-blown snow, and the walkers fight through it (data/types.ts LegPart). */
+  blizzard: boolean;
   /** How they travel this slice (the part's override, else the leg's mode). */
   mode: TravelMode;
   /** Text for the story panel (the part's override, else the leg's note). */
@@ -199,6 +201,7 @@ export function buildTimeline(
         bow: part.bow ?? false,
         pauseSeconds: part.pauseSeconds,
         hunt: part.hunt ?? false,
+        blizzard: part.blizzard ?? false,
         mode: part.mode ?? leg.mode,
         note: part.note ?? leg.note,
         camera: part.camera ?? NO_CAMERA,
@@ -243,6 +246,7 @@ export function buildTimeline(
         bow: p.bow,
         pause: p.pauseSeconds !== undefined,
         hunt: p.hunt,
+        blizzard: p.blizzard,
         mode: p.mode,
         note: p.note,
         camera: p.camera,

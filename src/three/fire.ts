@@ -1,5 +1,5 @@
 /**
- * fire.ts — fire and smoke PARTICLES for key-point props (the burning house in Buda).
+ * fire.ts — fire and smoke PARTICLES for key-point props (the burning house in Bluff Springs, south Austin).
  *
  * Like the seasonal particles (ambience.ts), every particle is animated entirely on the GPU:
  * each one gets four random numbers once (its "seed"), and the vertex shader works out where it

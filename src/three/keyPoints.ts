@@ -75,10 +75,16 @@ export class KeyPointProps {
       const { lng, lat, radiusMetres } = placement;
       // Terrain samples under the footprint: the centre, a ring of 4 at half the radius and a
       // ring of 8 at the edge (13 in all), so a ridge between samples cannot poke through.
+      // A prop WITHOUT a base (props.ts: `noBase` — the buses, the giraffe, the boat, the
+      // autumn trees) is sampled only under its middle (the centre and a ring of 6 at 0.35 of
+      // the radius): with nothing under it to hide a gap, standing on the highest ground at the
+      // edge of its footprint would leave it floating above a slope (the buses hung in the air
+      // where the footprint reached the mountains east of Provo).
       const kLng = radiusMetres / (METRES_PER_DEGREE * Math.cos(lat * DEG));
       const kLat = radiusMetres / METRES_PER_DEGREE;
       const samples: [number, number][] = [[lng, lat]];
-      for (const [reach, count] of [[0.5, 4], [1, 8]] as const) {
+      const rings = root.userData['noBase'] ? ([[0.35, 6]] as const) : ([[0.5, 4], [1, 8]] as const);
+      for (const [reach, count] of rings) {
         for (let k = 0; k < count; k++) {
           const angle = (k / count) * Math.PI * 2;
           samples.push([lng + Math.cos(angle) * kLng * reach, lat + Math.sin(angle) * kLat * reach]);

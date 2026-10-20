@@ -17,3 +17,6 @@ npm-debug.log*
 
 # gh-pages publishing cache
 node_modules/.cache/gh-pages
+
+# Cross-browser test output (npm run test:browsers): screenshots, report, traces
+/e2e-results

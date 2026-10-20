@@ -59,14 +59,6 @@
   width: 84px;
   height: 84px;
   opacity: 0.92;
-  /*
-   * The Firefly sign: first it fades and sharpens into view (0.8 s), then — once it has
-   * settled — a slow heartbeat forever: it grows to 120 % and shrinks back every 3 s.
-   * Size only, no glow.
-   */
-  animation:
-    emblem-in 0.8s var(--ease-out) 0.15s both,
-    emblem-pulse 3s ease-in-out 0.95s infinite;
 }
 
 .kicker {
@@ -185,11 +177,17 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: color 0.25s, border-color 0.25s;
+  transition: color 0.25s, border-color 0.25s, opacity 0.4s, visibility 0.4s;
 }
 .soundOn:hover {
   color: var(--color-text);
   border-color: var(--color-text-muted);
+}
+/* Sound is on: fade out but keep the button's space (no layout jump), and ignore the mouse. */
+.soundOnDone {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 .warning strong {
   color: #e07b5a;
@@ -198,22 +196,6 @@
 @keyframes fade-in {
   from {
     opacity: 0;
-  }
-}
-@keyframes emblem-in {
-  from {
-    opacity: 0;
-    transform: scale(0.82);
-    filter: blur(4px);
-  }
-}
-@keyframes emblem-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
   }
 }
 @keyframes push-in {

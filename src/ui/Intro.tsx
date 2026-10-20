@@ -127,12 +127,20 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
         <p className={styles.warning}>
           <strong>Warning:</strong> The journey contains major spoilers for the entire game. Best experienced with sound on.
         </p>
-        {/* Shown until sound is allowed (see `soundOn`); disappears once it is. */}
-        {!soundOn && (
-          <button type="button" className={styles.soundOn} onClick={turnSoundOn} aria-label="Turn sound on">
-            <span aria-hidden="true">🔊</span> Sound on
-          </button>
-        )}
+        {/* Shown until sound is allowed (see `soundOn`), then it fades away — but it KEEPS its
+            place on the page (only invisible, `soundOnDone`), so the text around it does not jump.
+            Hidden from screen readers and the keyboard once done. */}
+        <button
+          type="button"
+          className={`${styles.soundOn} ${soundOn ? styles.soundOnDone : ''}`}
+          onClick={turnSoundOn}
+          aria-label="Turn sound on"
+          aria-hidden={soundOn}
+          tabIndex={soundOn ? -1 : 0}
+          disabled={soundOn}
+        >
+          <span aria-hidden="true">🔊</span> Sound on
+        </button>
       </div>
     </div>
   );

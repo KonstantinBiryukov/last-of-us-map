@@ -213,7 +213,7 @@ export function JourneyScreen({ route, covered, onAbout, onMenu, navigate }: Jou
  * Runs again when the camera director appears (the map loads asynchronously).
  */
 function useRouteActions(route: AppRoute): void {
-  const { engine } = useJourney();
+  const { engine, music } = useJourney();
   const director = useCameraDirector();
   const routeKey = route.name === 'chapter' ? `chapter-${route.chapterNumber}` : route.name;
   const handled = useRef<string | null>(null);
@@ -227,6 +227,9 @@ function useRouteActions(route: AppRoute): void {
         // Opening #/path directly: start playing. Coming back from About must NOT
         // un-pause a story the user paused, so only an untouched ("idle") story auto-plays.
         if (engine.status === 'idle') engine.play();
+        // …and the music too (a reload or a link straight into the journey skips the title
+        // screen's click): now if the browser allows it, else on the first click/tap/key.
+        music.playWhenAllowed();
         // Follow the travellers unless the user already took the camera ("free").
         if (director.getMode() === 'overview') director.follow();
         break;
@@ -237,6 +240,7 @@ function useRouteActions(route: AppRoute): void {
         break;
       case 'chapter':
         engine.goToChapter(route.chapterNumber - 1);
+        music.playWhenAllowed(); // a chapter link opened directly: start the music (see above)
         director.follow();
         break;
       case 'intro':
@@ -246,5 +250,5 @@ function useRouteActions(route: AppRoute): void {
       case 'about':
         break;
     }
-  }, [director, routeKey, route, engine]);
+  }, [director, routeKey, route, engine, music]);
 }

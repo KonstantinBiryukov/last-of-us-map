@@ -269,7 +269,9 @@ export class CameraDirector {
   setPadding(padding: { top: number; right: number; bottom: number; left: number }): void {
     const wasFlying = this.flightId !== 0;
     this.map.setPadding(padding);
-    if (this.exploring) this.map.setMaxBounds(this.exploreFence()); // the panels moved: re-centre the fence
+    // The panels moved: re-centre the fence. Not mid-flight — measuring jumps the camera, which
+    // would cut the flight short (the next panel change or resize catches up).
+    if (this.exploring && !wasFlying) this.refreshExploreFence();
     if (wasFlying && this.lastFlight) {
       this.jumpZoom.clear(); // the visible area changed, so jump framing must be recomputed
       this.lastFlight();
@@ -360,7 +362,8 @@ export class CameraDirector {
     // fence (the camera director moves the camera there), so it is removed again.
     // (Mapbox removes the fence when given null; its TypeScript types only list a box.)
     // (The box is shifted for the panels so the USA ends up in the middle — see exploreFence.)
-    map.setMaxBounds(free ? this.exploreFence() : (null as unknown as LngLatBoundsLike));
+    if (free) this.refreshExploreFence();
+    else map.setMaxBounds(null as unknown as LngLatBoundsLike);
     // Without panning, the "grab" hand cursor would promise something that does nothing.
     map.getContainer().classList.toggle('map--zoom-only', !free);
   }
@@ -430,7 +433,7 @@ export class CameraDirector {
     this.jumpZoom.clear();
     // A new screen shape: the panel shift is another number of degrees. (Not mid-flight: the
     // measuring jumps would cut a flight short; the next resize or panel change catches up.)
-    if (this.exploring && this.flightId === 0) this.map.setMaxBounds(this.exploreFence());
+    if (this.exploring && this.flightId === 0) this.refreshExploreFence();
   };
 
   /**
@@ -448,6 +451,17 @@ export class CameraDirector {
    * ask for zoom 0 — Mapbox stops at the limit — read the zoom, and put the camera straight
    * back. Both jumps happen before the next frame is drawn, so nothing is seen.
    */
+  /** Re-measures the fence only when the screen size or the panels changed since last time. */
+  private lastFenceKey = '';
+  private refreshExploreFence(): void {
+    const p = this.map.getPadding();
+    const c = this.map.getContainer();
+    const key = `${c.clientWidth}x${c.clientHeight}:${p.left ?? 0},${p.right ?? 0},${p.top ?? 0},${p.bottom ?? 0}`;
+    if (key === this.lastFenceKey && this.map.getMaxBounds()) return; // same shape: same fence
+    this.lastFenceKey = key;
+    this.map.setMaxBounds(this.exploreFence());
+  }
+
   private exploreFence(): [[number, number], [number, number]] {
     const map = this.map;
     const padding = map.getPadding();

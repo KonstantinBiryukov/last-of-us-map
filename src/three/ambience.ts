@@ -79,6 +79,9 @@ const RECIPES: Record<AmbienceKind, Recipe> = {
   // Snow: many flakes falling and drifting with the wind.
   // Snow: crystals (about half, bigger, slowly turning) mixed with soft round distant flakes.
   snow: { count: 700, colorA: 0xffffff, colorB: 0xe6eefb, velocity: [0.018, -0.07, 0.006], sway: 0.025, size: 13, shape: SHAPE.flake, twinkle: 0.1, twinkleSpeed: 3, spin: 0.6, opacity: 0.95, additive: false, height: 0.2 },
+  // Blizzard: a dense storm on top of the falling snow — small flakes racing sideways in a strong
+  // wind (fast x drift, little fall), with gusts making them wobble.
+  blizzard: { count: 1400, colorA: 0xffffff, colorB: 0xdfe8f5, velocity: [0.32, -0.09, 0.05], sway: 0.05, size: 7, shape: SHAPE.flake, twinkle: 0.15, twinkleSpeed: 5, spin: 1.6, opacity: 0.9, additive: false, height: 0.2 },
   // Spring pollen: tiny bright specks drifting gently upward.
   pollen: { count: 240, colorA: 0xfff1a8, colorB: 0xffffff, velocity: [0.008, 0.01, 0.004], sway: 0.06, size: 3, shape: SHAPE.glow, twinkle: 0.5, twinkleSpeed: 2.2, spin: 0, opacity: 0.7, additive: true, height: 0.1 },
   // Pale blossom petals fluttering down.
