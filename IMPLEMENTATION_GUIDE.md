@@ -135,24 +135,16 @@ npm run preview          # http://localhost:4173/last-of-us-map/#/
 visitor's browser needs it to download map tiles, so it ends up inside the published
 JavaScript. Protect it in the Mapbox dashboard instead:
 
-- **URL restrictions:** `https://konstantinbiryukov.github.io/last-of-us-map/`,
-  plus `http://localhost:5173` (and `http://localhost:4173` for `npm run preview`) for
-  development. Note: the *Default public token* cannot be restricted — create a new token.
+- **URL restrictions:** `https://konstantinbiryukov.github.io` — the *origin only*, without
+  the `/last-of-us-map/` path — plus `http://localhost:5173` (and `http://localhost:4173` for
+  `npm run preview`) for development. Why the origin: browsers send other websites (here
+  api.mapbox.com) only the origin in the `Referer` header, not the page path, so a restriction
+  that includes the path never matches and every map tile fails with **403 Forbidden** (the app
+  then shows the fallback map with "The Mapbox token was rejected"). The origin is still safe:
+  only this GitHub account can publish under `konstantinbiryukov.github.io`, so only its own
+  sites can use the token; any other website gets 403. Note: the *Default public token* cannot
+  be restricted — create a new token.
 - Keep only the default public scopes. Never put a secret (`sk.…`) token in this app.
-
-**Why `index.html` sets `<meta name="referrer" content="no-referrer-when-downgrade">`:**
-Mapbox checks a URL restriction against the request's `Referer` header. By default browsers
-send other websites only the *origin* (`https://konstantinbiryukov.github.io/`), not the path,
-so a restriction to `…/last-of-us-map/` never matches and every tile request fails with
-**403 Forbidden** (the app then shows the fallback map with "The Mapbox token was rejected").
-Restricting to the bare origin would work, but would also let every other site under
-`konstantinbiryukov.github.io` use the token. The meta tag makes the browser send the full
-page address to HTTPS sites, so the path restriction matches. Map **tiles**, however, are
-downloaded by Mapbox's background Web Worker (a `blob:` script), which does not inherit the page's
-referrer setting; so `MapView.tsx` also passes `transformRequest: (url) => ({ url, referrerPolicy:
-'no-referrer-when-downgrade' })`, which Mapbox applies to every request, worker ones included. (Style and font requests are not
-URL-checked by Mapbox, so a 403 shows up only on tiles — test e.g.
-`https://api.mapbox.com/v4/mapbox.satellite.json?access_token=…` with a `Referer` header.)
 
 **GitHub push protection** flags any Mapbox token in the built JavaScript as a "Mapbox Secret
 Access Token" and blocks `npm run deploy` the first time a new token is published. If the token

@@ -118,28 +118,6 @@ export function MapView({ padding, onNotice, onUnavailable, mode, selectedLocati
         container,
         style: STYLE_URLS[styleId],
         projection: 'mercator', // keeps the Three.js maths simple and exact
-        // SEND OUR FULL PAGE ADDRESS WITH EVERY MAPBOX REQUEST (needed for the token's URL
-        // restriction — see the long comment in index.html for the whole story).
-        //
-        // The Mapbox token only works for requests that say they come from
-        // https://konstantinbiryukov.github.io/last-of-us-map/ (Mapbox reads that from the
-        // request's "Referer" header). By default browsers send other sites only the origin
-        // (https://konstantinbiryukov.github.io/), without the "/last-of-us-map/" path, so the
-        // restriction would not match and Mapbox would answer 403 Forbidden.
-        //
-        // index.html's <meta name="referrer"> fixes that for requests made by the page itself
-        // (styles, the terrain description…). But most requests — every map TILE — are made
-        // by Mapbox's background Web Worker, a separate script started from a "blob:" address,
-        // and the page's referrer setting does not carry over into it. Mapbox does tell each
-        // worker request our full page address (it passes it to the worker), but each request
-        // then uses its own referrer POLICY, and without one the browser falls back to "origin
-        // only" and strips the path again → tiles 403 → fallback map.
-        //
-        // transformRequest lets us adjust every request Mapbox makes, on the page AND in the
-        // worker (Mapbox applies it before handing tile requests to the worker). We keep the
-        // URL as it is and only add the same policy as index.html: "no-referrer-when-downgrade"
-        // = send the full address to HTTPS sites (never to plain HTTP).
-        transformRequest: (url) => ({ url, referrerPolicy: 'no-referrer-when-downgrade' }),
         center: [-96, 39],
         zoom: 3.3,
         pitch: 0,

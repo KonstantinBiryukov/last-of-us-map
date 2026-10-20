@@ -8,48 +8,6 @@
       name="description"
       content="A cinematic, interactive map of Joel and Ellie's journey across America in The Last of Us — with the places, images and music of their road."
     />
-    <!--
-      REFERRER POLICY — why this line exists (it makes the 3D map work on GitHub Pages)
-
-      What a "referrer" is: whenever a page asks another website for something (here: map
-      tiles, styles and fonts from api.mapbox.com), the browser adds a "Referer" header saying
-      which page the request comes from.
-
-      Why we need it: the Mapbox access token in this site is a PUBLIC token (it has to be in
-      the page — a browser cannot draw a Mapbox map without it). To stop other websites from
-      copying it and running their maps on our Mapbox account, the token has a URL restriction
-      in the Mapbox dashboard: it only works for requests coming from
-          https://konstantinbiryukov.github.io/last-of-us-map/
-      Mapbox checks that by reading the Referer header.
-
-      The problem it solves: by default ("strict-origin-when-cross-origin"), browsers send only
-      the ORIGIN to other websites — "https://konstantinbiryukov.github.io/" — and leave out
-      the path "/last-of-us-map/". Mapbox then cannot tell this site apart from any other site
-      under konstantinbiryukov.github.io, the path-based restriction does not match, and every
-      tile request is refused with 403 Forbidden (the app then falls back to the simplified
-      map). Restricting the token to the bare origin instead would let every other site under
-      that address use it too, which we do not want.
-
-      What this line changes: "no-referrer-when-downgrade" tells the browser to send the FULL
-      page address (origin + path) with requests to other HTTPS sites, so Mapbox sees
-      ".../last-of-us-map/..." and the restriction matches. Safety notes:
-        • It is only sent over HTTPS; the browser sends nothing to plain-HTTP sites
-          ("downgrade"), so the address never travels unencrypted.
-        • The address is shared only with the services this page itself calls — Mapbox (the
-          map) is the only outside one (fonts, images and music are served from this site) —
-          and it contains nothing private: just the page path; the "#/journey"-style route
-          after "#" is never sent at all.
-        • It applies to this site only; other sites are unaffected.
-
-      Map TILES are downloaded by Mapbox's background worker, which does not inherit this meta
-      tag — src/map/MapView.tsx sets the same policy on every Mapbox request (transformRequest).
-
-      If the map ever shows "The Mapbox token was rejected" again, check in the Mapbox dashboard
-      (Tokens → this token → URLs) that the restriction is
-          https://konstantinbiryukov.github.io/last-of-us-map/
-      (plus http://localhost:5173 for local development). See IMPLEMENTATION_GUIDE.md §5.
-    -->
-    <meta name="referrer" content="no-referrer-when-downgrade" />
     <!-- %BASE_URL% is replaced by Vite with "/last-of-us-map/", so this works on GitHub Pages. -->
     <link rel="icon" type="image/png" href="%BASE_URL%server/assets/other_images/firefly.png" />
     <title>The Last of Us · The Journey</title>
