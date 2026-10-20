@@ -11,10 +11,10 @@ describe('chapter key points', () => {
   const timeline = buildTimeline(CHAPTERS, route);
   const placed = placeKeyPoints(timeline, CHAPTERS, route);
 
-  it('every chapter has its key points (29 in all)', () => {
-    expect(placed).toHaveLength(29);
+  it('every chapter has its key points (28 in all)', () => {
+    expect(placed).toHaveLength(28);
     for (const chapter of CHAPTERS) expect(KEY_POINTS[chapter.number]?.length).toBeGreaterThan(0);
-    expect(placed.filter((p) => p.chapterIndex === 9).map((p) => p.name)).toEqual(['The Ladder', 'The Giraffes']);
+    expect(placed.filter((p) => p.chapterIndex === 9).map((p) => p.name)).toEqual(['The Giraffes']);
   });
 
   it('nobody walks through a prop: every travelled route point keeps clear of every footprint', () => {
@@ -81,6 +81,13 @@ describe('chapter key points', () => {
     expect(fromCentre).toBeGreaterThan(0.7);
     expect(fromCentre).toBeLessThan(1.1);
     expect(((hospital.heading! - hospital.bearing + 360) % 360)).toBeCloseTo(180, 5);
+    // Lakeside Resort's props keep the size and place they were tuned at (they once changed when
+    // Fort Collins' pacing changed — see LAKESIDE_SCALE in data/keyPoints.ts).
+    const hunt = find('The Hunt');
+    expect(hunt.metresPerModel).toBeGreaterThan(1972 * 0.99);
+    expect(hunt.metresPerModel).toBeLessThan(1972 * 1.01);
+    expect(haversineMeters([hunt.lng, hunt.lat], [-105.4459, 40.0248])).toBeLessThan(50);
+    expect(find('Cabin Resort').metresPerModel).toBeCloseTo(hunt.metresPerModel / 2, 0);
     // The State House stands near its real gold dome.
     expect(haversineMeters([capitol.lng, capitol.lat], capitol.coord)).toBeLessThan(150);
   });

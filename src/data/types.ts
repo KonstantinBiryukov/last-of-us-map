@@ -278,7 +278,6 @@ export type PropKind =
   | 'sewer' // a sewer outlet pipe in a concrete wall
   | 'boat' // the beached blue fishing boat (Suburbs, by Duff City)
   | 'autumnTrees' // a few orange autumn trees (across the road from the university)
-  | 'ladder' // a ladder lying on the ground (Lehi, Utah)
   | 'suburb' // two small suburban houses with a fence
   | 'dam' // a hydroelectric dam with water behind it
   | 'ranch' // a ranch house with a barn

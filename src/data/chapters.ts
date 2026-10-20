@@ -300,12 +300,14 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_6.jpg',
       'img_7.jpg',
     ]),
-    // The long ride from Jackson, then the last few kilometres onto the campus (they spend the
-    // chapter at the university): a quarter of the chapter's time, so the camera comes in close
-    // and the university's key-point props stand right there, at their size for that view.
+    // The long ride from Jackson (the first half of the chapter, quicker), then the last 3.6 km
+    // onto the campus for the whole second half (slower): the university's key-point props
+    // stand right where that stretch begins (leg 9 at 0.9951), so they are on screen for half
+    // the chapter instead of only its last moments. The camera comes in close for the slow
+    // stretch, and the props are sized for that view.
     legs: [
       { leg: 9, from: 0, to: 0.995 },
-      { leg: 9, from: 0.995, timeShare: 0.25, note: 'Riding onto the university campus' },
+      { leg: 9, from: 0.995, timeShare: 0.5, note: 'Riding onto the university campus' },
     ],
     ambience: ['leaves', 'dust'],
   },

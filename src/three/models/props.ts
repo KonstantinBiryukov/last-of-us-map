@@ -327,7 +327,7 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     // loose plank leaning against it. Built with its length along X (bow to the right), so its
     // long blue side faces the front, like the screenshot. All sizes in model metres.
     const boat = new THREE.Group();
-    boat.position.set(-0.1, 0, 0); // centred on the prop (the pointed bow reaches a little further right)
+    boat.position.set(-0.1, -0.12, 0); // centred on the prop, sunk into the mud (its keel and the bottom of the hull are under it)
     boat.rotation.set(0, 0.12, 0.07); // turned a touch, and listing — it ran aground
     // Hull: the main blue body, then the pointed bow (a box turned 45°: a diamond whose front
     // corner is the stem), keel stripe at the bottom and a pale band under the deck edge.
@@ -367,7 +367,32 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     }
     box(boat, 0.3, 0.04, 0.5, 'seaweed', -0.1, 1.05, 0.02); // and a clump on the wheelhouse roof
     g.add(boat);
-    // A loose plank leaning against the boat's front side, its foot in the sand.
+    // The green, weedy mud it is stuck in, as in the game: not a neat base but an irregular bed
+    // of overlapping low, oval blobs (flattened cylinders) in two shades of green-brown, heaped
+    // up higher against the hull on both sides so the boat looks sunk into it, a few dark
+    // puddles, and tufts of weed. [x, z, radius across, radius along, height, colour]
+    const MUD: readonly (readonly [number, number, number, number, number, PaletteKey])[] = [
+      [-0.1, 0, 1.25, 0.7, 0.1, 'mud'], // the bed under the whole boat
+      [0.75, 0.25, 0.55, 0.4, 0.08, 'mudDark'],
+      [-0.85, -0.3, 0.5, 0.35, 0.09, 'mudDark'],
+      [0.35, -0.45, 0.4, 0.28, 0.07, 'mud'],
+      [-0.5, 0.48, 0.45, 0.25, 0.08, 'mud'],
+      [-0.2, 0.42, 0.85, 0.16, 0.2, 'mudDark'], // heaped against the back of the hull …
+      [0.05, -0.42, 0.8, 0.15, 0.19, 'mud'], // … and against the front
+    ];
+    for (const [x, z, across, along, height, colour] of MUD) {
+      const blob = cyl(g, 0.5, height, colour, x, 0, z, 0.8, 10); // slightly tapered: soft edges
+      blob.scale.set(across * 2, height, along * 2);
+    }
+    for (const [x, z, r] of [[0.95, -0.35, 0.16], [-1.05, 0.25, 0.12], [0.55, 0.55, 0.1]] as const) {
+      const puddle = cyl(g, r, 0.02, 'waterDark', x, 0.09, z, 1, 8);
+      puddle.scale.z *= 0.7; // oval
+    }
+    for (const [x, z] of [[-0.95, -0.5], [0.85, 0.5], [1.1, 0.05], [-0.6, -0.55], [-1.2, -0.05]] as const) {
+      box(g, 0.05, 0.14, 0.05, 'seaweed', x, 0.08, z); // weed tufts poking out of the mud
+      box(g, 0.05, 0.1, 0.05, 'seaweed', x + 0.06, 0.08, z + 0.03);
+    }
+    // A loose plank leaning against the boat's front side, its foot in the mud.
     const plank = box(g, 1.0, 0.04, 0.12, 'rottenWood', 0.2, 0.06, -0.57);
     plank.rotation.set(0, -0.15, 0.42);
   },
@@ -446,17 +471,6 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     autumnTree(g, 0.25, -0.25, 1.4, 'leafAutumnDark');
     autumnTree(g, 0.85, 0.45, 1.55);
   },
-  // A wooden ladder lying flat on the ground in Lehi, Utah — just the item, no base: two long
-  // side rails with rungs between them, lying a little askew, one rail resting slightly higher
-  // (on a stone) so it does not look painted onto the ground. Built along X, 2.6 long.
-  ladder: (g) => {
-    const ladder = new THREE.Group();
-    ladder.rotation.set(0, 0.35, 0.04); // turned on the ground, tipped a touch
-    for (const z of [-0.24, 0.24]) box(ladder, 2.6, 0.07, 0.08, 'wood', 0, 0.02, z); // side rails
-    for (let i = 0; i < 9; i++) box(ladder, 0.06, 0.05, 0.48, 'palletWood', -1.15 + i * 0.2875, 0.04, 0); // rungs
-    box(ladder, 0.16, 0.1, 0.16, 'stone', 0.9, -0.04, 0.24); // the stone under one rail
-    g.add(ladder);
-  },
   // The science building: a flat block with a rooftop dish and vents.
   lab: (g) => {
     pad(g, 3.8, 3);
@@ -489,11 +503,12 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     box(g, 0.7, 1.1, 0.04, 'windowDark', 0, 0, -0.72);
     box(g, 1.1, 0.08, 0.4, 'concrete', 0, 1.15, -0.88);
     for (let y = 1.4; y < 3.2; y += 0.6) windows(g, 4, 2.2, y, -0.71);
-    // The Fireflies' sign sprayed in red on the front wall, left of the door (Marlene stands on
-    // the right): a decal just in front of the wall, which is at z −0.70 (three/graffiti.ts).
+    // The Fireflies' sign sprayed in red on the BACK wall (only there): the game's own graffiti
+    // picture as a decal just behind the wall, which is at z +1.10 (three/graffiti.ts), high
+    // and centred on the empty back of the main block.
     const sign = fireflySign();
-    sign.position.set(-0.82, 0.62, -0.725);
-    sign.scale.setScalar(0.85);
+    sign.position.set(0, 1.9, 1.125);
+    sign.scale.setScalar(1.3);
     g.add(sign);
     // Marlene, standing just outside the door, a little to the side (the travellers' walk ends
     // right in front of the door, see playback/keyPoints.ts), turned towards them. The same
@@ -506,12 +521,30 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     marlene.root.rotation.y = 0.35; // facing out of the door, turned a little towards the middle
     marlene.root.scale.setScalar(0.7);
     g.add(marlene.root);
-    box(g, 0.8, 0.22, 0.06, 'crossRed', 0, 3.6, -0.5);
-    box(g, 0.22, 0.8, 0.06, 'crossRed', 0, 3.31, -0.5);
+    // The red cross standing on the roof (its top is at 3.4): a vertical and a horizontal bar of
+    // the same size, crossing at their middles, so all four arms are equal. The vertical bar
+    // starts just above the roof (it used to start below it, which hid part of the lower arm and
+    // made the cross look lopsided).
+    const CROSS_BOTTOM = 3.42;
+    box(g, 0.22, 0.8, 0.06, 'crossRed', 0, CROSS_BOTTOM, -0.5); // vertical bar
+    box(g, 0.8, 0.22, 0.06, 'crossRed', 0, CROSS_BOTTOM + 0.4 - 0.11, -0.5); // horizontal bar, centred on it
   },
   // The Hunt at Silver Lake: a snowy wood with a deer (Ellie hunts one in the game) and a rabbit.
   hunt: (g) => {
     pad(g, 3.6, 3);
+    // Deep snow over the whole ground, as in the game's winter forest: a white layer covering the
+    // base's top (just above it, so the brown never shows through), with soft drifts heaped
+    // here and there — around the tree trunks and along the edges.
+    box(g, 3.6, 0.05, 3, 'snow', 0, 0.02, 0);
+    const DRIFTS: readonly (readonly [number, number, number, number, number])[] = [
+      // [x, z, radius across, radius along, height]
+      [-1.1, 0.6, 0.45, 0.4, 0.12], [0.2, 0.95, 0.4, 0.35, 0.1], [1.0, 1.1, 0.4, 0.3, 0.11],
+      [-1.5, -0.95, 0.35, 0.3, 0.09], [1.3, 0.2, 0.35, 0.5, 0.08], [-0.4, -1.1, 0.5, 0.25, 0.07],
+    ];
+    for (const [x, z, across, along, height] of DRIFTS) {
+      const drift = cyl(g, 0.5, height, 'snow', x, 0.05, z, 0.6, 10); // tapered: a soft heap
+      drift.scale.set(across * 2, height, along * 2);
+    }
     tree(g, -1.1, 0.6, 2.3);
     tree(g, 0.2, 0.95, 2.0);
     tree(g, 1.0, 1.1, 1.7); // at the back, out of the line Ellie shoots along

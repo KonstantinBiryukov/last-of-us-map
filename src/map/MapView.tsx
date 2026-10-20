@@ -22,7 +22,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MAPBOX_TOKEN } from '../config/env';
+import { IS_DEV, MAPBOX_TOKEN } from '../config/env';
 import { LOCATIONS } from '../data/locations';
 import { useJourney, usePlayback, useSettings } from '../journey/JourneyContext';
 import { completedLegCount } from '../playback/timeline';
@@ -141,6 +141,8 @@ export function MapView({ padding, onNotice, onUnavailable, mode, selectedLocati
       onUnavailable('Your browser could not start the 3D map (WebGL is unavailable).');
       return;
     }
+    // Development only: the map on `window.__map`, for inspecting it from the browser console.
+    if (IS_DEV) (window as unknown as { __map?: mapboxgl.Map }).__map = map;
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
 
     // Clicking a marker: in the journey it jumps the story there (the engine's jump event makes

@@ -84,6 +84,8 @@ export const PALETTE = {
   woodDark: 0x4a3726,
   leaf: 0x48623a,
   leafDark: 0x2f4527,
+  // Snow on the ground (The Hunt, in Lakeside Resort's winter): bright, slightly cool white.
+  snow: 0xe9eef2,
   // Autumn leaves (Fort Collins): a bright orange crown and a deeper orange top.
   leafAutumn: 0xd2752a,
   leafAutumnDark: 0xa94e1c,
@@ -118,6 +120,8 @@ export const PALETTE = {
   rottenWood: 0x3f3324,
   // The beached boat in the Suburbs: faded marine blue, on a sandy bank.
   boatBlue: 0x3e5fa8,
+  mud: 0x5a5a34, // the green, weedy mud it is stuck in
+  mudDark: 0x404426,
   sand: 0xb9a97f,
   seaweed: 0x3e5a2a,
   // The burning house in Buda: charred walls and glowing flames (emissive, see material()).

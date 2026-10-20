@@ -23,6 +23,16 @@ import type { KeyPoint, PropKind } from './types';
  */
 const BOSTON_SCALE = 0.7;
 
+/**
+ * Lakeside Resort's props (The Hunt, the cabins) used to share one size with the university's
+ * in Fort Collins (neighbouring props form a GROUP, playback/keyPoints.ts). When the ride onto
+ * the campus was slowed down (data/chapters.ts), the camera came in closer there, the two
+ * places no longer counted as seen at a similar zoom, and Lakeside's props got a size of their
+ * own — 3.64× larger, which moved them too. This factor (493 ÷ 1797, their old size ÷ the new
+ * one, in metres per model metre) brings them back to exactly how they looked before.
+ */
+const LAKESIDE_SCALE = 0.2744;
+
 export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   // The escape drive starts at Joel's house: the house stands right where the route begins.
   1: [
@@ -96,15 +106,10 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     // Right beside Ellie's path (`close`) and 4× the usual size, so the deer and the rabbit are
     // seen as she walks past (at the usual size it was a third of the travellers' height).
     // `faceCamera`: the animals look at the camera, not away from it.
-    { name: 'The Hunt', prop: 'hunt', coord: [-105.49, 40.056], basis: 'the snowy forest west of Boulder (a deer and a rabbit, as Ellie hunts in the game)', close: true, scale: 4, faceCamera: true },
-    { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: 2 }, // twice the usual size
+    { name: 'The Hunt', prop: 'hunt', coord: [-105.49, 40.056], basis: 'the snowy forest west of Boulder (a deer and a rabbit, as Ellie hunts in the game)', close: true, scale: LAKESIDE_SCALE * 4, faceCamera: true },
+    { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: LAKESIDE_SCALE * 2 }, // twice the usual size
   ],
   10: [
-    // Walking north into the Salt Lake valley: a ladder left lying on the ground in Lehi, right
-    // beside the walk (`close`), small — a fifth of the giraffes' size (`scale: 0.4`). On the
-    // town's side of the walk, a step north-east of where it passes (-111.8427, 40.3971); the
-    // other side runs down to Utah Lake, and it must not stand near the water.
-    { name: 'The Ladder', prop: 'ladder', coord: [-111.8352, 40.4016], basis: 'Lehi, Utah, at the south end of the Salt Lake valley', close: true, scale: 0.4 },
     // The giraffes, met around the bus depot — in the valley's south (Riverton), on the valley
     // side west of I-15 (not the mountains). Far enough south that they are passed in the middle
     // of "Bus Depot", not at its very end, where they were still on screen in "The Firefly Lab"
@@ -142,7 +147,6 @@ export const PROP_RADIUS: Readonly<Record<PropKind, number>> = {
   sewer: 1.7,
   boat: 1.3,
   autumnTrees: 1.2,
-  ladder: 1.4,
   suburb: 2.3,
   dam: 2.4,
   ranch: 2.3,
