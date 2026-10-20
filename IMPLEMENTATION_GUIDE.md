@@ -135,9 +135,28 @@ npm run preview          # http://localhost:4173/last-of-us-map/#/
 visitor's browser needs it to download map tiles, so it ends up inside the published
 JavaScript. Protect it in the Mapbox dashboard instead:
 
-- **URL restrictions:** `https://konstantinbiryukov.github.io/last-of-us-map/*`,
-  plus `http://localhost:5173/*` and `http://localhost:4173/*` for development.
+- **URL restrictions:** `https://konstantinbiryukov.github.io/last-of-us-map/`,
+  plus `http://localhost:5173` (and `http://localhost:4173` for `npm run preview`) for
+  development. Note: the *Default public token* cannot be restricted — create a new token.
 - Keep only the default public scopes. Never put a secret (`sk.…`) token in this app.
+
+**Why `index.html` sets `<meta name="referrer" content="no-referrer-when-downgrade">`:**
+Mapbox checks a URL restriction against the request's `Referer` header. By default browsers
+send other websites only the *origin* (`https://konstantinbiryukov.github.io/`), not the path,
+so a restriction to `…/last-of-us-map/` never matches and every tile request fails with
+**403 Forbidden** (the app then shows the fallback map with "The Mapbox token was rejected").
+Restricting to the bare origin would work, but would also let every other site under
+`konstantinbiryukov.github.io` use the token. The meta tag makes the browser send the full
+page address to HTTPS sites, so the path restriction matches. (Style and font requests are not
+URL-checked by Mapbox, so a 403 shows up only on tiles — test e.g.
+`https://api.mapbox.com/v4/mapbox.satellite.json?access_token=…` with a `Referer` header.)
+
+**GitHub push protection** flags any Mapbox token in the built JavaScript as a "Mapbox Secret
+Access Token" and blocks `npm run deploy` the first time a new token is published. If the token
+is a public `pk.` token with a URL restriction, open the "unblock-secret" link from the error,
+choose *false positive* → *Allow secret*, and deploy again. `npm run deploy` reports such
+failures (it used to say "Done" even when the upload was rejected) and only says "Done" once
+GitHub's `gh-pages` branch really has the new build.
 
 **Without a token** (or if the token is rejected, or WebGL is unavailable) the app
 shows `FallbackMap`: an SVG map of the same route and locations, still fully
