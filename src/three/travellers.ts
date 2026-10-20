@@ -7,6 +7,8 @@
  *             who is shown and where (side by side across the route, WALK_FORMATION)
  *   horse   – the horse with Joel and Ellie in the saddle (or Joel lying wounded across it)
  *   vehicle – the pickup truck with Joel driving and Ellie beside him
+ *   carry   – outbreak night: Joel running with his daughter Sarah in his arms (shown in
+ *             place of the walkers for parts with `carry`, data/chapters.ts)
  *
  * JourneyLayer adds the rigs to its scene, scales and turns them, and calls poseRigs once per
  * frame. All animation phases come from STORY time, so they freeze when paused and are the
@@ -16,12 +18,17 @@ import * as THREE from 'three';
 import type { TravelMode, Traveller } from '../data/types';
 import {
   BILL,
+  CARRY_SEAT,
   createCharacter,
   DAVID,
   ELLIE,
   HENRY,
   JOEL,
+  JOEL_PROLOGUE,
+  poseCarried,
+  poseRunCarrying,
   SAM,
+  SARAH,
   TOMMY,
   poseIdle,
   poseSeated,
@@ -34,9 +41,10 @@ import {
 import { createHorse, poseHorse, poseHorseIdle, type Horse } from './models/horse';
 import { createTruck, poseTruck, type Truck } from './models/truck';
 
-/** The three rigs; exactly one is visible at a time (see poseRigs). */
+/** The rigs; exactly one is visible at a time (see poseRigs). */
 export interface Rigs {
   walk: { group: THREE.Group; people: Record<Traveller, Character> };
+  carry: { group: THREE.Group; joel: Character; sarah: Character };
   horse: { group: THREE.Group; horse: Horse; joel: Character; ellie: Character };
   vehicle: { group: THREE.Group; truck: Truck; joel: Character; ellie: Character };
 }
@@ -105,6 +113,14 @@ const WOUNDED_HIP_X = 0;
  * seem to stand still or even turn backwards (the "wagon-wheel" effect).
  */
 const TRUCK_VISUAL_SPEED = 4;
+/** Joel's running strides per second while he carries Sarah (quicker than his 1.05 walking steps). */
+const RUN_HZ = 1.6;
+/**
+ * How far Sarah leans back in his arms (radians from upright, towards his left: her back on his
+ * left forearm, her knees over his right). 1.15 ≈ 66°: she LIES across his arms, held out in
+ * front of him — more upright (0.4) she looked stuck to his chest.
+ */
+const CARRY_LEAN = 1.15;
 
 /** Builds the three rigs. Each rig has its own figures posed for that way of travelling. */
 export function createRigs(): Rigs {
@@ -141,8 +157,28 @@ export function createRigs(): Rigs {
   seat(truckEllie, truck.body, truck.passengerSeat);
   truckGroup.add(truck.root);
 
+  // Outbreak night: Joel (younger, no backpack) running with Sarah in his arms. She sits in a
+  // pivot fixed to his TORSO at the carry seat, so she moves with every lean and bob of his
+  // body. The pivot leans her back (CARRY_LEAN, about his forward axis); inside it she is turned
+  // to face his right (−90° about the vertical) and lowered so her hips sit on the pivot.
+  const carryGroup = new THREE.Group();
+  const carryJoel = createCharacter(JOEL_PROLOGUE);
+  const sarah = createCharacter(SARAH);
+  const cradle = new THREE.Group();
+  cradle.position.copy(CARRY_SEAT);
+  cradle.rotation.z = CARRY_LEAN;
+  carryJoel.torso.add(cradle);
+  // The turn sits on a group of its own: the seated pose resets her root's rotation each frame.
+  const turn = new THREE.Group();
+  turn.rotation.y = -Math.PI / 2;
+  cradle.add(turn);
+  sarah.root.position.y = -sarah.hipHeight;
+  turn.add(sarah.root);
+  carryGroup.add(carryJoel.root);
+
   return {
     walk: { group: walkGroup, people },
+    carry: { group: carryGroup, joel: carryJoel, sarah },
     horse: { group: horseGroup, horse, joel: horseJoel, ellie: horseEllie },
     vehicle: { group: truckGroup, truck, joel: truckJoel, ellie: truckEllie },
   };
@@ -157,16 +193,39 @@ export function createRigs(): Rigs {
  * @param party   who travels, in walking order (see data/chapters.ts)
  * @param wounded Joel lies wounded across the horse while Ellie rides
  */
-export function poseRigs(rigs: Rigs, mode: TravelMode, party: readonly Traveller[], wounded: boolean, travelling: boolean, storyTime: number, blizzard = false): void {
-  const { walk, horse, vehicle } = rigs;
-  walk.group.visible = mode === 'walk';
+export function poseRigs(
+  rigs: Rigs,
+  mode: TravelMode,
+  party: readonly Traveller[],
+  wounded: boolean,
+  travelling: boolean,
+  storyTime: number,
+  blizzard = false,
+  carry = false,
+): void {
+  const { walk, carry: carrying, horse, vehicle } = rigs;
+  // `carry` (Joel running with Sarah) replaces the walkers.
+  carrying.group.visible = mode === 'walk' && carry;
+  walk.group.visible = mode === 'walk' && !carry;
   horse.group.visible = mode === 'horse';
   vehicle.group.visible = mode === 'vehicle';
   const TAU = Math.PI * 2; // one full cycle in radians
   const joelHere = party.includes('joel');
   const ellieHere = party.includes('ellie');
 
-  if (mode === 'walk') {
+  if (mode === 'walk' && carry) {
+    // Joel runs (stands, breathing hard, only at the very end), Sarah held in his arms.
+    const phase = storyTime * TAU * RUN_HZ;
+    if (travelling) poseRunCarrying(carrying.joel, phase);
+    else {
+      poseIdle(carrying.joel, storyTime); // standing, with the carrying arms kept (she stays in them)
+      carrying.joel.armL.rotation.set(0.7, 0, -0.18);
+      carrying.joel.armR.rotation.set(0.7, 0, 0.18);
+      carrying.joel.forearmL.rotation.x = 1.0;
+      carrying.joel.forearmR.rotation.x = 1.0;
+    }
+    poseCarried(carrying.sarah, travelling ? phase : 0);
+  } else if (mode === 'walk') {
     // Walking formation: everyone in the party side by side across the route, in the
     // party's order, the middle person a step ahead. Unused characters are hidden.
     const slots = WALK_FORMATION[Math.min(party.length, WALK_FORMATION.length) - 1] ?? WALK_FORMATION[0]!;

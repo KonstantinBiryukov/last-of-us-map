@@ -97,7 +97,8 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
         </h1>
         <p className={styles.lede}>
           Follow Joel and Ellie across America — from Austin to Boston, west through Pittsburgh, the Rockies and
-          Salt Lake City, and home to Jackson — with the places, the moments and the music of their road.
+          Salt Lake City, and home to Jackson — through beautiful places and unforgettable moments, set to the
+          game's haunting score.
         </p>
 
         <div className={styles.actions}>

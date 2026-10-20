@@ -160,6 +160,13 @@ export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | '
  *   blizzard – a snowstorm: wind-driven snow streaks across the screen (on top of the
  *             chapter's own weather), and the walkers fight their way through it — leaning
  *             into the wind, head down, an arm up to shield the face, short labouring steps
+ *   carry   – Joel RUNS, carrying his daughter Sarah in his arms (outbreak night in Hometown,
+ *             after the truck crashes near Buda): the walking rig is replaced by Joel in a
+ *             run, Sarah held against his chest (three/travellers.ts). Give `party: ['joel']`
+ *   waitingTruck – on a truck part: the truck is already PARKED at the part's start for the
+ *             whole chapter before it, empty, so it is on the map and can be seen while the
+ *             travellers walk up to it; when they reach it (the part begins) it drives off with
+ *             them, exactly where it stood (Bill's truck in Lincoln; three/JourneyLayer.ts)
  *   timeShare – a fixed fraction of the chapter's time for this slice (e.g. 0.2 =
  *             the last 20 % of the Epilogue on foot), instead of the usual share
  *             by distance and speed
@@ -183,6 +190,8 @@ export interface LegPart {
   /** During the pause, Ellie walks up to the giraffe and pets it (Bus Depot; three/petGiraffe.ts). */
   pet?: boolean;
   blizzard?: boolean;
+  carry?: boolean;
+  waitingTruck?: boolean;
   timeShare?: number;
   note?: string;
   camera?: PartCamera;

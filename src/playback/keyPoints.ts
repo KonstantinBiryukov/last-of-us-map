@@ -198,7 +198,10 @@ export function placeKeyPoints(
   const spansOf: LegSpan[][] = [];
   chapters.forEach((chapter, chapterIndex) => {
     const travelled = travelledSpans(timeline, chapterIndex);
-    const walked = travelled.filter((s) => s.mode === 'walk');
+    // Props stand by the WALKED parts when a chapter has some (Pittsburgh: by the walk, not the
+    // drive). Joel's run with Sarah (`carry`, Hometown) does not count as one: it is the end of
+    // the escape drive, and its props (the house, the burning house) stand along the drive.
+    const walked = travelled.filter((s) => s.mode === 'walk' && !s.carry);
     const spans = walked.length > 0 ? walked : travelled;
     spansOf[chapterIndex] = [...spans];
     let previousIdeal = -Infinity; // ideal spots must follow the game order

@@ -81,6 +81,10 @@ export interface LegSpan {
   blizzard: boolean;
   /** During the pause Ellie pets the giraffe (data/types.ts LegPart). */
   pet: boolean;
+  /** Joel runs carrying Sarah (data/types.ts LegPart). */
+  carry: boolean;
+  /** The truck waits, parked at this part's start, for the rest of the chapter before it (data/types.ts LegPart). */
+  waitingTruck: boolean;
   /** How they travel this slice (the part's override, else the leg's mode). */
   mode: TravelMode;
   /** Text for the story panel (the part's override, else the leg's note). */
@@ -205,6 +209,8 @@ export function buildTimeline(
         hunt: part.hunt ?? false,
         blizzard: part.blizzard ?? false,
         pet: part.pet ?? false,
+        carry: part.carry ?? false,
+        waitingTruck: part.waitingTruck ?? false,
         mode: part.mode ?? leg.mode,
         note: part.note ?? leg.note,
         camera: part.camera ?? NO_CAMERA,
@@ -251,6 +257,8 @@ export function buildTimeline(
         hunt: p.hunt,
         blizzard: p.blizzard,
         pet: p.pet,
+        carry: p.carry,
+        waitingTruck: p.waitingTruck,
         mode: p.mode,
         note: p.note,
         camera: p.camera,

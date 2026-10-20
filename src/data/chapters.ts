@@ -89,8 +89,15 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_7.png',
       'img_8.png',
     ]),
-    // The truck drives out of Austin from the very first image.
-    legs: [{ leg: 0 }],
+    // The truck drives out of Austin from the very first image. Just before Buda it crashes
+    // (as in the game) and Joel RUNS on with Sarah in his arms (`carry`), past the old theatre,
+    // to the end of the chapter. The split keeps the truck's pace: the drive is 52 % of the
+    // leg and gets 52 % of the chapter, the run the other 48 % (`timeShare`) — so the camera,
+    // and the size of the chapter's props, stay exactly as they were with the truck alone.
+    legs: [
+      { leg: 0, to: 0.52 },
+      { leg: 0, from: 0.52, mode: 'walk', party: ['joel'], carry: true, timeShare: 0.48, note: 'The truck crashes near Buda — Joel runs on, carrying Sarah' },
+    ],
     ambience: ['embers', 'smoke'],
   },
   {
@@ -180,10 +187,13 @@ export const CHAPTERS: readonly Chapter[] = [
     ]),
     // Starts right outside Lincoln. Into the town, then through it with Bill; at the end
     // Bill's truck runs again and they drive out of Lincoln (the last 20 % of the chapter).
+    // The truck is parked there, visible, from the start of the chapter (`waitingTruck`).
     legs: [
       { leg: 2, from: 0.8639, to: 0.9029, note: 'Arriving in Lincoln' },
       { leg: 2, from: 0.9029, party: ['joel', 'bill', 'ellie'], note: 'Through Lincoln with Bill' },
-      { leg: 3, from: 0, to: 0.1, timeShare: 0.2, note: "Bill's truck — leaving Lincoln" },
+      // `waitingTruck`: the truck stands parked where this part starts for the whole chapter,
+      // so it is already on the map while they walk through Lincoln; they reach it, and it drives off.
+      { leg: 3, from: 0, to: 0.1, timeShare: 0.2, waitingTruck: true, note: "Bill's truck — leaving Lincoln" },
     ],
     ambience: ['fireflies', 'dust'],
   },

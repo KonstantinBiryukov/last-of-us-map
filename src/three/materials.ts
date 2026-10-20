@@ -57,6 +57,12 @@ export const PALETTE = {
   davidCoat: 0x7a5a3a,
   davidPants: 0x3a332c,
   davidHair: 0x8a8580,
+  // Outbreak night (Hometown): Joel in a plain grey t-shirt, no backpack yet; his daughter
+  // Sarah in a pale t-shirt, dark pyjama trousers, light-brown hair.
+  joelTee: 0x5f6266,
+  sarahShirt: 0xc9c4b8,
+  sarahPants: 0x3a3f4a,
+  sarahHair: 0x6b4a2e,
   boots: 0x3a2a1e,
   backpack: 0x6e5a3c,
   strap: 0x2b2118,

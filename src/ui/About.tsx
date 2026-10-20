@@ -13,6 +13,8 @@ import styles from './About.module.css';
 const WIKI_URL = 'https://thelastofus.fandom.com/wiki/The_Last_of_Us_Wiki';
 /** The licence of that wiki's text (Fandom wikis use CC BY-SA). */
 const CC_BY_SA_URL = 'https://creativecommons.org/licenses/by-sa/3.0/';
+/** The version shown at the bottom of this dialog: 2.0 = the rebuilt, modernised journey. */
+const APP_VERSION = '2.0';
 
 export function About({ onClose }: { onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -106,7 +108,8 @@ export function About({ onClose }: { onClose: () => void }) {
           made for this project.
         </p>
         <p className={styles.author}>Made by Konstantin Biriukov.</p>
-        <p className={styles.stack}>Built with React, TypeScript, Mapbox GL JS and Three.js.</p>
+        {/* The release shown to visitors (bump it by hand with each big update). */}
+        <p className={styles.stack}>Version {APP_VERSION}. Built with React, TypeScript, Mapbox GL JS and Three.js. </p>
       </div>
     </div>
   );
