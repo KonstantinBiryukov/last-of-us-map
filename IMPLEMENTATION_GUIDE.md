@@ -147,7 +147,10 @@ so a restriction to `…/last-of-us-map/` never matches and every tile request f
 **403 Forbidden** (the app then shows the fallback map with "The Mapbox token was rejected").
 Restricting to the bare origin would work, but would also let every other site under
 `konstantinbiryukov.github.io` use the token. The meta tag makes the browser send the full
-page address to HTTPS sites, so the path restriction matches. (Style and font requests are not
+page address to HTTPS sites, so the path restriction matches. Map **tiles**, however, are
+downloaded by Mapbox's background Web Worker (a `blob:` script), which does not inherit the page's
+referrer setting; so `MapView.tsx` also passes `transformRequest: (url) => ({ url, referrerPolicy:
+'no-referrer-when-downgrade' })`, which Mapbox applies to every request, worker ones included. (Style and font requests are not
 URL-checked by Mapbox, so a 403 shows up only on tiles — test e.g.
 `https://api.mapbox.com/v4/mapbox.satellite.json?access_token=…` with a `Referer` header.)
 

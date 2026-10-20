@@ -41,6 +41,9 @@
           after "#" is never sent at all.
         • It applies to this site only; other sites are unaffected.
 
+      Map TILES are downloaded by Mapbox's background worker, which does not inherit this meta
+      tag — src/map/MapView.tsx sets the same policy on every Mapbox request (transformRequest).
+
       If the map ever shows "The Mapbox token was rejected" again, check in the Mapbox dashboard
       (Tokens → this token → URLs) that the restriction is
           https://konstantinbiryukov.github.io/last-of-us-map/
