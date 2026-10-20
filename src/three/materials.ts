@@ -84,6 +84,9 @@ export const PALETTE = {
   woodDark: 0x4a3726,
   leaf: 0x48623a,
   leafDark: 0x2f4527,
+  // Autumn leaves (Fort Collins): a bright orange crown and a deeper orange top.
+  leafAutumn: 0xd2752a,
+  leafAutumnDark: 0xa94e1c,
   trunk: 0x4b3624,
   stone: 0x9b978c,
   metal: 0x6b6f73,

@@ -347,7 +347,13 @@ export const CHAPTERS: readonly Chapter[] = [
       // Ellie alone: her bow in hand (`bow`), and drawn 1.22× larger (`modelScale`) — her
       // figure is built at 0.82 of Joel's height, so alone she looked small next to Joel on his
       // own part that follows; 1 / 0.82 ≈ 1.22 makes her the same size on screen as he is.
-      { leg: 10, from: 0.806, party: ['ellie'], mode: 'walk', bow: true, timeShare: 0.18, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      // Her first stretch is cut where she passes closest to The Hunt (leg 10 at 0.8441, see
+      // data/keyPoints.ts): there she stops for 5 s (`pauseSeconds`, added to the chapter —
+      // the rest keeps its pace), draws her bow and shoots the rabbit (`hunt`). The 18 % of the
+      // chapter is split by distance: 0.0381 / 0.194 of it before the pause, the rest after.
+      { leg: 10, from: 0.806, to: 0.8441, party: ['ellie'], mode: 'walk', bow: true, timeShare: 0.0354, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      { leg: 10, from: 0.8441, to: 0.8441, party: ['ellie'], mode: 'walk', bow: true, pauseSeconds: 5, hunt: true, note: 'Ellie hunts — a rabbit for Joel', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      { leg: 10, from: 0.8441, party: ['ellie'], mode: 'walk', bow: true, timeShare: 0.1446, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
       { leg: 11, from: 0, to: 0.21, party: ['ellie'], bow: true, timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
       { leg: 11, from: 0.21, to: 0.737, party: ['joel'], timeShare: 0.1, note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },
       { leg: 11, from: 0.737, timeShare: 0.1, note: 'Together again', camera: { zoom: 0.8 } },

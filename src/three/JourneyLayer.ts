@@ -55,13 +55,17 @@ import {
 import { createHorse, poseHorse, poseHorseIdle, type Horse } from './models/horse';
 import { createTruck, poseTruck, type Truck } from './models/truck';
 import { disposeGeometries, disposeMaterials } from './materials';
+import { disposeGraffiti } from './graffiti';
 import { Beacon, BlobShadow, Comet, createSharedTexture, Dust, Trail, TRAIL_POINTS, TRAIL_STYLE } from './effects';
 import { Ambience } from './ambience';
 import { KeyPointProps } from './keyPoints';
+import { Hunt, HUNT_HIT, type HuntFrame } from './hunt';
 import { keyPointPlacements, type KeyPointPlacement } from '../playback/keyPoints';
 
 /** Degrees → radians multiplier (Three.js angles are in radians: 180° = π). */
 const DEG = Math.PI / 180;
+/** Metres in one degree of latitude (nearly the same everywhere). */
+const METRES_PER_DEGREE_LAT = 111_320;
 
 export interface JourneyLayerOptions {
   /** Return true to draw dust and seasonal particles (false on low-power devices). */
@@ -141,7 +145,13 @@ const WALK_FORMATION: readonly (readonly (readonly [number, number])[])[] = [
 const WOUNDED_BACK_HEIGHT = 0.46;
 const WOUNDED_Z = 0.3;
 const WOUNDED_HIP_X = 0;
-const TRUCK_VISUAL_SPEED = 9;
+/**
+ * How fast the truck's wheels turn: "visual" metres per story second (the real speed would
+ * spin them far too fast to see). 4 m/s ≈ 1.5 turns a second. Faster (it used to be 9, ≈ 3.4
+ * turns) and the screen's 60 frames a second sample the spin too coarsely, so the wheels
+ * seem to stand still or even turn backwards (the "wagon-wheel" effect).
+ */
+const TRUCK_VISUAL_SPEED = 4;
 /**
  * Smoothing of the drawn route: ±this many screen pixels (see smoothedPointAt), at most
  * SMOOTH_MAX_M metres. Rides and drives are smoothed more: they cover long, winding mountain
@@ -190,6 +200,11 @@ export class JourneyLayer implements CustomLayerInterface {
   private keyPoints!: KeyPointProps;
   private shadow!: BlobShadow;
   private texture!: THREE.Texture;
+  /** Ellie's hunt in Lakeside Resort (hunt.ts): her shot and the arrow. */
+  private readonly hunt = new Hunt();
+  /** The hunt's pause on the clock (story seconds), found once from the timeline (null if none). */
+  private huntSpan: { start: number; end: number } | null = null;
+  private readonly huntFrame: HuntFrame = { active: false, progress: 0, sinceHit: -1, routeHeading: 0, scale: 1 };
 
   // Scratch objects reused every frame (no garbage → no stutter from the garbage collector).
   private readonly pos: MutableLngLat = [0, 0];
@@ -255,7 +270,10 @@ export class JourneyLayer implements CustomLayerInterface {
     this.crossings = placements.flatMap((p) => (p.crossing ? [p.crossing] : []));
 
     this.geo.add(this.trail.mesh, this.comet.cloud.points, this.dust.cloud.points, this.ambience.group, this.beacon.mesh, this.keyPoints.group);
-    this.scene.add(this.geo, this.subject);
+    this.scene.add(this.geo, this.subject, this.hunt.arrow);
+    // The hunt's pause (data/chapters.ts: `hunt`), if the story has one.
+    const huntSpan = this.engine.timeline.chapters.flatMap((c) => c.legSpans).find((s) => s.hunt);
+    this.huntSpan = huntSpan ? { start: huntSpan.start, end: huntSpan.end } : null;
     this.subject.add(this.shadow.mesh);
     this.buildRigs();
   }
@@ -271,6 +289,7 @@ export class JourneyLayer implements CustomLayerInterface {
     this.texture.dispose();
     disposeGeometries();
     disposeMaterials();
+    disposeGraffiti();
     this.scene.clear();
     this.renderer?.dispose();
     this.renderer = null;
@@ -396,14 +415,24 @@ export class JourneyLayer implements CustomLayerInterface {
     // On a bridge: face along the deck (blended in and out with the walk onto it).
     const crossing = this.crossingAt(distance);
     if (crossing) heading += (((crossing.bearing - heading + 540) % 360) - 180) * crossing.weight;
-    this.subject.rotation.y = -heading * DEG;
-    this.poseRigs(mode, party, span.wounded, frame.travelling, storyTime);
+    // During a pause (Ellie's hunt) they stand: the idle pose, not the walk.
+    this.poseRigs(mode, party, span.wounded, frame.travelling && !span.pause, storyTime);
     // Ellie's bow: in her hand only while she hunts alone (parts with `bow`), and only on foot.
     const walkingBow = this.rigs.walk.people.ellie.bow;
     if (walkingBow) walkingBow.visible = span.bow && mode === 'walk';
     // The chapters' key-point props: fixed size and place on the map (keyPoints.ts); only
     // their position relative to the travellers (the camera's centre) changes.
     this.keyPoints.update(map, { mx: mercatorX(lng), my: mercatorY(lat), elevation, unitsPerMeter });
+    // Ellie's hunt (hunt.ts): during its pause she turns to the rabbit and shoots it; after the
+    // hit, the rabbit stays down. It needs the props in place, so it comes after them.
+    const huntSpan = this.huntSpan;
+    const hf = this.huntFrame;
+    hf.active = huntSpan !== null && span.hunt;
+    hf.progress = huntSpan ? (storyTime - huntSpan.start) / (huntSpan.end - huntSpan.start) : 0;
+    hf.sinceHit = huntSpan ? storyTime - (huntSpan.start + HUNT_HIT * (huntSpan.end - huntSpan.start)) : -1;
+    hf.routeHeading = heading;
+    hf.scale = this.subject.scale.x;
+    this.subject.rotation.y = -this.hunt.update(hf, this.rigs.walk.people.ellie, this.keyPoints.huntRabbit) * DEG;
     const [sw, sl] = SHADOW_SIZE[mode];
     this.shadow.setSize(sw, sl);
 
@@ -423,7 +452,7 @@ export class JourneyLayer implements CustomLayerInterface {
     this.dust.cloud.material.uniforms['uPixelRatio']!.value = pixelRatio;
     this.dust.update(
       storyDt,
-      effects && frame.travelling && !jumping ? DUST_RATE[mode] : 0,
+      effects && frame.travelling && !jumping && !span.pause ? DUST_RATE[mode] : 0,
       mercatorX(lng),
       mercatorY(lat),
       1 / unitsPerMeter,
@@ -472,9 +501,16 @@ export class JourneyLayer implements CustomLayerInterface {
     // second argument (missing from its TypeScript types).
     const project = map.project.bind(map) as (lngLat: [number, number], altitude?: number) => { x: number; y: number };
     const a = project([lng, lat], elevation);
-    // 100 m east, expressed in degrees of longitude at this latitude.
-    const dLng = (MEASURE_METRES * meterInMercatorUnits(lat) * 360);
-    const b = project([lng + dLng, lat], elevation);
+    // 100 m to the RIGHT ON SCREEN, not simply east. The map is tilted, so a line running into
+    // the screen looks shorter than the same line running across it. While the map turns with
+    // the route (`camera.heading: 'route'`, the horse ride in Lakeside Resort), "east" swings
+    // between across and into the screen — the measured size, and so the horse, grew and shrank
+    // with every bend of the mountain road. Across the screen is never shortened by the tilt:
+    // its compass direction is the map's bearing + 90°.
+    const across = (map.getBearing() + 90) * DEG;
+    const dLng = Math.sin(across) * MEASURE_METRES * meterInMercatorUnits(lat) * 360; // metres east → degrees of longitude
+    const dLat = (Math.cos(across) * MEASURE_METRES) / METRES_PER_DEGREE_LAT; // metres north → degrees of latitude
+    const b = project([lng + dLng, lat + dLat], elevation);
     const pixels = Math.hypot(b.x - a.x, b.y - a.y);
     if (!Number.isFinite(pixels) || pixels < 1e-6) return 1000;
     return MEASURE_METRES / pixels;

@@ -21,6 +21,7 @@ import { PROP_RADIUS } from '../../data/keyPoints';
 import { part, type PaletteKey } from '../materials';
 import { createCharacter, MARIA, MARLENE, poseIdle, TOMMY } from './character';
 import { addEmitter } from '../fire';
+import { fireflySign } from '../graffiti';
 
 export interface Prop {
   root: THREE.Group;
@@ -81,6 +82,15 @@ function windows(g: THREE.Group, count: number, width: number, y: number, z: num
     const wx = x - width / 2 + (width / count) * (i + 0.5);
     box(g, size, size, 0.04, 'windowDark', wx, y, z);
   }
+}
+
+/**
+ * A broadleaf tree in autumn colours (Fort Collins, in the fall): a straight trunk and one
+ * upright rectangular block of orange leaves on top — taller than it is wide.
+ */
+function autumnTree(g: THREE.Group, x: number, z: number, height = 1.6, leaves: PaletteKey = 'leafAutumn'): void {
+  cyl(g, 0.08, height * 0.4, 'trunk', x, 0, z, 1, 5);
+  box(g, height * 0.42, height * 0.62, height * 0.42, leaves, x, height * 0.36, z);
 }
 
 /** A simple low-poly tree: trunk and a cone or a lumpy crown. */
@@ -294,30 +304,31 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     }
   },
   // A sewer outlet: a pipe mouth in a concrete wall over dark water.
-  // The sewer outlet (left: a concrete wall, the pipe's dark mouth, its water) and, a good way
-  // off to the right on a sandy bank, the beached boat from the game as a model of its own.
+  // The sewer outlet: a concrete wall, the pipe's dark mouth and the water flowing out of it.
+  // (The beached boat nearby is a key point of its own: `boat`.)
   sewer: (g) => {
-    pad(g, 6.2, 2.6);
-    const X = -1.6; // the outlet's centre, well left of the middle — the boat has the right side
-    box(g, 2.8, 1.6, 0.6, 'concreteDark', X, 0, 0.4);
-    const pipe = part('prop-pipe', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 10).rotateX(Math.PI / 2), 'concrete', X, 0.75, -0.1);
+    pad(g, 3, 2.6);
+    box(g, 2.8, 1.6, 0.6, 'concreteDark', 0, 0, 0.4);
+    const pipe = part('prop-pipe', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 10).rotateX(Math.PI / 2), 'concrete', 0, 0.75, -0.1);
     pipe.scale.set(1.1, 1.1, 0.6);
     g.add(pipe);
-    const mouth = part('prop-pipe', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 10).rotateX(Math.PI / 2), 'windowDark', X, 0.75, -0.42);
+    const mouth = part('prop-pipe', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 10).rotateX(Math.PI / 2), 'windowDark', 0, 0.75, -0.42);
     mouth.scale.set(0.85, 0.85, 0.05);
     g.add(mouth);
-    box(g, 2.8, 0.1, 1.5, 'water', X, 0.04, -0.95); // sits clearly on the base (no flicker against it)
-
-    // The beached boat, as in the game's Suburbs: a small blue fishing boat stranded on sand,
+    box(g, 2.8, 0.1, 1.5, 'water', 0, 0.04, -0.95); // sits clearly on the base (no flicker against it)
+  },
+  // The beached boat from the game's Suburbs, standing on its own on the ground — no base
+  // under it, so it looks stranded in the landscape.
+  boat: (g) => {
+    // A small blue fishing boat run aground,
     // listing to one side — a pointed bow, a rusty keel stripe and a pale trim line, a grimy
     // wheelhouse with dark windows and a railing on its roof, a railing round the foredeck, an
     // old tyre hung over the side as a fender, long green weed hanging down the hull, and a
     // loose plank leaning against it. Built with its length along X (bow to the right), so its
     // long blue side faces the front, like the screenshot. All sizes in model metres.
     const boat = new THREE.Group();
-    boat.position.set(1.65, 0.08, -0.15); // ~1.1 m of sand between the water's edge (x 0) and its stern
+    boat.position.set(-0.1, 0, 0); // centred on the prop (the pointed bow reaches a little further right)
     boat.rotation.set(0, 0.12, 0.07); // turned a touch, and listing — it ran aground
-    box(g, 2.6, 0.08, 1.2, 'sand', 1.75, 0, -0.15); // the sand bank it lies on
     // Hull: the main blue body, then the pointed bow (a box turned 45°: a diamond whose front
     // corner is the stem), keel stripe at the bottom and a pale band under the deck edge.
     box(boat, 1.5, 0.5, 0.7, 'boatBlue', -0.1, 0, 0);
@@ -357,7 +368,7 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     box(boat, 0.3, 0.04, 0.5, 'seaweed', -0.1, 1.05, 0.02); // and a clump on the wheelhouse roof
     g.add(boat);
     // A loose plank leaning against the boat's front side, its foot in the sand.
-    const plank = box(g, 1.0, 0.04, 0.12, 'rottenWood', 1.95, 0.06, -0.72);
+    const plank = box(g, 1.0, 0.04, 0.12, 'rottenWood', 0.2, 0.06, -0.57);
     plank.rotation.set(0, -0.15, 0.42);
   },
   // Two suburban houses with a picket fence.
@@ -428,6 +439,24 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     windows(g, 6, 3.0, 0.9, -0.51);
     box(g, 0.6, 1.0, 0.04, 'crossRed', 1.3, 0.5, -0.53); // the Big Horns banner
   },
+  // A few trees in their autumn orange across the road from the university — it is fall in
+  // Fort Collins. Standing straight on the ground (no base), in two shades of orange.
+  autumnTrees: (g) => {
+    autumnTree(g, -0.7, 0.2, 1.7);
+    autumnTree(g, 0.25, -0.25, 1.4, 'leafAutumnDark');
+    autumnTree(g, 0.85, 0.45, 1.55);
+  },
+  // A wooden ladder lying flat on the ground in Lehi, Utah — just the item, no base: two long
+  // side rails with rungs between them, lying a little askew, one rail resting slightly higher
+  // (on a stone) so it does not look painted onto the ground. Built along X, 2.6 long.
+  ladder: (g) => {
+    const ladder = new THREE.Group();
+    ladder.rotation.set(0, 0.35, 0.04); // turned on the ground, tipped a touch
+    for (const z of [-0.24, 0.24]) box(ladder, 2.6, 0.07, 0.08, 'wood', 0, 0.02, z); // side rails
+    for (let i = 0; i < 9; i++) box(ladder, 0.06, 0.05, 0.48, 'palletWood', -1.15 + i * 0.2875, 0.04, 0); // rungs
+    box(ladder, 0.16, 0.1, 0.16, 'stone', 0.9, -0.04, 0.24); // the stone under one rail
+    g.add(ladder);
+  },
   // The science building: a flat block with a rooftop dish and vents.
   lab: (g) => {
     pad(g, 3.8, 3);
@@ -460,6 +489,12 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     box(g, 0.7, 1.1, 0.04, 'windowDark', 0, 0, -0.72);
     box(g, 1.1, 0.08, 0.4, 'concrete', 0, 1.15, -0.88);
     for (let y = 1.4; y < 3.2; y += 0.6) windows(g, 4, 2.2, y, -0.71);
+    // The Fireflies' sign sprayed in red on the front wall, left of the door (Marlene stands on
+    // the right): a decal just in front of the wall, which is at z −0.70 (three/graffiti.ts).
+    const sign = fireflySign();
+    sign.position.set(-0.82, 0.62, -0.725);
+    sign.scale.setScalar(0.85);
+    g.add(sign);
     // Marlene, standing just outside the door, a little to the side (the travellers' walk ends
     // right in front of the door, see playback/keyPoints.ts), turned towards them. The same
     // blocky figure as the travellers, at 0.7: the travellers are sized in screen pixels and the
@@ -467,7 +502,7 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     // walkers coming up to her (measured at the camera's usual zoom for the arrival).
     const marlene = createCharacter(MARLENE);
     poseIdle(marlene, 0);
-    marlene.root.position.set(0.6, 0, -0.95);
+    marlene.root.position.set(1.2, 0, -1.05); // well to the side of the door, clear of its canopy (x ±0.55, 1.15 up)
     marlene.root.rotation.y = 0.35; // facing out of the door, turned a little towards the middle
     marlene.root.scale.setScalar(0.7);
     g.add(marlene.root);
@@ -479,8 +514,8 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     pad(g, 3.6, 3);
     tree(g, -1.1, 0.6, 2.3);
     tree(g, 0.2, 0.95, 2.0);
-    tree(g, 1.2, 0.4, 1.7);
-    tree(g, 1.45, -0.95, 1.4, false); // a small one at the front corner, clear of the animals
+    tree(g, 1.0, 1.1, 1.7); // at the back, out of the line Ellie shoots along
+    tree(g, -1.5, -0.95, 1.4, false); // a small one at the front corner, clear of the animals
     // The deer: four thin legs, a body, a raised neck and head, a white tail, branching antlers.
     const deer = new THREE.Group();
     deer.position.set(0.3, 0, -0.4);
@@ -501,7 +536,9 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     g.add(deer);
     // The rabbit: small body, round head, two long ears, a white tail.
     const rabbit = new THREE.Group();
-    rabbit.position.set(-1.0, 0, -0.8);
+    // Front left as built — after the prop is turned to face the camera it is on the side Ellie
+    // walks past, in the open, so her arrow has a clear line to it (JourneyLayer: the hunt).
+    rabbit.position.set(1.2, 0, -0.7);
     rabbit.rotation.y = -0.25; // facing the front (the camera) like the deer
     rabbit.scale.setScalar(2); // larger than life, so it reads next to the deer
     box(rabbit, 0.16, 0.14, 0.26, 'rabbitGrey', 0, 0, 0); // body
@@ -510,6 +547,7 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     box(rabbit, 0.03, 0.14, 0.03, 'rabbitGrey', 0.03, 0.22, -0.14);
     box(rabbit, 0.06, 0.06, 0.05, 'offWhite', 0, 0.06, 0.14); // tail
     g.add(rabbit);
+    g.userData['huntRabbit'] = rabbit; // Ellie's target (JourneyLayer shoots it; it then lies on its side)
   },
   // A house on fire in Buda, Texas, on the night of the outbreak: charred walls, the windows
   // and door glowing (emissive), and real particle fire and smoke (three/fire.ts): flames

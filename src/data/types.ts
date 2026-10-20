@@ -152,6 +152,11 @@ export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | '
  *   wounded – Joel lies wounded across the horse's back while Ellie rides
  *             (the escape after the university, in the game)
  *   bow     – Ellie carries her bow in her left hand (hunting alone in Lakeside Resort)
+ *   pauseSeconds – this slice is a PAUSE: the travellers stand still for this many seconds at
+ *             the slice's point (give the same `from` and `to`). The seconds are ADDED to the
+ *             chapter (it gets longer; its slides are spread over the longer time), so every
+ *             other part of the chapter keeps exactly its pace
+ *   hunt    – during the pause, Ellie aims her bow at the rabbit of The Hunt and shoots it
  *   timeShare – a fixed fraction of the chapter's time for this slice (e.g. 0.2 =
  *             the last 20 % of the Epilogue on foot), instead of the usual share
  *             by distance and speed
@@ -170,6 +175,8 @@ export interface LegPart {
   mode?: TravelMode;
   wounded?: boolean;
   bow?: boolean;
+  pauseSeconds?: number;
+  hunt?: boolean;
   timeShare?: number;
   note?: string;
   camera?: PartCamera;
@@ -269,6 +276,9 @@ export type PropKind =
   | 'hotel' // a tall hotel with a sign on the roof
   | 'bridge' // a yellow self-anchored suspension bridge (Pittsburgh's "Three Sisters")
   | 'sewer' // a sewer outlet pipe in a concrete wall
+  | 'boat' // the beached blue fishing boat (Suburbs, by Duff City)
+  | 'autumnTrees' // a few orange autumn trees (across the road from the university)
+  | 'ladder' // a ladder lying on the ground (Lehi, Utah)
   | 'suburb' // two small suburban houses with a fence
   | 'dam' // a hydroelectric dam with water behind it
   | 'ranch' // a ranch house with a barn

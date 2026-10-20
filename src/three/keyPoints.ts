@@ -65,6 +65,8 @@ export interface KeyPointFrame {
 
 export class KeyPointProps {
   readonly group = new THREE.Group();
+  /** The rabbit of The Hunt (props.ts), which Ellie shoots in Lakeside Resort (hunt.ts); null if absent. */
+  huntRabbit: THREE.Object3D | null = null;
   private readonly props: PlacedProp[] = [];
 
   constructor(placements: readonly KeyPointPlacement[]) {
@@ -92,6 +94,7 @@ export class KeyPointProps {
             ? Math.PI
             : -placement.bearing * DEG + (placement.side * Math.PI) / 2;
       this.group.add(root);
+      this.huntRabbit ??= (root.userData['huntRabbit'] as THREE.Object3D | undefined) ?? null;
       this.props.push({
         object: root,
         lng,

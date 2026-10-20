@@ -69,6 +69,9 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     },
   ],
   6: [
+    // The boat stranded on land that they pass in the game's Suburbs: on the Duff City side of
+    // the walk (west of it), right beside it (`close`; the walk passes -80.0992, 40.5843 here).
+    { name: 'The Boat', prop: 'boat', coord: [-80.1105, 40.5843], basis: 'Duff City, north-west of Pittsburgh (the beached boat in the game’s Suburbs)', close: true },
     { name: 'Sewers', prop: 'sewer', coord: [-80.0954, 40.5936], basis: "Pittsburgh's northern suburbs" },
     { name: 'Suburbs', prop: 'suburb', coord: [-80.0941, 40.651], basis: "Pittsburgh's northern suburbs" },
   ],
@@ -84,6 +87,9 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   8: [
     // The University of Eastern Colorado is modelled on Colorado State University, Fort Collins.
     { name: 'Go Big Horns', prop: 'campus', coord: [-105.085, 40.6], basis: 'Fort Collins, north of the CSU campus' },
+    // Autumn trees right across the road from the university: the walk runs south past the
+    // campus (west of it, at -105.0766, 40.6017), so these stand just east of it (`close`).
+    { name: 'Fall Colours', prop: 'autumnTrees', coord: [-105.0685, 40.601], basis: 'Fort Collins, across the road from the campus', close: true },
     { name: 'Science Building', prop: 'lab', coord: [-105.083, 40.5755], basis: 'the Colorado State University campus' },
   ],
   9: [
@@ -94,6 +100,11 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: 2 }, // twice the usual size
   ],
   10: [
+    // Walking north into the Salt Lake valley: a ladder left lying on the ground in Lehi, right
+    // beside the walk (`close`), small — a fifth of the giraffes' size (`scale: 0.4`). On the
+    // town's side of the walk, a step north-east of where it passes (-111.8427, 40.3971); the
+    // other side runs down to Utah Lake, and it must not stand near the water.
+    { name: 'The Ladder', prop: 'ladder', coord: [-111.8352, 40.4016], basis: 'Lehi, Utah, at the south end of the Salt Lake valley', close: true, scale: 0.4 },
     // The giraffes, met around the bus depot — in the valley's south (Riverton), on the valley
     // side west of I-15 (not the mountains). Far enough south that they are passed in the middle
     // of "Bus Depot", not at its very end, where they were still on screen in "The Firefly Lab"
@@ -128,7 +139,10 @@ export const PROP_RADIUS: Readonly<Record<PropKind, number>> = {
   school: 2.3,
   hotel: 1.6,
   bridge: 2.4,
-  sewer: 3, // the outlet plus, a good way off to its right, the beached boat
+  sewer: 1.7,
+  boat: 1.3,
+  autumnTrees: 1.2,
+  ladder: 1.4,
   suburb: 2.3,
   dam: 2.4,
   ranch: 2.3,

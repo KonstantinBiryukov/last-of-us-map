@@ -59,7 +59,9 @@ describe('story data', () => {
         const to = part.to ?? 1;
         expect(from).toBeGreaterThanOrEqual(0);
         expect(to).toBeLessThanOrEqual(1);
-        expect(to).toBeGreaterThan(from);
+        // A pause stands still at one point (from = to); every other part moves forward.
+        if (part.pauseSeconds !== undefined) expect(to).toBe(from);
+        else expect(to).toBeGreaterThan(from);
       }
       expect(chapter.ambience.length).toBeGreaterThan(0);
     }

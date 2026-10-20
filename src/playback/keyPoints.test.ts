@@ -11,10 +11,10 @@ describe('chapter key points', () => {
   const timeline = buildTimeline(CHAPTERS, route);
   const placed = placeKeyPoints(timeline, CHAPTERS, route);
 
-  it('every chapter has its key points (26 in all)', () => {
-    expect(placed).toHaveLength(26);
+  it('every chapter has its key points (29 in all)', () => {
+    expect(placed).toHaveLength(29);
     for (const chapter of CHAPTERS) expect(KEY_POINTS[chapter.number]?.length).toBeGreaterThan(0);
-    expect(placed.filter((p) => p.chapterIndex === 9).map((p) => p.name)).toEqual(['The Giraffes']);
+    expect(placed.filter((p) => p.chapterIndex === 9).map((p) => p.name)).toEqual(['The Ladder', 'The Giraffes']);
   });
 
   it('nobody walks through a prop: every travelled route point keeps clear of every footprint', () => {

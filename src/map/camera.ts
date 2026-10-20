@@ -506,6 +506,13 @@ export class CameraDirector {
     for (const chapter of this.engine.timeline.chapters) {
       for (const [spanIndex, span] of chapter.legSpans.entries()) {
         if (isJumpKind(span.kind)) continue;
+        // A pause (Ellie's hunt) does not move at all, so "a comfortable on-screen speed" would
+        // mean zooming in without limit: keep the framing of the stretch walked just before it.
+        const before = zooms.get(`${chapter.index}:${spanIndex - 1}`);
+        if (span.pause && before !== undefined) {
+          zooms.set(`${chapter.index}:${spanIndex}`, before);
+          continue;
+        }
         const lat = this.engine.route.legs[span.legIndex]!.coordinates[0]![1];
         zooms.set(`${chapter.index}:${spanIndex}`, comfortableZoom(span, lat));
       }

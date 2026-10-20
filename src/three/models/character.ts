@@ -87,6 +87,9 @@ export interface Character {
   hipHeight: number;
 }
 
+/** How far Ellie's carried bow is tilted out from her side (radians), so her body never hides it. */
+export const BOW_CARRY_TILT = 0.2;
+
 // Proportions for a 1.85 m adult; everything is multiplied by `scale`.
 const LEG = 0.47; // thigh length = shin length
 const TORSO_H = 0.6;
@@ -184,7 +187,7 @@ export function createCharacter(look: CharacterLook): Character {
   let bow: THREE.Group | null = null;
   if (look.name === 'ellie') {
     bow = joint(forearmL, 0, -ARM * 0.95 * s, 0); // at the hand (the end of the forearm)
-    bow.rotation.z = 0.2; // tilted out from her side, so her body never hides it
+    bow.rotation.z = BOW_CARRY_TILT;
     // Larger and thicker than a real bow, in light wood: at the map's scale a true-to-life
     // bow is a hairline that disappears against the snow.
     const LIMB = 0.62 * s; // each limb's length: the whole bow about 80 % of her height
@@ -420,4 +423,25 @@ export function poseWounded(c: Character, bounce: number): void {
   c.shinL.rotation.x = 1.1; // …and lower legs hanging down the right flank
   c.shinR.rotation.x = 1.1;
   if (c.ponytail) c.ponytail.rotation.set(0.5, 0, 0);
+}
+
+/**
+ * Ellie drawing her bow (the hunt in Lakeside Resort, see three/hunt.ts). Applied ON TOP of
+ * poseIdle, so only the arms (and the bow) change.
+ *   aim  – 0‥1: the bow arm (left) rises from hanging down to straight out in front, at
+ *          shoulder height, and the bow turns upright in front of her (it hangs along her
+ *          forearm otherwise, see createCharacter)
+ *   draw – 0‥1: the right hand comes up to the string and pulls it back to her cheek: the
+ *          upper arm forward and out to the side, the forearm folded back towards the face
+ * (Sign convention as above: positive X swings a hanging limb forward; positive Z on the
+ * right arm, negative on the left, swings it out to the side.)
+ */
+export function poseAim(c: Character, aim: number, draw: number): void {
+  c.armL.rotation.set(0.05 + (Math.PI / 2 - 0.05) * aim, 0, -0.08 + 0.08 * aim);
+  c.forearmL.rotation.x = 0.15 * (1 - aim); // the bow arm straightens
+  if (c.bow) c.bow.rotation.set((-Math.PI / 2) * aim, 0, BOW_CARRY_TILT * (1 - aim)); // upright in front when aiming
+  const hand = Math.max(aim * 0.6, draw); // the string hand comes up with the bow, then draws
+  c.armR.rotation.set(0.05 + 1.35 * hand, 0, 0.08 + 0.45 * draw);
+  c.forearmR.rotation.x = 0.15 + 2.25 * draw;
+  c.torso.rotation.y = -0.25 * aim; // a slight archer's turn: the bow shoulder leads
 }
