@@ -29,7 +29,7 @@ export const LEG_META: readonly LegMeta[] = [
   { featureIndex: 1, kind: 'timeskip', mode: 'walk', modeSource: 'default', note: 'Twenty years later — Austin to the Boston Quarantine Zone' },
   // 2 — On foot through Boston (QZ → docks → Fireflies → Downtown → Museum → Capitol, from
   //     the generated street route), then out of the city to Lincoln (original line).
-  { featureIndex: 2, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'Out of Boston towards Lincoln', streets: { route: 'boston', at: 'start' } },
+  { featureIndex: 2, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'Out of Boston towards Lincoln', streets: { route: 'boston', at: 'start', simplify: 40 } }, // straighter: zig-zags < 40 m dropped
   // 3–5 — Bill's truck heading west to Pittsburgh (4 has no detailed path).
   { featureIndex: 3, kind: 'detailed', mode: 'vehicle', modeSource: 'canon', note: "Driving west in Bill's truck" },
   { featureIndex: 4, kind: 'jump', mode: 'vehicle', modeSource: 'canon', note: "Bill's truck, further west (no detailed path in the source data)" },

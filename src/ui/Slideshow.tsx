@@ -110,7 +110,7 @@ export const Slideshow = memo(function Slideshow({ chapters, chapterIndex, slide
             entering={i === layers.length - 1 && layers.length > 1}
             animate={!reducedMotion}
             playing={playing}
-            seconds={engine.timeline.config.slideSeconds}
+            seconds={engine.timeline.chapters[chapterIndex]?.slideSeconds ?? engine.timeline.config.slideSeconds}
             onShown={() => setLayers((ls) => (ls.length > 1 && ls[ls.length - 1]!.key === layer.key ? [layer] : ls))}
             alt={`${chapter.label}, ${chapter.title} — image ${slideIndex + 1} of ${total}`}
           />

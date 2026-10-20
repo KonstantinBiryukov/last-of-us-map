@@ -44,6 +44,11 @@ export const PALETTE = {
   tommyJacket: 0x6b4a2e,
   tommyPants: 0x38383a,
   tommyHair: 0x4a3626,
+  // Ellie's bow: a light, honey-coloured wood that stands out against snow and dark forest.
+  bowWood: 0xb08453,
+  // Marlene: the Fireflies' leader — an olive field jacket, dark khaki trousers.
+  marleneJacket: 0x5b5a3c,
+  marlenePants: 0x3b382c,
   // Maria: Tommy's wife — dark hair tied back, a muted teal jacket, dark trousers.
   mariaJacket: 0x4d6a64,
   mariaPants: 0x2f3338,
@@ -52,6 +57,12 @@ export const PALETTE = {
   davidCoat: 0x7a5a3a,
   davidPants: 0x3a332c,
   davidHair: 0x8a8580,
+  // Outbreak night (Hometown): Joel in a plain grey t-shirt, no backpack yet; his daughter
+  // Sarah in a pale t-shirt, dark pyjama trousers, light-brown hair.
+  joelTee: 0x5f6266,
+  sarahShirt: 0xc9c4b8,
+  sarahPants: 0x3a3f4a,
+  sarahHair: 0x6b4a2e,
   boots: 0x3a2a1e,
   backpack: 0x6e5a3c,
   strap: 0x2b2118,
@@ -79,6 +90,11 @@ export const PALETTE = {
   woodDark: 0x4a3726,
   leaf: 0x48623a,
   leafDark: 0x2f4527,
+  // Snow on the ground (The Hunt, in Lakeside Resort's winter): bright, slightly cool white.
+  snow: 0xe9eef2,
+  // Autumn leaves (Fort Collins): a bright orange crown and a deeper orange top.
+  leafAutumn: 0xd2752a,
+  leafAutumnDark: 0xa94e1c,
   trunk: 0x4b3624,
   stone: 0x9b978c,
   metal: 0x6b6f73,
@@ -101,6 +117,31 @@ export const PALETTE = {
   palletWoodLight: 0xb59c74,
   palletWoodDark: 0x5e4a33,
   waterDark: 0x2c4350,
+  // Silver Lake's animals.
+  deerBrown: 0x8b6a45,
+  deerBelly: 0xc9b08a,
+  antler: 0xd8ccb0,
+  rabbitGrey: 0x9a9088,
+  // The rotten boat by the sewer: soaked, blackened planks and slimy weed.
+  rottenWood: 0x3f3324,
+  // The beached boat in the Suburbs: faded marine blue, on a sandy bank.
+  boatBlue: 0x3e5fa8,
+  // The decayed school buses (Bus Depot): faded yellow and a darker roof.
+  busYellow: 0xc79a3c,
+  busYellowDark: 0x9c7a34,
+  mud: 0x5a5a34, // the green, weedy mud it is stuck in
+  mudDark: 0x404426,
+  sand: 0xb9a97f,
+  seaweed: 0x3e5a2a,
+  // The burning house in Bluff Springs (south Austin): charred walls and glowing flames (emissive, see material()).
+  charred: 0x2b2622,
+  fireOrange: 0xff6a1a,
+  fireYellow: 0xffc23d,
+  smoke: 0x3d3833,
+  // The old theatre (Buda): red and white neon and lit windows.
+  neonRed: 0xff3b2a,
+  neonWhite: 0xfff1d6,
+  windowLit: 0xffc77a,
 } as const;
 
 export type PaletteKey = keyof typeof PALETTE;
@@ -112,9 +153,10 @@ export function material(key: PaletteKey): THREE.MeshLambertMaterial {
   let m = cache.get(key);
   if (!m) {
     m = new THREE.MeshLambertMaterial({ color: PALETTE[key], flatShading: true });
-    if (key === 'headlight') {
-      m.emissive = new THREE.Color(PALETTE.headlight);
-      m.emissiveIntensity = 1.2;
+    if (key === 'headlight' || key === 'fireOrange' || key === 'fireYellow' || key === 'neonRed' || key === 'neonWhite' || key === 'windowLit') {
+      // Light sources glow by themselves (emissive): headlights and the flames in Bluff Springs.
+      m.emissive = new THREE.Color(PALETTE[key]);
+      m.emissiveIntensity = key === 'headlight' ? 1.2 : 1.6;
     }
     cache.set(key, m);
   }

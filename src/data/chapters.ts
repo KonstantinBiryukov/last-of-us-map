@@ -22,15 +22,15 @@
  *
  * WHERE EACH CHAPTER TRAVELS (matched to the game and to the chapter's images)
  * Every chapter only moves through the place its images show, and the travellers
- * are always moving. Fractions of leg 2 (Boston → Lincoln, 35.1 km) come from the
- * generated Boston street route (public/server/info/boston-streets.geojson, which
- * records each stop's distance) and from measuring the line (IMPLEMENTATION_GUIDE.md,
- * Appendix C):
- *     0      Boston QZ (North End)            0.0154  Robert's place at the docks
- *     0.0401 the Fireflies (Ellie joins)      0.0526  beyond the wall
- *     0.0747 Downtown                         0.0879  the Museum
- *     0.1081 the Capitol (Tess stays behind)  0.8651  within 3 km of Lincoln
- *     0.9038 within 2 km of Lincoln (with Bill from here)
+ * are always moving. Fractions of leg 2 (Boston → Lincoln, 34.8 km) come from the
+ * generated Boston street route (public/server/info/boston-streets.geojson, straightened
+ * on load — zig-zags under 40 m dropped, see data/legs.ts) and from measuring the line
+ * (IMPLEMENTATION_GUIDE.md, Appendix C):
+ *     0      Boston QZ (North End)            0.0152  Robert's place at the docks
+ *     0.0388 the Fireflies (Ellie joins)      0.0472  beyond the wall
+ *     0.0694 Downtown                         0.0818  the Museum
+ *     0.1004 the Capitol (Tess stays behind)  0.8639  within 3 km of Lincoln
+ *     0.9029 within 2 km of Lincoln (with Bill from here)
  * Bill's truck (leg 3) starts at the end of "Bill's Town" and drives on in "Pittsburgh";
  * "Bus Depot" starts with the jump to Utah and stays near Salt Lake City.
  *
@@ -40,6 +40,9 @@
  * would be misleading (a long walk compressed into the end of a chapter).
  */
 import type { Chapter, Slide, SlideKind } from './types';
+
+/** How much larger Ellie is drawn when she travels alone: 1 / her height (0.82 of Joel's, three/models/character.ts). */
+const ELLIE_ALONE_SCALE = 1 / 0.82;
 
 /** Folder holding one sub-folder of images per chapter. */
 const BASE = 'server/assets/story_telling_images/chapters';
@@ -86,8 +89,15 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_7.png',
       'img_8.png',
     ]),
-    // The truck drives out of Austin from the very first image.
-    legs: [{ leg: 0 }],
+    // The truck drives out of Austin from the very first image. Just before Buda it crashes
+    // (as in the game) and Joel RUNS on with Sarah in his arms (`carry`), past the old theatre,
+    // to the end of the chapter. The split keeps the truck's pace: the drive is 52 % of the
+    // leg and gets 52 % of the chapter, the run the other 48 % (`timeShare`) — so the camera,
+    // and the size of the chapter's props, stay exactly as they were with the truck alone.
+    legs: [
+      { leg: 0, to: 0.52 },
+      { leg: 0, from: 0.52, mode: 'walk', party: ['joel'], carry: true, timeShare: 0.48, note: 'The truck crashes near Buda — Joel runs on, carrying Sarah' },
+    ],
     ambience: ['embers', 'smoke'],
   },
   {
@@ -111,8 +121,8 @@ export const CHAPTERS: readonly Chapter[] = [
     // Fireflies, where Marlene hands Ellie over; the three of them slip beyond the wall.
     legs: [
       { leg: 1 },
-      { leg: 2, from: 0, to: 0.0401, party: ['joel', 'tess'], note: 'Joel and Tess cross the Quarantine Zone to Robert and the Fireflies' },
-      { leg: 2, from: 0.0401, to: 0.0526, party: ['joel', 'tess', 'ellie'], note: 'Marlene entrusts Ellie to them — beyond the wall' },
+      { leg: 2, from: 0, to: 0.0388, party: ['joel', 'tess'], note: 'Joel and Tess cross the Quarantine Zone to Robert and the Fireflies' },
+      { leg: 2, from: 0.0388, to: 0.0472, party: ['joel', 'tess', 'ellie'], note: 'Marlene entrusts Ellie to them — beyond the wall' },
     ],
     ambience: ['spores', 'dust'],
   },
@@ -140,8 +150,15 @@ export const CHAPTERS: readonly Chapter[] = [
     // (about 70 % of the chapter; Tess dies near its end). Then Joel and Ellie leave Boston and
     // walk west, arriving close to Lincoln — that long walk is compressed into the last 30 %.
     legs: [
-      { leg: 2, from: 0.0526, to: 0.1081, party: ['joel', 'tess', 'ellie'], note: 'Downtown, the Museum, the Capitol' },
-      { leg: 2, from: 0.1081, to: 0.8651, timeShare: 0.3, note: 'Without Tess — out of Boston, towards Lincoln' },
+      // The trio's Boston walk takes 56 % of the chapter (1.85 km in ~34 s — a brisk walk,
+      // ~25 % quicker than the 70 % it used to take). After the State House, Joel and Ellie
+      // walk on at the SAME pace for ~1.2 km (0.1004 → 0.135: the time left after the jump;
+      // leg 2 is 34.8 km, so 0.0346 of it ≈ 1.2 km ≈ the ~22 s that remain × the same speed),
+      // then the long walk to Lincoln (~25 km) is skipped like a jump (`hidden`) — walking it
+      // in what is left of the chapter would have meant running.
+      { leg: 2, from: 0.0472, to: 0.1004, party: ['joel', 'tess', 'ellie'], timeShare: 0.56, note: 'Downtown, the Museum, the Capitol' },
+      { leg: 2, from: 0.1004, to: 0.135, note: 'Without Tess — out of Boston' },
+      { leg: 2, from: 0.135, to: 0.8639, hidden: true, note: 'The long walk to Lincoln' },
     ],
     ambience: ['spores', 'fireflies'],
   },
@@ -170,10 +187,13 @@ export const CHAPTERS: readonly Chapter[] = [
     ]),
     // Starts right outside Lincoln. Into the town, then through it with Bill; at the end
     // Bill's truck runs again and they drive out of Lincoln (the last 20 % of the chapter).
+    // The truck is parked there, visible, from the start of the chapter (`waitingTruck`).
     legs: [
-      { leg: 2, from: 0.8651, to: 0.9038, note: 'Arriving in Lincoln' },
-      { leg: 2, from: 0.9038, party: ['joel', 'bill', 'ellie'], note: 'Through Lincoln with Bill' },
-      { leg: 3, from: 0, to: 0.1, timeShare: 0.2, note: "Bill's truck — leaving Lincoln" },
+      { leg: 2, from: 0.8639, to: 0.9029, note: 'Arriving in Lincoln' },
+      { leg: 2, from: 0.9029, party: ['joel', 'bill', 'ellie'], note: 'Through Lincoln with Bill' },
+      // `waitingTruck`: the truck stands parked where this part starts for the whole chapter,
+      // so it is already on the map while they walk through Lincoln; they reach it, and it drives off.
+      { leg: 3, from: 0, to: 0.1, timeShare: 0.2, waitingTruck: true, note: "Bill's truck — leaving Lincoln" },
     ],
     ambience: ['fireflies', 'dust'],
   },
@@ -290,12 +310,19 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_6.jpg',
       'img_7.jpg',
     ]),
-    // The long ride from Jackson, then the last few kilometres onto the campus (they spend the
-    // chapter at the university): a quarter of the chapter's time, so the camera comes in close
-    // and the university's key-point props stand right there, at their size for that view.
+    // The long ride from Jackson (the first quarter of the chapter, at a gallop), then the last
+    // 3.6 km onto the campus for the remaining three quarters (slow): the university's key-point
+    // props stand right where that stretch begins (leg 9 at 0.9951), so they are on screen for
+    // 75 % of the chapter instead of only its last moments. The camera comes in close for the
+    // slow stretch, and the props are sized for that view.
     legs: [
       { leg: 9, from: 0, to: 0.995 },
-      { leg: 9, from: 0.995, timeShare: 0.25, note: 'Riding onto the university campus' },
+      // The view is turned −30° for the slow ride (`bearing`): the riders head south, straight down
+      // a north-up screen with the path hidden behind them; turned, the path runs diagonally
+      // and is seen from an angle, with the campus and the autumn trees on either side. One zoom
+      // level further out than the camera's own choice (`zoom: -1`): the ride is so slow that
+      // it would otherwise frame single streets, and zooming in from there went far too close.
+      { leg: 9, from: 0.995, timeShare: 0.75, note: 'Riding onto the university campus', camera: { bearing: -30, zoom: -1 } },
     ],
     ambience: ['leaves', 'dust'],
   },
@@ -334,9 +361,20 @@ export const CHAPTERS: readonly Chapter[] = [
     // levels closer than usual throughout (the walks are compressed, so it would pull far out).
     legs: [
       { leg: 10, from: 0, to: 0.806, mode: 'horse', wounded: true, timeShare: 0.5, note: 'Ellie rides on, wounded Joel lying across the horse', camera: { zoom: 0.8, heading: 'route', modelScale: 2 } }, // horse and riders drawn twice as large
-      { leg: 10, from: 0.806, party: ['ellie'], mode: 'walk', timeShare: 0.18, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8 } },
-      { leg: 11, from: 0, to: 0.21, party: ['ellie'], timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8 } },
-      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], timeShare: 0.1, note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },
+      // Ellie alone: her bow in hand (`bow`), and drawn 1.22× larger (`modelScale`) — her
+      // figure is built at 0.82 of Joel's height, so alone she looked small next to Joel on his
+      // own part that follows; 1 / 0.82 ≈ 1.22 makes her the same size on screen as he is.
+      // Her first stretch is cut where she passes closest to The Hunt (leg 10 at 0.8441, see
+      // data/keyPoints.ts): there she stops for 5 s (`pauseSeconds`, added to the chapter —
+      // the rest keeps its pace), draws her bow and shoots the rabbit (`hunt`). The 18 % of the
+      // chapter is split by distance: 0.0381 / 0.194 of it before the pause, the rest after.
+      { leg: 10, from: 0.806, to: 0.8441, party: ['ellie'], mode: 'walk', bow: true, timeShare: 0.0354, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      { leg: 10, from: 0.8441, to: 0.8441, party: ['ellie'], mode: 'walk', bow: true, pauseSeconds: 5, hunt: true, note: 'Ellie hunts — a rabbit for Joel', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      // After the hunt a snowstorm closes in (`blizzard`): Ellie, then Joel, fight their way
+      // through wind and snow.
+      { leg: 10, from: 0.8441, party: ['ellie'], mode: 'walk', bow: true, blizzard: true, timeShare: 0.1446, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      { leg: 11, from: 0, to: 0.21, party: ['ellie'], bow: true, blizzard: true, timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], blizzard: true, timeShare: 0.1, note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },
       { leg: 11, from: 0.737, timeShare: 0.1, note: 'Together again', camera: { zoom: 0.8 } },
     ],
     ambience: ['snow'],
@@ -363,7 +401,14 @@ export const CHAPTERS: readonly Chapter[] = [
     // into Salt Lake City (they are together again).
     // Leg 13 is ~95.9 km: 83.1 km of original line into downtown, then 12.8 km of streets to
     // the hospital. 0.694 ≈ 66.5 km, ~14 km from downtown, where the original split was.
-    legs: [{ leg: 12 }, { leg: 13, from: 0, to: 0.694 }],
+    // Halfway, Joel and Ellie stop for 6 s at the giraffe (leg 13 at 0.5558, where
+    // they pass it); Ellie walks up and pets it, as in the game (`pet`, three/petGiraffe.ts).
+    legs: [
+      { leg: 12 },
+      { leg: 13, from: 0, to: 0.5558 },
+      { leg: 13, from: 0.5558, to: 0.5558, pauseSeconds: 6, pet: true, note: 'Ellie meets the giraffes' },
+      { leg: 13, from: 0.5558, to: 0.694 },
+    ],
     ambience: ['pollen', 'petals'],
   },
   {
@@ -384,7 +429,15 @@ export const CHAPTERS: readonly Chapter[] = [
     ]),
     // The last ~17 km into downtown Salt Lake City, then ~13 km of streets south-east to
     // the Fireflies' hospital (St. Mark's — the game's St. Mary's).
-    legs: [{ leg: 13, from: 0.694 }],
+    // Leg 13 reaches downtown at 0.8665 (83.1 of its 95.9 km). From there the streets head
+    // south-east to the hospital, so on a north-up map they would walk DOWN the screen,
+    // towards the camera, and reach the hospital's back. For that last stretch the camera
+    // rides behind them (`heading: 'route'`): they walk UP the screen, straight at the
+    // hospital's front door, which faces the camera.
+    legs: [
+      { leg: 13, from: 0.694, to: 0.8665 },
+      { leg: 13, from: 0.8665, note: "Through the streets to St. Mary's Hospital", camera: { heading: 'route' } },
+    ],
     ambience: ['fireflies', 'pollen'],
   },
   {

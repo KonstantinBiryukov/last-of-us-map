@@ -77,12 +77,21 @@ export function createTruck(): Truck {
       () => new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.32, 10).rotateZ(Math.PI / 2),
       'tyre',
     );
+    // The spin must read at map scale, where a wheel is a few pixels across: a bright hubcap
+    // disc sticking out of the tyre on both sides, with a dark bar across it (like a spoke).
+    // A round, evenly coloured wheel looks the same at every angle; the bar is what you see
+    // turning.
     const hub = part(
-      'truck-hub',
-      () => new THREE.BoxGeometry(0.34, 0.3, 0.1), // a box makes the spin visible
+      'truck-hubcap',
+      () => new THREE.CylinderGeometry(WHEEL_RADIUS * 0.62, WHEEL_RADIUS * 0.62, 0.36, 10).rotateZ(Math.PI / 2),
       'hubcap',
     );
-    wheel.add(tyre, hub);
+    const spoke = part(
+      'truck-spoke',
+      () => new THREE.BoxGeometry(0.38, WHEEL_RADIUS * 1.1, 0.1), // across the hubcap, a little proud of it
+      'tyre',
+    );
+    wheel.add(tyre, hub, spoke);
     root.add(wheel);
     wheels.push(wheel);
   }

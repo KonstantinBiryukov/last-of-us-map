@@ -1,8 +1,9 @@
 {
-  // TypeScript settings for the Node-side config files (vite.config.ts).
+  // TypeScript settings for the Node-side files: vite.config.ts and the cross-browser tests
+  // (playwright.config.ts, e2e/ — their page.evaluate callbacks run in the browser, hence "DOM").
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "types": ["node"],
@@ -10,5 +11,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "playwright.config.ts", "e2e"]
 }

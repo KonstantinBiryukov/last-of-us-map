@@ -29,7 +29,7 @@ import { part, type PaletteKey } from '../materials';
 
 export interface CharacterLook {
   /** Also used as a key for caching each character's geometry sizes. */
-  name: 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david' | 'maria';
+  name: 'joel' | 'joelPrologue' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david' | 'maria' | 'marlene' | 'sarah';
   /** Overall size multiplier (Joel = 1). */
   scale: number;
   /** Shoulder width multiplier (Joel is broader). */
@@ -40,6 +40,8 @@ export interface CharacterLook {
   hair: PaletteKey;
   beard: boolean;
   ponytail: boolean;
+  /** Wears the backpack and its straps (default true; not on outbreak night, see JOEL_PROLOGUE and SARAH). */
+  backpack?: boolean;
 }
 
 export const JOEL: CharacterLook = {
@@ -81,9 +83,14 @@ export interface Character {
   shinL: THREE.Group;
   shinR: THREE.Group;
   ponytail: THREE.Group | null;
+  /** Ellie's bow, held in her left hand (hidden unless a part says she carries it); null for others. */
+  bow: THREE.Group | null;
   /** Height of the hip joint above the feet when standing. */
   hipHeight: number;
 }
+
+/** How far Ellie's carried bow is tilted out from her side (radians), so her body never hides it. */
+export const BOW_CARRY_TILT = 0.2;
 
 // Proportions for a 1.85 m adult; everything is multiplied by `scale`.
 const LEG = 0.47; // thigh length = shin length
@@ -122,9 +129,11 @@ export function createCharacter(look: CharacterLook): Character {
   const shoulderW = 0.44 * look.build * s;
   torso.add(box(`${k}-torso`, shoulderW, TORSO_H * s, 0.25 * s, look.shirt, 0, (TORSO_H * s) / 2, 0));
   torso.add(box(`${k}-belt`, shoulderW * 0.92, 0.08 * s, 0.26 * s, 'strap', 0, 0.02 * s, 0));
-  torso.add(box(`${k}-pack`, shoulderW * 0.75, 0.42 * s, 0.18 * s, 'backpack', 0, 0.36 * s, 0.2 * s));
-  torso.add(box(`${k}-strapL`, 0.05 * s, 0.5 * s, 0.27 * s, 'strap', -shoulderW * 0.3, 0.36 * s, 0.01 * s));
-  torso.add(box(`${k}-strapR`, 0.05 * s, 0.5 * s, 0.27 * s, 'strap', shoulderW * 0.3, 0.36 * s, 0.01 * s));
+  if (look.backpack !== false) {
+    torso.add(box(`${k}-pack`, shoulderW * 0.75, 0.42 * s, 0.18 * s, 'backpack', 0, 0.36 * s, 0.2 * s));
+    torso.add(box(`${k}-strapL`, 0.05 * s, 0.5 * s, 0.27 * s, 'strap', -shoulderW * 0.3, 0.36 * s, 0.01 * s));
+    torso.add(box(`${k}-strapR`, 0.05 * s, 0.5 * s, 0.27 * s, 'strap', shoulderW * 0.3, 0.36 * s, 0.01 * s));
+  }
 
   const head = joint(torso, 0, TORSO_H * s + 0.04 * s, 0);
   const headSize = 0.24 * s * (look.name === 'ellie' ? 1.05 : 1); // slightly bigger head reads "younger"
@@ -174,8 +183,65 @@ export function createCharacter(look: CharacterLook): Character {
   shinL.add(box(`${k}-boot`, 0.13 * s, 0.1 * s, 0.24 * s, 'boots', 0, -LEG * s + 0.02 * s, -0.04 * s));
   shinR.add(box(`${k}-boot`, 0.13 * s, 0.1 * s, 0.24 * s, 'boots', 0, -LEG * s + 0.02 * s, -0.04 * s));
 
-  return { root, hips, torso, head, armL, armR, forearmL, forearmR, thighL, thighR, shinL, shinR, ponytail, hipHeight };
+  // ── Ellie's bow (Lakeside Resort: she hunts alone) ──
+  // Held at its grip in her left hand, hanging down beside her like a bow carried while
+  // walking. Built in the hand's frame: the grip at the origin, the two limbs reaching up and
+  // down and curving back (+Z), and the string stretched straight between their tips.
+  // Hidden by default; JourneyLayer shows it for parts with `bow` (data/chapters.ts).
+  let bow: THREE.Group | null = null;
+  if (look.name === 'ellie') {
+    bow = joint(forearmL, 0, -ARM * 0.95 * s, 0); // at the hand (the end of the forearm)
+    bow.rotation.z = BOW_CARRY_TILT;
+    // Larger and thicker than a real bow, in light wood: at the map's scale a true-to-life
+    // bow is a hairline that disappears against the snow.
+    const LIMB = 0.62 * s; // each limb's length: the whole bow about 80 % of her height
+    const CURVE = 0.3; // how far each limb bends back from upright (radians)
+    for (const up of [1, -1]) {
+      // A limb: its inner end at the grip, its tip LIMB further up (or down) and bent back.
+      const limbMesh = box(`${k}-bowLimb`, 0.07 * s, LIMB, 0.08 * s, 'bowWood');
+      limbMesh.position.set(0, (up * LIMB * Math.cos(CURVE)) / 2, (LIMB * Math.sin(CURVE)) / 2);
+      limbMesh.rotation.x = up * CURVE; // the tip leans back (towards +Z) for both limbs
+      bow.add(limbMesh);
+    }
+    bow.add(box(`${k}-bowGrip`, 0.1 * s, 0.16 * s, 0.1 * s, 'strap')); // the leather-wrapped grip
+    // The string: a thin line from tip to tip, behind the grip.
+    bow.add(box(`${k}-bowString`, 0.02 * s, LIMB * Math.cos(CURVE) * 2, 0.02 * s, 'offWhite', 0, 0, LIMB * Math.sin(CURVE)));
+    bow.visible = false;
+  }
+
+  return { root, hips, torso, head, armL, armR, forearmL, forearmR, thighL, thighR, shinL, shinR, ponytail, bow, hipHeight };
 }
+
+/**
+ * Joel on outbreak night (Hometown), twenty years younger: the same build, beard and hair,
+ * but a plain grey t-shirt and no backpack. Its own name, so its geometry is cached apart.
+ */
+export const JOEL_PROLOGUE: CharacterLook = {
+  ...JOEL,
+  name: 'joelPrologue',
+  shirt: 'joelTee',
+  backpack: false,
+};
+
+/**
+ * Sarah: Joel's twelve-year-old daughter — pale t-shirt, pyjama trousers, no backpack.
+ * Sizes tried while carried in his arms: 0.72 of Joel looked nearly as big as him; 0.36 was
+ * hard to see on the map, and 0.5 read as a baby. 0.62 with a SLIM build and a normal-sized
+ * head (the bigger "young" head is for Ellie only) gives a lanky twelve-year-old: clearly a
+ * child, but not a small one.
+ */
+export const SARAH: CharacterLook = {
+  name: 'sarah',
+  scale: 0.62,
+  build: 0.78,
+  skin: 'skinEllie',
+  shirt: 'sarahShirt',
+  pants: 'sarahPants',
+  hair: 'sarahHair',
+  beard: false,
+  ponytail: false,
+  backpack: false,
+};
 
 /** Tess: adult woman, a little shorter than Joel, hair tied back, tan jacket. */
 export const TESS: CharacterLook = {
@@ -253,6 +319,19 @@ export const MARIA: CharacterLook = {
   hair: 'mariaHair',
   beard: false,
   ponytail: true,
+};
+
+/** Marlene: the Fireflies' leader — not travelling: she waits at the hospital door (props.ts). Short dark hair, olive field jacket. */
+export const MARLENE: CharacterLook = {
+  name: 'marlene',
+  scale: 0.92,
+  build: 0.95,
+  skin: 'skinDark',
+  shirt: 'marleneJacket',
+  pants: 'marlenePants',
+  hair: 'darkHair',
+  beard: false,
+  ponytail: false,
 };
 
 /** David: stocky, grey-bearded, in a sheepskin-brown coat. */
@@ -379,4 +458,110 @@ export function poseWounded(c: Character, bounce: number): void {
   c.shinL.rotation.x = 1.1; // …and lower legs hanging down the right flank
   c.shinR.rotation.x = 1.1;
   if (c.ponytail) c.ponytail.rotation.set(0.5, 0, 0);
+}
+
+/**
+ * Ellie drawing her bow (the hunt in Lakeside Resort, see three/hunt.ts). Applied ON TOP of
+ * poseIdle, so only the arms (and the bow) change.
+ *   aim  – 0‥1: the bow arm (left) rises from hanging down to straight out in front, at
+ *          shoulder height, and the bow turns upright in front of her (it hangs along her
+ *          forearm otherwise, see createCharacter)
+ *   draw – 0‥1: the right hand comes up to the string and pulls it back to her cheek: the
+ *          upper arm forward and out to the side, the forearm folded back towards the face
+ * (Sign convention as above: positive X swings a hanging limb forward; positive Z on the
+ * right arm, negative on the left, swings it out to the side.)
+ */
+export function poseAim(c: Character, aim: number, draw: number): void {
+  c.armL.rotation.set(0.05 + (Math.PI / 2 - 0.05) * aim, 0, -0.08 + 0.08 * aim);
+  c.forearmL.rotation.x = 0.15 * (1 - aim); // the bow arm straightens
+  if (c.bow) c.bow.rotation.set((-Math.PI / 2) * aim, 0, BOW_CARRY_TILT * (1 - aim)); // upright in front when aiming
+  const hand = Math.max(aim * 0.6, draw); // the string hand comes up with the bow, then draws
+  c.armR.rotation.set(0.05 + 1.35 * hand, 0, 0.08 + 0.45 * draw);
+  c.forearmR.rotation.x = 0.15 + 2.25 * draw;
+  c.torso.rotation.y = -0.25 * aim; // a slight archer's turn: the bow shoulder leads
+}
+
+/**
+ * Walking into a blizzard (Lakeside Resort): the walk cycle with shorter, labouring steps,
+ * then the struggle on top — the body leans hard into the wind, the head is bowed, the right
+ * forearm is raised in front of the face as a shield, and the whole figure staggers a little
+ * from side to side with the gusts. The left arm keeps swinging (Ellie's bow stays in it).
+ */
+export function poseWalkIntoWind(c: Character, phase: number): void {
+  poseWalk(c, phase, 0.65); // short, heavy steps
+  c.torso.rotation.x = 0.32; // leaning into the wind
+  c.head.rotation.x = 0.22; // head down against the snow
+  c.armR.rotation.set(2.0, 0, -0.45); // right arm up and across, in front of the face…
+  c.forearmR.rotation.x = 1.5; // …forearm folded back as a shield
+  const gust = Math.sin(phase * 0.5) * 0.06 + Math.sin(phase * 1.3 + 1) * 0.03; // uneven buffeting
+  c.hips.rotation.z = gust; // staggering side to side
+  c.torso.rotation.z = -gust * 0.6;
+  if (c.ponytail) c.ponytail.rotation.set(1.1 + Math.sin(phase * 3) * 0.15, 0, 0.4); // whipped back by the wind
+}
+
+/**
+ * Reaching up to pet something tall (Ellie and the giraffe, three/petGiraffe.ts). Applied ON
+ * TOP of poseIdle, so only the arm, head and back change.
+ *   reach  – 0‥1: the right arm rises from hanging down to raised up and forward, the forearm
+ *            slightly bent (an open hand on the giraffe's head), head tipped back to look up,
+ *            the back arched a touch
+ *   stroke – a slow up-and-down of the raised arm while she strokes (radians of extra swing)
+ */
+export function poseReach(c: Character, reach: number, stroke = 0): void {
+  c.armR.rotation.set(0.05 + 2.45 * reach + stroke, 0, 0.08 - 0.2 * reach);
+  c.forearmR.rotation.x = 0.15 + 0.25 * reach;
+  c.head.rotation.x = -0.35 * reach; // looking up at the giraffe
+  c.torso.rotation.x = -0.08 * reach; // leaning back a little, as you do reaching up
+}
+
+/**
+ * Where Joel holds Sarah while he runs (poseRunCarrying), in his TORSO's frame (metres, Joel
+ * faces −Z): her hips rest on his forearms, held out in front of his chest (clear of it, so
+ * she reads as carried in his hands), a little below the shoulders. travellers.ts puts her there; values measured from his arm pose below (the
+ * hands end up at about y 0.33, z −0.45).
+ */
+export const CARRY_SEAT = new THREE.Vector3(0.05, 0.3, -0.46);
+
+/**
+ * Joel RUNNING with Sarah in his arms (outbreak night, as in the game). The legs run: a
+ * longer, quicker stride than the walk (`phase` grows faster, see travellers.ts) with the knees
+ * kicking up behind. The arms do not swing — both are held forward and bent up at the elbow,
+ * cradling her against his chest; the upper body leans forward into the run and bobs harder.
+ */
+export function poseRunCarrying(c: Character, phase: number): void {
+  poseWalk(c, phase, 1.35); // a running stride: bigger swings
+  c.shinL.rotation.x = -Math.max(0, Math.sin(phase + 1.0)) * 1.5 - 0.1; // heels kick up behind
+  c.shinR.rotation.x = -Math.max(0, Math.sin(phase + 1.0 + Math.PI)) * 1.5 - 0.1;
+  c.hips.position.y = c.hipHeight + Math.abs(Math.cos(phase)) * 0.06 * c.root.scale.y; // more bounce
+  c.torso.rotation.set(0.16, 0, 0); // leaning into the run; no twist (his arms are full)
+  c.head.rotation.x = -0.1; // eyes up, on the road ahead
+  // Both arms forward and bent: the forearms make a cradle in front of his chest.
+  c.armL.rotation.set(0.7, 0, -0.18);
+  c.armR.rotation.set(0.7, 0, 0.18);
+  c.forearmL.rotation.x = 1.0;
+  c.forearmR.rotation.x = 1.0;
+}
+
+/**
+ * Sarah carried in Joel's arms (poseRunCarrying): lying back across his forearms, held out in
+ * front of him (not pressed to his chest), her knees over his right forearm and her back on his left, her right arm round his neck,
+ * head resting on his shoulder. travellers.ts turns her to face Joel's right and leans her
+ * back; this pose is the seated pose with the arms and head changed. `bounce` = his stride.
+ */
+export function poseCarried(c: Character, bounce: number): void {
+  poseSeated(c, 0, false);
+  // She lies back across his arms (travellers.ts leans her ~66°), so the hips bend only a
+  // little: with that lean, 0.77 points the thighs just above level, over his right forearm…
+  c.thighL.rotation.set(0.77, 0, -0.08);
+  c.thighR.rotation.set(0.77, 0, 0.08);
+  // …and the knees bend the rest of the way (0.77 + lean ≈ 1.92) so the shins hang straight
+  // down past his arm, swinging a little with his run.
+  c.shinL.rotation.x = -1.9 + Math.sin(bounce) * 0.12;
+  c.shinR.rotation.x = -1.9 + Math.sin(bounce + 0.4) * 0.12;
+  c.armR.rotation.set(1.3, 0, 1.2); // right arm up and towards Joel, round his neck
+  c.forearmR.rotation.x = 1.1;
+  c.armL.rotation.set(0.4, 0, -0.15); // left arm limp in her lap
+  c.forearmL.rotation.x = 0.8;
+  c.torso.rotation.set(-0.05, 0, 0);
+  c.head.rotation.set(0.1, 0, -0.35); // head tipped towards him (her right = his chest), onto his shoulder
 }

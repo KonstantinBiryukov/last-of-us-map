@@ -20,6 +20,7 @@
  *
  * WHAT THIS LAYER DRAWS (and nothing else)
  *   • the travellers (walking pair, horse with riders, or truck with riders)
+ *   • Bill's truck parked in Lincoln, waiting for them (parts with `waitingTruck`)
  *   • a comet flying over jump arcs
  *   • the glowing trail, dust, seasonal particles, destination ripple, shadow
  * The route lines, jump arrows and markers are drawn by Mapbox itself.
@@ -32,36 +33,27 @@
 import * as THREE from 'three';
 import type { CustomLayerInterface, Map as MapboxMap } from 'mapbox-gl';
 import type { PlaybackEngine } from '../playback/engine';
-import type { TravelMode, Traveller } from '../data/types';
-import { isJumpKind } from '../playback/timeline';
-import { mercatorX, mercatorY, meterInMercatorUnits } from '../geo/mercator';
+import type { AmbienceKind, TravelMode } from '../data/types';
+import { isJumpKind, type LegSpan } from '../playback/timeline';
+import { comfortableZoom } from '../playback/followZoom';
+import { mercatorX, mercatorY, meterInMercatorUnits, metersPerPixel } from '../geo/mercator';
 import type { MutableLngLat } from '../geo/polyline';
-import {
-  BILL,
-  createCharacter,
-  DAVID,
-  ELLIE,
-  HENRY,
-  JOEL,
-  SAM,
-  TOMMY,
-  poseIdle,
-  poseSeated,
-  poseWalk,
-  poseWounded,
-  TESS,
-  type Character,
-} from './models/character';
-import { createHorse, poseHorse, poseHorseIdle, type Horse } from './models/horse';
-import { createTruck, poseTruck, type Truck } from './models/truck';
+import { createRigs, poseRigs, type Rigs } from './travellers';
 import { disposeGeometries, disposeMaterials } from './materials';
+import { disposeGraffiti } from './graffiti';
+import { disposeMarquee } from './marquee';
 import { Beacon, BlobShadow, Comet, createSharedTexture, Dust, Trail, TRAIL_POINTS, TRAIL_STYLE } from './effects';
 import { Ambience } from './ambience';
 import { KeyPointProps } from './keyPoints';
+import { Hunt, HUNT_HIT, type HuntFrame } from './hunt';
+import { PetGiraffe, type PetFrame } from './petGiraffe';
+import { createTruck, poseTruck } from './models/truck';
 import { keyPointPlacements, type KeyPointPlacement } from '../playback/keyPoints';
 
 /** Degrees → radians multiplier (Three.js angles are in radians: 180° = π). */
 const DEG = Math.PI / 180;
+/** Metres in one degree of latitude (nearly the same everywhere). */
+const METRES_PER_DEGREE_LAT = 111_320;
 
 export interface JourneyLayerOptions {
   /** Return true to draw dust and seasonal particles (false on low-power devices). */
@@ -84,64 +76,6 @@ const MODEL_HEIGHT_M: Record<TravelMode, number> = { walk: 1.85, horse: 2.6, veh
 const DUST_RATE: Record<TravelMode, number> = { walk: 0, horse: 14, vehicle: 24 };
 /** Shadow footprint in model metres (width, length). */
 const SHADOW_SIZE: Record<TravelMode, [number, number]> = { walk: [2.2, 1.6], horse: [1.5, 3.2], vehicle: [2.8, 6.2] };
-/** Walk/gallop cycles per second, and how fast the truck "drives" for its wheel spin (m/s). */
-const HORSE_GAIT_HZ = 1.3;
-/** Every character that can walk on the map. */
-const TRAVELLERS: readonly Traveller[] = ['joel', 'ellie', 'tess', 'bill', 'henry', 'sam', 'tommy', 'david'];
-/** Steps per second: shorter legs take quicker steps. */
-const STEPS_HZ: Record<Traveller, number> = {
-  joel: 1.05,
-  ellie: 1.25,
-  tess: 1.12,
-  bill: 1.0,
-  henry: 1.08,
-  sam: 1.22,
-  tommy: 1.05,
-  david: 1.0,
-};
-/** Phase offsets (radians) so nobody walks perfectly in step with the others. */
-const PHASE_OFFSET: Record<Traveller, number> = {
-  joel: 0,
-  ellie: 1.3,
-  tess: 2.4,
-  bill: 3.6,
-  henry: 4.4,
-  sam: 5.2,
-  tommy: 0.7,
-  david: 2.9,
-};
-/**
- * Walking formations (x = metres to the right of the route, z = metres BEHIND the leader),
- * for 1, 2, 3 and 4 travellers, in party order. Three: left, middle (half a step ahead),
- * right. Four: a shallow V with the middle two in front.
- */
-const WALK_FORMATION: readonly (readonly (readonly [number, number])[])[] = [
-  [[0, 0]],
-  [
-    [-0.42, 0],
-    [0.48, 0.35],
-  ],
-  [
-    [-0.75, 0.1],
-    [0.05, -0.25],
-    [0.85, 0.35],
-  ],
-  [
-    [-1.15, 0.2],
-    [-0.38, -0.2],
-    [0.38, -0.2],
-    [1.15, 0.25],
-  ],
-];
-/**
- * Wounded Joel lying across the horse: height of his body above the horse's centre
- * (the horse's back is at +0.33), where along the horse he lies (behind Ellie), and where
- * his hips sit sideways (0 = centred on the spine; his body hangs down both flanks).
- */
-const WOUNDED_BACK_HEIGHT = 0.46;
-const WOUNDED_Z = 0.3;
-const WOUNDED_HIP_X = 0;
-const TRUCK_VISUAL_SPEED = 9;
 /**
  * Smoothing of the drawn route: ±this many screen pixels (see smoothedPointAt), at most
  * SMOOTH_MAX_M metres. Rides and drives are smoothed more: they cover long, winding mountain
@@ -176,11 +110,7 @@ export class JourneyLayer implements CustomLayerInterface {
   /** The exaggerated travellers (scaled up to their screen size every frame). */
   private readonly subject = new THREE.Group();
   /** The three ways of travelling; exactly one is visible at a time. `!` = assigned in onAdd. */
-  private rigs!: {
-    walk: { group: THREE.Group; people: Record<Traveller, Character> };
-    horse: { group: THREE.Group; horse: Horse; joel: Character; ellie: Character };
-    vehicle: { group: THREE.Group; truck: Truck; joel: Character; ellie: Character };
-  };
+  private rigs!: Rigs;
   private trail!: Trail;
   private comet!: Comet;
   private dust!: Dust;
@@ -190,6 +120,27 @@ export class JourneyLayer implements CustomLayerInterface {
   private keyPoints!: KeyPointProps;
   private shadow!: BlobShadow;
   private texture!: THREE.Texture;
+  /** Ellie's hunt in Lakeside Resort (hunt.ts): her shot and the arrow. */
+  private readonly hunt = new Hunt();
+  /** The hunt's pause on the clock (story seconds), found once from the timeline (null if none). */
+  private huntSpan: { start: number; end: number } | null = null;
+  private readonly huntFrame: HuntFrame = { active: false, progress: 0, sinceHit: -1, routeHeading: 0, scale: 1 };
+  /** Ellie petting the giraffe in Bus Depot (petGiraffe.ts). */
+  private readonly pet = new PetGiraffe();
+  private readonly petFrame: PetFrame = { active: false, progress: 0, routeHeading: 0, time: 0 };
+  /**
+   * THE WAITING TRUCK (parts with `waitingTruck`, Bill's Town): an empty truck parked where the
+   * drive will start, on the map from the start of the chapter until the travellers reach it.
+   * At that moment the truck rig (with Joel and Ellie inside) appears in exactly the same place,
+   * size and direction, and drives off — so it reads as them getting in and driving away.
+   * Until then it stands STILL like the houses around it: its spot, heading and size are fixed
+   * once (onAdd), not recomputed from the zoom — while the camera flew into the chapter, a
+   * zoom-dependent heading made it swing round. `parked` holds the truck and its own shadow;
+   * `waits` = the parts it waits for, each with where and how the truck stands.
+   */
+  private readonly parked = new THREE.Group();
+  private parkedShadow!: BlobShadow;
+  private waits: { chapterIndex: number; start: number; lng: number; lat: number; heading: number; size: number }[] = [];
 
   // Scratch objects reused every frame (no garbage → no stutter from the garbage collector).
   private readonly pos: MutableLngLat = [0, 0];
@@ -233,6 +184,9 @@ export class JourneyLayer implements CustomLayerInterface {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     this.renderer = new THREE.WebGLRenderer({ canvas: map.getCanvas(), context: gl, antialias: true });
+    // Development only: this layer on `window.__layer`, for profiling from the browser console
+    // (renderer.info.render.calls = draw calls of the last frame, the scene, the props, …).
+    if (import.meta.env.DEV) (window as unknown as { __layer?: JourneyLayer }).__layer = this;
     this.renderer.autoClear = false; // never erase what Mapbox already drew
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -255,9 +209,61 @@ export class JourneyLayer implements CustomLayerInterface {
     this.crossings = placements.flatMap((p) => (p.crossing ? [p.crossing] : []));
 
     this.geo.add(this.trail.mesh, this.comet.cloud.points, this.dust.cloud.points, this.ambience.group, this.beacon.mesh, this.keyPoints.group);
-    this.scene.add(this.geo, this.subject);
+    this.scene.add(this.geo, this.subject, this.hunt.arrow);
+    // The hunt's pause (data/chapters.ts: `hunt`), if the story has one.
+    const huntSpan = this.engine.timeline.chapters.flatMap((c) => c.legSpans).find((s) => s.hunt);
+    this.huntSpan = huntSpan ? { start: huntSpan.start, end: huntSpan.end } : null;
     this.subject.add(this.shadow.mesh);
-    this.buildRigs();
+    this.rigs = createRigs();
+    this.subject.add(this.rigs.walk.group, this.rigs.carry.group, this.rigs.horse.group, this.rigs.vehicle.group);
+
+    // The waiting truck: never moves, so it is posed once (wheels still, no suspension bounce).
+    const truck = createTruck();
+    poseTruck(truck, 0, 0, 0);
+    this.parkedShadow = new BlobShadow(this.texture);
+    this.parkedShadow.setSize(...SHADOW_SIZE.vehicle);
+    this.parked.add(truck.root, this.parkedShadow.mesh);
+    this.parked.visible = false;
+    this.scene.add(this.parked);
+    this.waits = this.engine.timeline.chapters.flatMap((c) =>
+      c.legSpans.flatMap((s, i) => (s.waitingTruck ? [this.parkedPlace(c.index, s.start, s.startDistance, s.legIndex, c.legSpans[i - 1])] : [])),
+    );
+  }
+
+  /**
+   * Where and how the waiting truck stands, worked out ONCE. Everything is taken as the truck
+   * rig will have it at the moment the drive starts, so the rig takes over without a jump:
+   *   • the zoom then is still the walk's (the camera eases to the drive's zoom only after), so
+   *     the metres per pixel come from the follow zoom of the part just BEFORE the drive
+   *     (`before`, playback/followZoom.ts — the same zoom the camera uses);
+   *   • size  = the truck's on-screen height (SCREEN_HEIGHT_PX) at that zoom, in metres;
+   *   • spot  = the route point there, smoothed with the truck's window at that zoom;
+   *   • heading = the route direction with the truck's heading window (80 px, at least 600 m).
+   */
+  private parkedPlace(
+    chapterIndex: number,
+    start: number,
+    distance: number,
+    legIndex: number,
+    before: LegSpan | undefined,
+  ): { chapterIndex: number; start: number; lng: number; lat: number; heading: number; size: number } {
+    const route = this.engine.route;
+    route.journey.pointAt(distance, this.tmp);
+    const zoomSpan = before && !isJumpKind(before.kind) ? before : undefined;
+    const zoom = zoomSpan ? comfortableZoom(zoomSpan, route.legs[zoomSpan.legIndex]!.coordinates[0]![1]) : 14;
+    const mpp = metersPerPixel(zoom, this.tmp[1]);
+    const ownWindow = this.smoothWindow;
+    this.smoothWindow = Math.min(mpp * SMOOTH_PX.vehicle, SMOOTH_MAX_M);
+    this.smoothedPointAt(distance, this.tmp, this.trailStartDistance(legIndex), this.stretchEndDistance(legIndex));
+    this.smoothWindow = ownWindow;
+    return {
+      chapterIndex,
+      start,
+      lng: this.tmp[0],
+      lat: this.tmp[1],
+      heading: route.journey.bearingAt(distance, Math.max(mpp * 80, 600)),
+      size: (SCREEN_HEIGHT_PX.vehicle * mpp) / MODEL_HEIGHT_M.vehicle,
+    };
   }
 
   /** Mapbox calls this when the layer (or the whole map) is removed: free every GPU resource. */
@@ -268,59 +274,27 @@ export class JourneyLayer implements CustomLayerInterface {
     this.ambience.dispose();
     this.beacon.dispose();
     this.shadow.dispose();
+    this.parkedShadow.dispose();
     this.texture.dispose();
     disposeGeometries();
     disposeMaterials();
+    disposeGraffiti();
+    disposeMarquee();
     this.scene.clear();
     this.renderer?.dispose();
     this.renderer = null;
     this.map = null;
   }
 
-  /** Builds the three rigs. Each rig has its own figures posed for that way of travelling. */
-  private buildRigs(): void {
-    // Walking: everyone who ever walks with them (Joel, Ellie and the companions) has a figure;
-    // the current party decides who is shown and where (see poseRigs).
-    const walkGroup = new THREE.Group();
-    const people: Record<Traveller, Character> = {
-      joel: createCharacter(JOEL),
-      ellie: createCharacter(ELLIE),
-      tess: createCharacter(TESS),
-      bill: createCharacter(BILL),
-      henry: createCharacter(HENRY),
-      sam: createCharacter(SAM),
-      tommy: createCharacter(TOMMY),
-      david: createCharacter(DAVID),
-    };
-    for (const name of TRAVELLERS) walkGroup.add(people[name].root);
-
-    // Horseback: Joel in the saddle holding the reins, Ellie behind him.
-    const horseGroup = new THREE.Group();
-    const horse = createHorse();
-    const horseJoel = createCharacter(JOEL);
-    const horseEllie = createCharacter(ELLIE);
-    seat(horseJoel, horse.body, horse.saddleFront);
-    seat(horseEllie, horse.body, horse.saddleBack);
-    horseGroup.add(horse.root);
-
-    // Truck: Joel driving (left seat), Ellie as passenger.
-    const truckGroup = new THREE.Group();
-    const truck = createTruck();
-    const truckJoel = createCharacter(JOEL);
-    const truckEllie = createCharacter(ELLIE);
-    seat(truckJoel, truck.body, truck.driverSeat);
-    seat(truckEllie, truck.body, truck.passengerSeat);
-    truckGroup.add(truck.root);
-
-    this.subject.add(walkGroup, horseGroup, truckGroup);
-    this.rigs = {
-      walk: { group: walkGroup, people },
-      horse: { group: horseGroup, horse, joel: horseJoel, ellie: horseEllie },
-      vehicle: { group: truckGroup, truck, joel: truckJoel, ellie: truckEllie },
-    };
-  }
-
   // ───────────────────────── per-frame drawing ─────────────────────────
+
+  /** Each chapter's weather with the blizzard added (built once per list, so no garbage per frame). */
+  private readonly blizzardKinds = new Map<readonly AmbienceKind[], readonly AmbienceKind[]>();
+  private withBlizzard(kinds: readonly AmbienceKind[]): readonly AmbienceKind[] {
+    let list = this.blizzardKinds.get(kinds);
+    if (!list) this.blizzardKinds.set(kinds, (list = [...kinds, 'blizzard']));
+    return list;
+  }
 
   /** Mapbox calls this every time it paints. Everything here must be fast and allocation-free. */
   render(gl: WebGL2RenderingContext, matrix: number[]): void {
@@ -341,12 +315,12 @@ export class JourneyLayer implements CustomLayerInterface {
     this.drawnPointAt(distance, this.pos, stretchStart, stretchEnd);
     const lng = this.pos[0];
     const lat = this.pos[1];
-    const legIndex = Math.max(0, frame.legIndex);
-    const leg = route.legs[legIndex]!;
-    const jumping = isJumpKind(leg.kind);
     // The current part of the chapter decides HOW they travel and WHO travels (in Lakeside
-    // Resort Ellie and Joel are separated), so read both from the timeline span.
+    // Resort Ellie and Joel are separated), so read both from the timeline span. It also says
+    // whether this is a jump: a jump leg, or a `hidden` part of a walked leg.
     const span = engine.timeline.chapters[frame.chapterIndex]!.legSpans[frame.spanIndex]!;
+    const jumping = isJumpKind(span.kind);
+    const legIndex = Math.max(0, frame.legIndex);
     const mode = span.mode;
     const party = span.party;
 
@@ -396,13 +370,35 @@ export class JourneyLayer implements CustomLayerInterface {
     // On a bridge: face along the deck (blended in and out with the walk onto it).
     const crossing = this.crossingAt(distance);
     if (crossing) heading += (((crossing.bearing - heading + 540) % 360) - 180) * crossing.weight;
-    this.subject.rotation.y = -heading * DEG;
-    this.poseRigs(mode, party, span.wounded, frame.travelling, storyTime);
+    // During a pause (Ellie's hunt) they stand: the idle pose, not the walk.
+    poseRigs(this.rigs, mode, party, span.wounded, frame.travelling && !span.pause, storyTime, span.blizzard, span.carry);
+    // Ellie's bow: in her hand only while she hunts alone (parts with `bow`), and only on foot.
+    const walkingBow = this.rigs.walk.people.ellie.bow;
+    if (walkingBow) walkingBow.visible = span.bow && mode === 'walk';
     // The chapters' key-point props: fixed size and place on the map (keyPoints.ts); only
     // their position relative to the travellers (the camera's centre) changes.
     this.keyPoints.update(map, { mx: mercatorX(lng), my: mercatorY(lat), elevation, unitsPerMeter });
+    // Ellie's hunt (hunt.ts): during its pause she turns to the rabbit and shoots it; after the
+    // hit, the rabbit stays down. It needs the props in place, so it comes after them.
+    const huntSpan = this.huntSpan;
+    const hf = this.huntFrame;
+    hf.active = huntSpan !== null && span.hunt;
+    hf.progress = huntSpan ? (storyTime - huntSpan.start) / (huntSpan.end - huntSpan.start) : 0;
+    hf.sinceHit = huntSpan ? storyTime - (huntSpan.start + HUNT_HIT * (huntSpan.end - huntSpan.start)) : -1;
+    hf.routeHeading = heading;
+    hf.scale = this.subject.scale.x;
+    const afterHunt = this.hunt.update(hf, this.rigs.walk.people.ellie, this.keyPoints.huntRabbit);
+    this.subject.rotation.y = -afterHunt * DEG;
+    // Ellie pets the giraffe (petGiraffe.ts): during its pause she walks over to it.
+    const pf = this.petFrame;
+    pf.active = span.pet;
+    pf.progress = span.pet ? (storyTime - span.start) / (span.end - span.start) : 0;
+    pf.routeHeading = afterHunt;
+    pf.time = storyTime;
+    this.subject.rotation.y = -this.pet.update(pf, this.subject, this.rigs.walk.people.ellie, this.keyPoints.giraffeNeck, this.keyPoints.giraffeHead) * DEG;
     const [sw, sl] = SHADOW_SIZE[mode];
     this.shadow.setSize(sw, sl);
+    this.updateParkedTruck(map, frame.chapterIndex, storyTime, lng, lat, elevation, unitsPerMeter);
 
     // 6) Effects.
     const effects = this.options.effectsEnabled() && !this.options.reducedMotion();
@@ -420,7 +416,7 @@ export class JourneyLayer implements CustomLayerInterface {
     this.dust.cloud.material.uniforms['uPixelRatio']!.value = pixelRatio;
     this.dust.update(
       storyDt,
-      effects && frame.travelling && !jumping ? DUST_RATE[mode] : 0,
+      effects && frame.travelling && !jumping && !span.pause ? DUST_RATE[mode] : 0,
       mercatorX(lng),
       mercatorY(lat),
       1 / unitsPerMeter,
@@ -433,7 +429,7 @@ export class JourneyLayer implements CustomLayerInterface {
     const zoom = map.getZoom();
     const ambientIntensity = effects && !jumping ? smoothstep(5.5, 7.5, zoom) : 0;
     this.ambience.update({
-      kinds: chapter.ambience,
+      kinds: span.blizzard ? this.withBlizzard(chapter.ambience) : chapter.ambience, // a storm part adds the blizzard
       time: (performance.now() - this.startWallTime) / 1000,
       metersPerPixel: metresPerPixel,
       worldX: mercatorX(lng) / unitsPerMeter,
@@ -458,6 +454,23 @@ export class JourneyLayer implements CustomLayerInterface {
   }
 
   /**
+   * Shows the waiting truck (see `parked`) during its chapter until the drive starts, at its
+   * fixed spot, heading and size (parkedPlace). Only its position RELATIVE to the travellers (the
+   * scene's origin) changes as they walk: the mercator difference turned into local metres
+   * (x east, z south), like the beacon's, and the ground height difference.
+   */
+  private updateParkedTruck(map: MapboxMap, chapterIndex: number, storyTime: number, lng: number, lat: number, elevation: number, unitsPerMeter: number): void {
+    const wait = this.waits.find((w) => w.chapterIndex === chapterIndex && storyTime < w.start);
+    this.parked.visible = wait !== undefined;
+    if (!wait) return;
+    const toLocal = 1 / unitsPerMeter;
+    const groundHere = map.getTerrain() ? (map.queryTerrainElevation([wait.lng, wait.lat]) ?? 0) : 0;
+    this.parked.position.set((mercatorX(wait.lng) - mercatorX(lng)) * toLocal, groundHere - elevation, (mercatorY(wait.lat) - mercatorY(lat)) * toLocal);
+    this.parked.rotation.y = -wait.heading * DEG;
+    this.parked.scale.setScalar(wait.size);
+  }
+
+  /**
    * Metres covered by one screen pixel at (lng, lat), measured through the real camera.
    * Falls back to a safe value if the point is behind the camera (can happen mid-flight).
    */
@@ -469,74 +482,19 @@ export class JourneyLayer implements CustomLayerInterface {
     // second argument (missing from its TypeScript types).
     const project = map.project.bind(map) as (lngLat: [number, number], altitude?: number) => { x: number; y: number };
     const a = project([lng, lat], elevation);
-    // 100 m east, expressed in degrees of longitude at this latitude.
-    const dLng = (MEASURE_METRES * meterInMercatorUnits(lat) * 360);
-    const b = project([lng + dLng, lat], elevation);
+    // 100 m to the RIGHT ON SCREEN, not simply east. The map is tilted, so a line running into
+    // the screen looks shorter than the same line running across it. While the map turns with
+    // the route (`camera.heading: 'route'`, the horse ride in Lakeside Resort), "east" swings
+    // between across and into the screen — the measured size, and so the horse, grew and shrank
+    // with every bend of the mountain road. Across the screen is never shortened by the tilt:
+    // its compass direction is the map's bearing + 90°.
+    const across = (map.getBearing() + 90) * DEG;
+    const dLng = Math.sin(across) * MEASURE_METRES * meterInMercatorUnits(lat) * 360; // metres east → degrees of longitude
+    const dLat = (Math.cos(across) * MEASURE_METRES) / METRES_PER_DEGREE_LAT; // metres north → degrees of latitude
+    const b = project([lng + dLng, lat + dLat], elevation);
     const pixels = Math.hypot(b.x - a.x, b.y - a.y);
     if (!Number.isFinite(pixels) || pixels < 1e-6) return 1000;
     return MEASURE_METRES / pixels;
-  }
-
-  /**
-   * Shows the rig for the current travel mode and poses it.
-   * All animation phases come from STORY time: frozen when paused, identical after
-   * seeking, and continuous across leg and chapter boundaries.
-   *
-   * @param party   who travels, in walking order (see data/chapters.ts)
-   * @param wounded Joel lies wounded across the horse while Ellie rides
-   */
-  private poseRigs(mode: TravelMode, party: readonly Traveller[], wounded: boolean, travelling: boolean, storyTime: number): void {
-    const { walk, horse, vehicle } = this.rigs;
-    walk.group.visible = mode === 'walk';
-    horse.group.visible = mode === 'horse';
-    vehicle.group.visible = mode === 'vehicle';
-    const TAU = Math.PI * 2; // one full cycle in radians
-    const joelHere = party.includes('joel');
-    const ellieHere = party.includes('ellie');
-
-    if (mode === 'walk') {
-      // Walking formation: everyone in the party side by side across the route, in the
-      // party's order, the middle person a step ahead. Unused characters are hidden.
-      const slots = WALK_FORMATION[Math.min(party.length, WALK_FORMATION.length) - 1] ?? WALK_FORMATION[0]!;
-      for (const name of TRAVELLERS) {
-        const character = walk.people[name];
-        const slot = party.indexOf(name);
-        character.root.visible = slot >= 0;
-        if (slot < 0) continue;
-        const [x, z] = slots[slot] ?? [0, 0];
-        character.root.position.set(x, 0, z);
-        if (travelling) poseWalk(character, storyTime * TAU * STEPS_HZ[name] + PHASE_OFFSET[name]);
-        else poseIdle(character, storyTime + PHASE_OFFSET[name]); // standing (only at the very end)
-      }
-    } else if (mode === 'horse') {
-      const phase = storyTime * TAU * HORSE_GAIT_HZ;
-      if (travelling) poseHorse(horse.horse, phase);
-      else poseHorseIdle(horse.horse, storyTime);
-      horse.joel.root.visible = joelHere;
-      horse.ellie.root.visible = ellieHere;
-      // Ellie takes the front of the saddle (and the reins) when Joel is not riding normally.
-      const ellieInFront = !joelHere || wounded;
-      const ellieSeat = ellieInFront ? horse.horse.saddleFront : horse.horse.saddleBack;
-      horse.ellie.root.position.set(ellieSeat.x, ellieSeat.y - horse.ellie.hipHeight, ellieSeat.z);
-      poseSeated(horse.ellie, travelling ? phase + 0.4 : 0, ellieInFront);
-      if (wounded) {
-        // Lying across the horse's back behind Ellie. poseWounded turns the body so the hips
-        // end up hipHeight metres to the LEFT (−x) of the root — so the root goes hipHeight
-        // to the right to put the hips on the horse's spine.
-        horse.joel.root.position.set(WOUNDED_HIP_X + horse.joel.hipHeight, WOUNDED_BACK_HEIGHT, WOUNDED_Z);
-        poseWounded(horse.joel, travelling ? phase : 0);
-      } else {
-        const seat = horse.horse.saddleFront;
-        horse.joel.root.position.set(seat.x, seat.y - horse.joel.hipHeight, seat.z);
-        poseSeated(horse.joel, travelling ? phase : 0, true);
-      }
-    } else {
-      poseTruck(vehicle.truck, storyTime * TRUCK_VISUAL_SPEED, storyTime, travelling ? 1 : 0);
-      vehicle.joel.root.visible = joelHere;
-      vehicle.ellie.root.visible = ellieHere;
-      poseSeated(vehicle.joel, 0, true);
-      poseSeated(vehicle.ellie, 0, false);
-    }
   }
 
   /** Samples the route behind the travellers and turns it into the glowing ribbon. */
@@ -645,9 +603,9 @@ export class JourneyLayer implements CustomLayerInterface {
   }
 
   /** Where the current stretch (between jumps) ends: the start of the next jump, or the journey's end. */
-  private stretchEndDistance(): number {
+  private stretchEndDistance(legIndex = this.engine.frame.legIndex): number {
     const route = this.engine.route;
-    const current = Math.max(0, this.engine.frame.legIndex);
+    const current = Math.max(0, legIndex);
     if (isJumpKind(route.legs[current]!.kind)) return route.legEnd[current]!;
     for (let i = current + 1; i < route.legs.length; i++) {
       if (isJumpKind(route.legs[i]!.kind)) return route.legStart[i]!;
@@ -655,9 +613,9 @@ export class JourneyLayer implements CustomLayerInterface {
     return route.journey.length;
   }
 
-  private trailStartDistance(): number {
+  private trailStartDistance(legIndex = this.engine.frame.legIndex): number {
     const route = this.engine.route;
-    const current = Math.max(0, this.engine.frame.legIndex);
+    const current = Math.max(0, legIndex);
     if (isJumpKind(route.legs[current]!.kind)) return route.legStart[current]!;
     for (let i = current - 1; i >= 0; i--) {
       if (isJumpKind(route.legs[i]!.kind)) return route.legEnd[i]!;
@@ -691,12 +649,6 @@ export class JourneyLayer implements CustomLayerInterface {
     this.beacon.mesh.position.y = destElevation - elevation;
     this.beacon.update(x, z, metresPerPixel * 34, storyTime, 0.85);
   }
-}
-
-/** Puts a character on a seat: its hip joint lands exactly on the seat point. */
-function seat(character: Character, parent: THREE.Object3D, seatPoint: THREE.Vector3): void {
-  character.root.position.set(seatPoint.x, seatPoint.y - character.hipHeight, seatPoint.z);
-  parent.add(character.root);
 }
 
 /** 0 below edge0, 1 above edge1, smooth S-curve in between (same as GLSL's smoothstep). */

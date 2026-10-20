@@ -7,9 +7,14 @@ const route = loadRealRoute();
 const timeline = buildTimeline(CHAPTERS, route);
 
 describe('timeline built from the real story data', () => {
-  it('has one entry per chapter and lasts 5 s per slide (original pacing)', () => {
+  it('has one entry per chapter and lasts 5 s per slide (original pacing), plus its pauses', () => {
     expect(timeline.chapters).toHaveLength(12);
-    expect(timeline.duration).toBeCloseTo(TOTAL_SLIDES * 5);
+    const pauses = CHAPTERS.flatMap((c) => c.legs).reduce((sum, part) => sum + (part.pauseSeconds ?? 0), 0);
+    expect(pauses).toBe(11); // Ellie's hunt in Lakeside Resort (5 s) + petting the giraffe in Bus Depot (6 s)
+    expect(timeline.duration).toBeCloseTo(TOTAL_SLIDES * 5 + pauses);
+    // A chapter with a pause spreads its slides over the longer time.
+    const lakeside = timeline.chapters[8]!;
+    expect(lakeside.slideSeconds * CHAPTERS[8]!.slides.length).toBeCloseTo(lakeside.end - lakeside.start);
   });
 
   it('chapters are contiguous: each starts where the previous ends', () => {
@@ -47,12 +52,17 @@ describe('timeline built from the real story data', () => {
     }
   });
 
-  it('the travellers are ALWAYS moving: wherever you click, a second later they are elsewhere', () => {
+  it('the travellers are ALWAYS moving: wherever you click, a second later they are elsewhere (except in a pause)', () => {
+    const inPause = (t: number) => {
+      const f = locate(timeline, t);
+      return timeline.chapters[f.chapterIndex]!.legSpans[f.spanIndex]!.pause;
+    };
     for (let t = 0; t < timeline.duration - 1; t += 0.5) {
       const a = locate(timeline, t);
       const b = locate(timeline, t + 1);
       expect(a.travelling).toBe(true);
-      expect(b.distance).toBeGreaterThan(a.distance);
+      if (inPause(t) || inPause(t + 1)) expect(b.distance).toBeGreaterThanOrEqual(a.distance);
+      else expect(b.distance).toBeGreaterThan(a.distance);
     }
   });
 
@@ -113,8 +123,8 @@ describe('timeline built from the real story data', () => {
 
   it('Lakeside Resort follows the game: ride with wounded Joel 50 %, Ellie alone 30 %, Joel alone 10 %, together the last 10 % (of the time)', () => {
     const chapter = timeline.chapters[8]!; // Chapter IX
-    const spans = chapter.legSpans;
-    const length = chapter.end - chapter.start;
+    const spans = chapter.legSpans.filter((sp) => !sp.pause); // the hunt's 5 s pause comes on top
+    const length = chapter.end - chapter.start - 5;
     const timeShare = (pick: (sp: (typeof spans)[number]) => boolean) => spans.filter(pick).reduce((a, sp) => a + (sp.end - sp.start), 0) / length;
     expect(timeShare((sp) => sp.wounded && sp.mode === 'horse')).toBeCloseTo(0.5, 5);
     expect(timeShare((sp) => sp.party.length === 1 && sp.party[0] === 'ellie')).toBeCloseTo(0.3, 5);
@@ -122,12 +132,29 @@ describe('timeline built from the real story data', () => {
     expect((spans.at(-1)!.end - spans.at(-1)!.start) / length).toBeCloseTo(0.1, 5);
     expect(spans.filter((sp) => !sp.wounded).every((sp) => sp.mode === 'walk')).toBe(true);
     // Order: ride → Ellie alone → Joel alone → together.
-    expect(spans.map((sp) => (sp.wounded ? 'ride' : sp.party.join('+')))).toEqual(['ride', 'ellie', 'ellie', 'joel', 'joel+ellie']);
+    expect(spans.map((sp) => (sp.wounded ? 'ride' : sp.party.join('+')))).toEqual(['ride', 'ellie', 'ellie', 'ellie', 'joel', 'joel+ellie']);
     // The camera rides behind the horse for the ride, then is north up for the second half.
     expect(spans[0]!.camera.heading).toBe('route');
-    // Horse and riders drawn twice as large during the ride only.
+    // Horse and riders drawn twice as large during the ride; Ellie alone drawn as large as Joel
+    // (1 / 0.82: her figure is 0.82 of his height), with her bow; the rest at the usual size.
     expect(spans[0]!.camera.modelScale).toBe(2);
-    expect(spans.slice(1).every((sp) => sp.camera.modelScale === undefined)).toBe(true);
+    const ellieAlone = spans.filter((sp) => sp.party.length === 1 && sp.party[0] === 'ellie');
+    for (const sp of ellieAlone) {
+      expect(sp.camera.modelScale).toBeCloseTo(1 / 0.82, 6);
+      expect(sp.bow).toBe(true);
+    }
+    expect(spans.slice(4).every((sp) => sp.camera.modelScale === undefined && !sp.bow)).toBe(true);
+    // Ellie's hunt: one 5 s pause, standing still where she passes The Hunt, in her first stretch.
+    const hunt = chapter.legSpans.filter((sp) => sp.hunt);
+    expect(hunt).toHaveLength(1);
+    expect(hunt[0]!.pause).toBe(true);
+    expect(hunt[0]!.end - hunt[0]!.start).toBeCloseTo(5);
+    expect(hunt[0]!.endDistance).toBe(hunt[0]!.startDistance);
+    expect(hunt[0]!.party).toEqual(['ellie']);
+    // After the hunt, a snowstorm: Ellie's walk on, then Joel's search, fight through it.
+    const storm = chapter.legSpans.filter((sp) => sp.blizzard);
+    expect(storm.map((sp) => sp.party.join('+'))).toEqual(['ellie', 'ellie', 'joel']);
+    expect(storm[0]!.start).toBeCloseTo(hunt[0]!.end);
     expect(spans.slice(1).every((sp) => sp.camera.heading === undefined)).toBe(true);
     for (const span of timeline.chapters[9]!.legSpans) expect(span.party).toEqual(['joel', 'ellie']);
   });
@@ -135,7 +162,12 @@ describe('timeline built from the real story data', () => {
   it('Tess is with them for most of The Outskirts (she dies near its end, at the Capitol)', () => {
     const c = timeline.chapters[2]!;
     const trio = c.legSpans.find((s) => s.party.includes('tess'))!;
-    expect((trio.end - trio.start) / (c.end - c.start)).toBeGreaterThan(0.6);
+    expect((trio.end - trio.start) / (c.end - c.start)).toBeGreaterThan(0.5);
+    // Joel and Ellie walk out of Boston at the trio's pace (metres per second within 10 %).
+    const pace = (s: typeof trio) => (s.endDistance - s.startDistance) / (s.end - s.start);
+    const after = c.legSpans[c.legSpans.indexOf(trio) + 1]!;
+    expect(pace(after) / pace(trio)).toBeGreaterThan(0.9);
+    expect(pace(after) / pace(trio)).toBeLessThan(1.1);
   });
 
   it('Boston and Lincoln companions appear exactly where the game has them', () => {

@@ -151,6 +151,50 @@ export function trimEnd(original: readonly LngLat[], place: LngLat): LngLat[] {
   return original.slice(0, best + 1);
 }
 
+/**
+ * Douglas–Peucker simplification: keeps the line's shape but drops points that stray less than
+ * `toleranceM` metres from the straight line between the points kept around them. In plain
+ * words: start with only the two ends; find the point furthest from the straight line between
+ * them; if it is further than the tolerance, keep it and repeat on both halves; otherwise drop
+ * everything in between. The ends are always kept, so the line still starts and ends where it
+ * did (here: the Quarantine Zone and the State House). Distances on a small flat patch.
+ */
+export function simplifyLine(points: readonly LngLat[], toleranceM: number): LngLat[] {
+  if (points.length < 3) return [...points];
+  const lat0 = points[0]![1];
+  const kx = 111_320 * Math.cos((lat0 * Math.PI) / 180);
+  const ky = 111_320;
+  /** Distance in metres from point p to the straight line a→b. */
+  const offLine = (p: LngLat, a: LngLat, b: LngLat): number => {
+    const ax = a[0] * kx, ay = a[1] * ky, bx = b[0] * kx, by = b[1] * ky, px = p[0] * kx, py = p[1] * ky;
+    const dx = bx - ax, dy = by - ay;
+    const lengthSq = dx * dx + dy * dy;
+    const t = lengthSq > 0 ? Math.min(1, Math.max(0, ((px - ax) * dx + (py - ay) * dy) / lengthSq)) : 0;
+    return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
+  };
+  const keep = new Array<boolean>(points.length).fill(false);
+  keep[0] = true;
+  keep[points.length - 1] = true;
+  const stack: [number, number][] = [[0, points.length - 1]]; // ranges still to examine
+  while (stack.length > 0) {
+    const [first, last] = stack.pop()!;
+    let worst = -1;
+    let worstDistance = toleranceM;
+    for (let i = first + 1; i < last; i++) {
+      const d = offLine(points[i]!, points[first]!, points[last]!);
+      if (d > worstDistance) {
+        worstDistance = d;
+        worst = i;
+      }
+    }
+    if (worst >= 0) {
+      keep[worst] = true;
+      stack.push([first, worst], [worst, last]);
+    }
+  }
+  return points.filter((_, i) => keep[i]);
+}
+
 /** Continues `original` with `extension`, whose first point is the original's last point. */
 export function appendEnd(original: readonly LngLat[], extension: readonly LngLat[]): LngLat[] {
   return [...original, ...extension.slice(1)];
@@ -189,7 +233,10 @@ export function buildRoute(geojson: unknown, meta: readonly LegMeta[] = LEG_META
     if (m.trimEndAt) coordinates = trimEnd(coordinates, m.trimEndAt);
     const file = m.streets ? streets[m.streets.route] : undefined;
     if (m.streets && file !== undefined) {
-      const line = streetsLine(file, m.streets.route);
+      const raw = streetsLine(file, m.streets.route);
+      // Optionally straightened (Boston: the street route turned at every corner, so the
+      // travellers kept swinging round; small detours are dropped, the game's places kept).
+      const line = m.streets.simplify ? simplifyLine(raw, m.streets.simplify) : raw;
       coordinates = m.streets.at === 'start' ? spliceStart(coordinates, line) : appendEnd(coordinates, line);
     }
     return coordinates;

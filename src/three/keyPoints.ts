@@ -25,6 +25,7 @@ import type { Map as MapboxMap } from 'mapbox-gl';
 import { mercatorX, mercatorY, meterInMercatorUnits } from '../geo/mercator';
 import type { KeyPointPlacement } from '../playback/keyPoints';
 import { createProp } from './models/props';
+import { emittersOf, type ParticleEmitter } from './fire';
 
 /** Props whose centre projects further than this many screen-widths off screen are skipped. */
 const CULL_MARGIN = 1;
@@ -46,8 +47,10 @@ interface PlacedProp {
   metresPerModel: number;
   /** Mercator units per metre at its latitude. */
   unitsPerMeter: number;
-  /** Five points under its footprint where the terrain height is sampled. */
+  /** Points under its footprint where the terrain height is sampled. */
   samples: [number, number][];
+  /** Its particle emitters (fire, smoke), if any — animated every frame while on screen. */
+  emitters: ParticleEmitter[];
 }
 
 /** Inputs for one frame (the layer computes these anyway for the travellers). */
@@ -62,6 +65,11 @@ export interface KeyPointFrame {
 
 export class KeyPointProps {
   readonly group = new THREE.Group();
+  /** The rabbit of The Hunt (props.ts), which Ellie shoots in Lakeside Resort (hunt.ts); null if absent. */
+  huntRabbit: THREE.Object3D | null = null;
+  /** The giraffe's neck pivot and head (props.ts), for Ellie petting it (petGiraffe.ts); null if absent. */
+  giraffeNeck: THREE.Object3D | null = null;
+  giraffeHead: THREE.Object3D | null = null;
   private readonly props: PlacedProp[] = [];
 
   constructor(placements: readonly KeyPointPlacement[]) {
@@ -70,10 +78,16 @@ export class KeyPointProps {
       const { lng, lat, radiusMetres } = placement;
       // Terrain samples under the footprint: the centre, a ring of 4 at half the radius and a
       // ring of 8 at the edge (13 in all), so a ridge between samples cannot poke through.
+      // A prop WITHOUT a base (props.ts: `noBase` — the buses, the giraffe, the boat, the
+      // autumn trees) is sampled only under its middle (the centre and a ring of 6 at 0.35 of
+      // the radius): with nothing under it to hide a gap, standing on the highest ground at the
+      // edge of its footprint would leave it floating above a slope (the buses hung in the air
+      // where the footprint reached the mountains east of Provo).
       const kLng = radiusMetres / (METRES_PER_DEGREE * Math.cos(lat * DEG));
       const kLat = radiusMetres / METRES_PER_DEGREE;
       const samples: [number, number][] = [[lng, lat]];
-      for (const [reach, count] of [[0.5, 4], [1, 8]] as const) {
+      const rings = root.userData['noBase'] ? ([[0.35, 6]] as const) : ([[0.5, 4], [1, 8]] as const);
+      for (const [reach, count] of rings) {
         for (let k = 0; k < count; k++) {
           const angle = (k / count) * Math.PI * 2;
           samples.push([lng + Math.cos(angle) * kLng * reach, lat + Math.sin(angle) * kLat * reach]);
@@ -81,11 +95,17 @@ export class KeyPointProps {
       }
       // Turn the prop so its front (−Z) looks at the route: the route's heading turn (as for
       // the travellers) plus a quarter turn towards the road from its side.
+      // (`faceCamera`: half a turn instead, so the front looks south — at the north-up camera.)
       root.rotation.y =
         placement.heading !== undefined
           ? -placement.heading * DEG // an exact landmark: along its real axis (its length is the model's Z)
-          : -placement.bearing * DEG + (placement.side * Math.PI) / 2;
+          : placement.faceCamera
+            ? Math.PI
+            : -placement.bearing * DEG + (placement.side * Math.PI) / 2;
       this.group.add(root);
+      this.huntRabbit ??= (root.userData['huntRabbit'] as THREE.Object3D | undefined) ?? null;
+      this.giraffeNeck ??= (root.userData['giraffeNeck'] as THREE.Object3D | undefined) ?? null;
+      this.giraffeHead ??= (root.userData['giraffeHead'] as THREE.Object3D | undefined) ?? null;
       this.props.push({
         object: root,
         lng,
@@ -95,6 +115,7 @@ export class KeyPointProps {
         metresPerModel: placement.metresPerModel,
         unitsPerMeter: meterInMercatorUnits(lat),
         samples,
+        emitters: emittersOf(root),
       });
     }
   }
@@ -132,6 +153,17 @@ export class KeyPointProps {
         (prop.my - frame.my) * toLocal,
       );
       prop.object.scale.setScalar(prop.metresPerModel * ratio);
+      if (prop.emitters.length > 0) {
+        // Particles are sized in model metres: tell them how many screen pixels one model metre
+        // of this prop covers right now (project the centre and a point one model metre east).
+        const east = prop.metresPerModel / (METRES_PER_DEGREE * Math.cos(prop.lat * DEG));
+        const a = map.project([prop.lng, prop.lat]);
+        const b = map.project([prop.lng + east, prop.lat]);
+        const pxPerUnit = Math.hypot(b.x - a.x, b.y - a.y);
+        const time = performance.now() / 1000;
+        const pixelRatio = window.devicePixelRatio || 1;
+        for (const emitter of prop.emitters) emitter.update(time, pxPerUnit, pixelRatio);
+      }
     }
   }
 }

@@ -23,9 +23,27 @@ import type { KeyPoint, PropKind } from './types';
  */
 const BOSTON_SCALE = 0.7;
 
+/**
+ * Lakeside Resort's props (The Hunt, the cabins) used to share one size with the university's
+ * in Fort Collins (neighbouring props form a GROUP, playback/keyPoints.ts). When the ride onto
+ * the campus was slowed down (data/chapters.ts), the camera came in closer there, the two
+ * places no longer counted as seen at a similar zoom, and Lakeside's props got a size of their
+ * own — 3.64× larger, which moved them too. This factor (493 ÷ 1797, their old size ÷ the new
+ * one, in metres per model metre) brings them back to exactly how they looked before.
+ */
+const LAKESIDE_SCALE = 0.2744;
+
 export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   // The escape drive starts at Joel's house: the house stands right where the route begins.
-  1: [{ name: 'Hometown', prop: 'house', coord: [-97.619095, 30.175858], basis: "south-east Austin, where the escape drive starts (Joel's house is in the Austin suburbs)", close: true, scale: 0.5 }],
+  1: [
+    { name: 'Hometown', prop: 'house', coord: [-97.619095, 30.175858], basis: "south-east Austin, where the escape drive starts (Joel's house is in the Austin suburbs)", close: true, scale: 0.5 },
+    // Driving out of Austin through the outbreak: a house burning in Bluff Springs, beside the
+    // road, its front (windows and door ablaze) turned to the camera (`faceCamera`).
+    { name: 'Outbreak Night', prop: 'burningHouse', coord: [-97.7764, 30.1335], basis: 'Bluff Springs, south Austin, on the escape route', scale: 0.5, faceCamera: true }, // same size as the Hometown house
+    // Then south through Buda: the old theatre of the game's outbreak night, neon blazing,
+    // a car on fire in front of it, facing the camera.
+    { name: 'The Old Theatre', prop: 'theatre', coord: [-97.84, 30.082], basis: 'Buda, Texas, on the escape route south of Austin (the game’s theatre is fictional)', scale: 0.5, faceCamera: true },
+  ],
   2: [
     // Boston places from scripts/build-street-routes.mjs (the street route's stops).
     // BOSTON_SCALE: see below.
@@ -65,6 +83,9 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     },
   ],
   6: [
+    // The boat stranded on land that they pass in the game's Suburbs: on the Duff City side of
+    // the walk (west of it), right beside it (`close`; the walk passes -80.0992, 40.5843 here).
+    { name: 'The Boat', prop: 'boat', coord: [-80.1105, 40.5843], basis: 'Duff City, north-west of Pittsburgh (the beached boat in the game’s Suburbs)', close: true },
     { name: 'Sewers', prop: 'sewer', coord: [-80.0954, 40.5936], basis: "Pittsburgh's northern suburbs" },
     { name: 'Suburbs', prop: 'suburb', coord: [-80.0941, 40.651], basis: "Pittsburgh's northern suburbs" },
   ],
@@ -80,19 +101,34 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   8: [
     // The University of Eastern Colorado is modelled on Colorado State University, Fort Collins.
     { name: 'Go Big Horns', prop: 'campus', coord: [-105.085, 40.6], basis: 'Fort Collins, north of the CSU campus' },
+    // Autumn trees right across the road from the university: the walk runs south past the
+    // campus (west of it, at -105.0766, 40.6017), so these stand just east of it (`close`).
+    { name: 'Fall Colours', prop: 'autumnTrees', coord: [-105.0685, 40.601], basis: 'Fort Collins, across the road from the campus', close: true },
     { name: 'Science Building', prop: 'lab', coord: [-105.083, 40.5755], basis: 'the Colorado State University campus' },
   ],
   9: [
-    { name: 'The Hunt', prop: 'trees', coord: [-105.49, 40.056], basis: 'the snowy forest west of Boulder' },
-    { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: 2 }, // twice the usual size
+    // Right beside Ellie's path (`close`) and 4× the usual size, so the deer and the rabbit are
+    // seen as she walks past (at the usual size it was a third of the travellers' height).
+    // `faceCamera`: the animals look at the camera, not away from it.
+    { name: 'The Hunt', prop: 'hunt', coord: [-105.49, 40.056], basis: 'the snowy forest west of Boulder (a deer and a rabbit, as Ellie hunts in the game)', close: true, scale: LAKESIDE_SCALE * 4, faceCamera: true },
+    { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: LAKESIDE_SCALE * 2 }, // twice the usual size
   ],
   10: [
-    // The giraffes, met around the bus depot — in the city's southern part, on the valley side
-    // west of I-15 (not the mountains), well before the hospital (the game's depot is fictional).
-    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.93, 40.62], basis: 'southern Salt Lake City (Taylorsville / West Jordan), by the bus depot (fictional)', scale: 2 }, // twice the usual size
+    // Walking north through Provo: two decayed school buses (the game's bus depot) in north
+    // Provo by the Orem line, east of the walk on the flat valley floor — inland, away from
+    // Utah Lake (west of the town) and clear of the mountain slopes further east, where they
+    // floated above the rising ground. Beside the walk (`close`). 1.2× the usual size: twice
+    // as large as they stood in Spanish Fork (785 → ~1570 real metres per model metre).
+    { name: 'The Bus Depot', prop: 'schoolBuses', coord: [-111.672, 40.283], basis: 'north Provo, Utah, by the Orem line (the game’s bus depot is fictional)', close: true, scale: 1.2 },
+    // The giraffes, met around the bus depot — in the valley's south (Riverton), on the valley
+    // side west of I-15 (not the mountains). Far enough south that they are passed in the middle
+    // of "Bus Depot", not at its very end, where they were still on screen in "The Firefly Lab"
+    // (the game's depot is fictional).
+    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.895, 40.5176], basis: 'Riverton, Utah, in the south of the Salt Lake valley, by the bus depot (fictional)', close: true, scale: 2 }, // twice the usual size; right beside the walk (`close`), so Ellie can pet it
   ],
-  // The walk ends right at the hospital, which stands beside the route's end.
-  11: [{ name: 'The Hospital', prop: 'hospital', coord: [-111.857112, 40.686071], basis: "St. Mark's Hospital (the basis of St. Mary's)", close: true, scale: 1.4 }],
+  // The walk ends at the hospital: it stands straight ahead of them at the end of the route,
+  // facing them, so they walk right up to its front, as if entering (`arrive`).
+  11: [{ name: 'The Hospital', prop: 'hospital', coord: [-111.857112, 40.686071], basis: "St. Mark's Hospital (the basis of St. Mary's)", arrive: true, scale: 1.4 }],
   // Home: the town stands right beside the end of the journey (`close`).
   12: [{ name: 'Jackson', prop: 'town', coord: [-110.762, 43.4799], basis: 'Jackson, Wyoming', close: true }],
 };
@@ -108,6 +144,10 @@ export const PROP_RADIUS: Readonly<Record<PropKind, number>> = {
   cargo: 2,
   wall: 2.3,
   trees: 1.8,
+  hunt: 1.9,
+  burningHouse: 1.6,
+  theatre: 1.9,
+  schoolBuses: 1.7,
   towers: 1.9,
   museum: 2.1,
   capitol: 2.3,
@@ -116,7 +156,9 @@ export const PROP_RADIUS: Readonly<Record<PropKind, number>> = {
   school: 2.3,
   hotel: 1.6,
   bridge: 2.4,
-  sewer: 1.5,
+  sewer: 1.7,
+  boat: 1.3,
+  autumnTrees: 1.2,
   suburb: 2.3,
   dam: 2.4,
   ranch: 2.3,

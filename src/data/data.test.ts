@@ -59,7 +59,9 @@ describe('story data', () => {
         const to = part.to ?? 1;
         expect(from).toBeGreaterThanOrEqual(0);
         expect(to).toBeLessThanOrEqual(1);
-        expect(to).toBeGreaterThan(from);
+        // A pause stands still at one point (from = to); every other part moves forward.
+        if (part.pauseSeconds !== undefined) expect(to).toBe(from);
+        else expect(to).toBeGreaterThan(from);
       }
       expect(chapter.ambience.length).toBeGreaterThan(0);
     }
@@ -170,8 +172,10 @@ describe('each chapter travels only where its images are set', () => {
     expect(maxKm(9, SLC)).toBeLessThan(80);
     expect(maxKm(10, SLC)).toBeLessThan(16);
   });
-  it('the journey through Salt Lake City ends at the hospital, where its marker is', () => {
-    const hospital = LOCATIONS_BY_ID.get('salt-lake-city')!.coordinates;
+  it('the journey through Salt Lake City ends at the hospital (St. Mark\'s), and its marker stands clear of it', () => {
+    const hospital: [number, number] = [-111.857112, 40.686071]; // St. Mark's Hospital (Mapbox Search)
+    // The marker stands downtown, ~9 km north-west — not on top of the hospital prop.
+    expect(haversineMeters(LOCATIONS_BY_ID.get('salt-lake-city')!.coordinates, hospital)).toBeGreaterThan(5_000);
     const end = route.journey.pointAt(timeline.chapters[10]!.legSpans.at(-1)!.endDistance);
     expect(haversineMeters(end, hospital)).toBeLessThan(200);
     // …and the drive away starts there, without heading back downtown first.

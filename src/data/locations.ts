@@ -8,8 +8,9 @@
  *   2. Austin's description contained a broken "\n" that had turned into the
  *      literal text "area.nThe"; it is now split into two paragraphs.
  *   3. Salt Lake City's marker moved from the city's western edge (near the airport,
- *      ~25 km from where the story ends) to St. Mark's Hospital — the real building the
- *      game's Fireflies hospital (St. Mary's) is based on, where the journey now ends.
+ *      ~25 km from where the story ends) to downtown Salt Lake City. (It first stood on
+ *      St. Mark's Hospital, where the journey ends, but there the glowing marker sat right on
+ *      top of the hospital prop and hid it; the hospital prop now marks that spot.)
  *      The original coordinates are kept below as ORIGINAL_SALT_LAKE_CITY.
  *
  * The original GeoJSON file is kept in /public for reference.
@@ -104,8 +105,8 @@ export const LOCATIONS: readonly StoryLocation[] = [
     id: "salt-lake-city",
     title: "Salt Lake City, Utah",
     shortName: "Salt Lake City",
-    // St. Mark's Hospital (Mapbox Search), see note 3 at the top of this file.
-    coordinates: [-111.857112, 40.686071],
+    // Downtown Salt Lake City, clear of the hospital prop: see note 3 at the top of this file.
+    coordinates: [-111.891, 40.7608],
     icon: "server/assets/marker_icons/firefly.jpg",
     photo: "server/assets/card_images/utah_icon.jpg",
     description: [

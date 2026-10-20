@@ -71,6 +71,20 @@ export interface LegSpan {
   party: readonly Traveller[];
   /** Joel lies wounded across the horse's back while Ellie rides. */
   wounded: boolean;
+  /** Ellie carries her bow (data/types.ts LegPart). */
+  bow: boolean;
+  /** A pause: the travellers stand still for the whole span (data/types.ts `pauseSeconds`). */
+  pause: boolean;
+  /** During the pause Ellie shoots the rabbit (data/types.ts LegPart). */
+  hunt: boolean;
+  /** A snowstorm: wind-blown snow, and the walkers fight through it (data/types.ts LegPart). */
+  blizzard: boolean;
+  /** During the pause Ellie pets the giraffe (data/types.ts LegPart). */
+  pet: boolean;
+  /** Joel runs carrying Sarah (data/types.ts LegPart). */
+  carry: boolean;
+  /** The truck waits, parked at this part's start, for the rest of the chapter before it (data/types.ts LegPart). */
+  waitingTruck: boolean;
   /** How they travel this slice (the part's override, else the leg's mode). */
   mode: TravelMode;
   /** Text for the story panel (the part's override, else the leg's note). */
@@ -91,6 +105,8 @@ export interface TimelineChapter {
   end: number;
   /** Absolute start time of each slide. */
   slideStarts: readonly number[];
+  /** How long each of its slides stays on screen (s): the usual 5 s, longer if a pause made the chapter longer. */
+  slideSeconds: number;
   /** The leg parts travelled in this chapter, back to back, covering start → end. */
   legSpans: readonly LegSpan[];
 }
@@ -166,9 +182,14 @@ export function buildTimeline(
   chapters.forEach((chapter, index) => {
     if (chapter.legs.length === 0) throw new Error(`Chapter ${chapter.number} has no legs; travellers would stand still`);
     const start = clock;
-    const end = start + chapter.slides.length * config.slideSeconds;
-    const slideStarts = chapter.slides.map((_, i) => start + i * config.slideSeconds);
-    const window = end - start; // seconds available for travel = the whole chapter
+    // The chapter's usual length (5 s per slide) is the `window` its travel is shared out in.
+    // Pauses (`pauseSeconds`) come ON TOP of it: the chapter gets that much longer, and its
+    // slides are spread evenly over the whole, longer chapter.
+    const window = chapter.slides.length * config.slideSeconds;
+    const pauseSeconds = chapter.legs.reduce((sum, part) => sum + (part.pauseSeconds ?? 0), 0);
+    const end = start + window + pauseSeconds;
+    const slideSeconds = (end - start) / chapter.slides.length;
+    const slideStarts = chapter.slides.map((_, i) => start + i * slideSeconds);
 
     // Normalise the parts: fill in default from/to and look up each leg.
     const parts = chapter.legs.map((part) => {
@@ -176,12 +197,20 @@ export function buildTimeline(
       if (!leg) throw new Error(`Chapter ${chapter.number} references unknown leg ${part.leg}`);
       return {
         legIndex: part.leg,
-        kind: leg.kind,
+        // A `hidden` part is played like a jump (fixed jump time, comet, camera pulled back).
+        kind: part.hidden ? ('jump' as LegKind) : leg.kind,
         from: part.from ?? 0,
         to: part.to ?? 1,
         timeShare: part.timeShare,
         party: part.party ?? DEFAULT_PARTY,
         wounded: part.wounded ?? false,
+        bow: part.bow ?? false,
+        pauseSeconds: part.pauseSeconds,
+        hunt: part.hunt ?? false,
+        blizzard: part.blizzard ?? false,
+        pet: part.pet ?? false,
+        carry: part.carry ?? false,
+        waitingTruck: part.waitingTruck ?? false,
         mode: part.mode ?? leg.mode,
         note: part.note ?? leg.note,
         camera: part.camera ?? NO_CAMERA,
@@ -191,24 +220,25 @@ export function buildTimeline(
     // Fixed time for jumps (shrunk if a short chapter could not otherwise fit them).
     const jumpCount = parts.filter((p) => isJumpKind(p.kind)).length;
     const jumpSeconds = Math.min(config.jumpSeconds, (window * 0.6) / Math.max(jumpCount, 1));
-    // Parts with a fixed share of the chapter take it off the top, like jumps.
+    // Parts with a fixed share of the chapter take it off the top, like jumps. (Pauses have
+    // their own seconds, added to the chapter above, and take nothing from the window.)
     const fixedShareSeconds = parts.reduce((sum, p) => sum + (p.timeShare !== undefined ? window * p.timeShare : 0), 0);
     const flexibleSeconds = window - jumpCount * jumpSeconds - fixedShareSeconds;
+    const sharesFlexible = (p: (typeof parts)[number]) => !isJumpKind(p.kind) && p.timeShare === undefined && p.pauseSeconds === undefined;
 
     // Detailed parts share the rest by effort = metres of the slice ÷ relative speed of its mode.
     const lengths = parts.map((p) =>
-      isJumpKind(p.kind) || p.timeShare !== undefined
-        ? 0
-        : (route.legLines[p.legIndex]!.length * (p.to - p.from)) / config.modeSpeed[p.mode],
+      sharesFlexible(p) ? (route.legLines[p.legIndex]!.length * (p.to - p.from)) / config.modeSpeed[p.mode] : 0,
     );
     const totalLength = lengths.reduce((a, b) => a + b, 0);
-    const detailedCount = parts.filter((p) => !isJumpKind(p.kind) && p.timeShare === undefined).length;
+    const detailedCount = parts.filter(sharesFlexible).length;
 
     const legSpans: LegSpan[] = [];
     let t = start;
     parts.forEach((p, i) => {
       let seconds: number;
-      if (isJumpKind(p.kind)) seconds = detailedCount === 0 && fixedShareSeconds === 0 ? window / parts.length : jumpSeconds;
+      if (p.pauseSeconds !== undefined) seconds = p.pauseSeconds;
+      else if (isJumpKind(p.kind)) seconds = detailedCount === 0 && fixedShareSeconds === 0 ? window / parts.length : jumpSeconds;
       else if (p.timeShare !== undefined) seconds = window * p.timeShare;
       else seconds = totalLength > 0 ? (flexibleSeconds * lengths[i]!) / totalLength : flexibleSeconds / detailedCount;
       const legStart = route.legStart[p.legIndex]!;
@@ -222,6 +252,13 @@ export function buildTimeline(
         to: p.to,
         party: p.party,
         wounded: p.wounded,
+        bow: p.bow,
+        pause: p.pauseSeconds !== undefined,
+        hunt: p.hunt,
+        blizzard: p.blizzard,
+        pet: p.pet,
+        carry: p.carry,
+        waitingTruck: p.waitingTruck,
         mode: p.mode,
         note: p.note,
         camera: p.camera,
@@ -233,7 +270,7 @@ export function buildTimeline(
     // Remove floating-point drift: the last part ends exactly when the chapter ends.
     legSpans[legSpans.length - 1]!.end = end;
 
-    result.push({ index, start, end, slideStarts, legSpans });
+    result.push({ index, start, end, slideStarts, slideSeconds, legSpans });
     clock = end;
   });
 
@@ -266,7 +303,7 @@ export function locate(timeline: Timeline, time: number, out: JourneyFrame = cre
   const t = Math.min(Math.max(time, 0), timeline.duration);
   const chapterIndex = chapterIndexAt(timeline, t);
   const chapter = timeline.chapters[chapterIndex]!;
-  const slideSeconds = timeline.config.slideSeconds;
+  const slideSeconds = chapter.slideSeconds;
 
   out.time = t;
   out.chapterIndex = chapterIndex;

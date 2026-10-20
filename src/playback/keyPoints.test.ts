@@ -11,10 +11,10 @@ describe('chapter key points', () => {
   const timeline = buildTimeline(CHAPTERS, route);
   const placed = placeKeyPoints(timeline, CHAPTERS, route);
 
-  it('every chapter has its key points (25 in all)', () => {
-    expect(placed).toHaveLength(25);
+  it('every chapter has its key points (30 in all)', () => {
+    expect(placed).toHaveLength(30);
     for (const chapter of CHAPTERS) expect(KEY_POINTS[chapter.number]?.length).toBeGreaterThan(0);
-    expect(placed.filter((p) => p.chapterIndex === 9).map((p) => p.name)).toEqual(['The Giraffes']);
+    expect(placed.filter((p) => p.chapterIndex === 9).map((p) => p.name)).toEqual(['The Bus Depot', 'The Giraffes']);
   });
 
   it('nobody walks through a prop: every travelled route point keeps clear of every footprint', () => {
@@ -57,12 +57,12 @@ describe('chapter key points', () => {
     }
   });
 
-  it('close places stand right beside the route: the house where the drive starts, the State House, the hospital', () => {
+  it('close places stand right beside the route (the house, the State House); the hospital awaits them at the end', () => {
     const find = (name: string) => placed.find((p) => p.name === name)!;
     const home = find('Hometown');
     const capitol = find('The Capitol Building');
     const hospital = find('The Hospital');
-    for (const p of [home, capitol, hospital]) {
+    for (const p of [home, capitol]) {
       expect(p.close, p.name).toBe(true);
       // Its edge is within a couple of steps of the route point the travellers pass.
       const passed = route.journey.pointAt(p.distance);
@@ -73,6 +73,26 @@ describe('chapter key points', () => {
     expect(home.at).toBeLessThan(0.01);
     expect(Math.abs(capitol.distance - timeline.chapters[2]!.legSpans[0]!.endDistance)).toBeLessThan(400); // the last few seconds of the walk
     expect(hospital.at).toBeGreaterThan(0.99);
+    // The hospital stands straight ahead of where the walk ends, facing the arriving travellers:
+    // the end of the route is on its forecourt, a step in front of its front wall (0.7 model
+    // metres in front of its centre).
+    const walkEnd = route.journey.pointAt(hospital.distance);
+    const fromCentre = haversineMeters(walkEnd, [hospital.lng, hospital.lat]) / hospital.metresPerModel;
+    expect(fromCentre).toBeGreaterThan(0.7);
+    expect(fromCentre).toBeLessThan(1.1);
+    expect(((hospital.heading! - hospital.bearing + 360) % 360)).toBeCloseTo(180, 5);
+    // Lakeside Resort's props keep the size and place they were tuned at (they once changed when
+    // Fort Collins' pacing changed — see LAKESIDE_SCALE in data/keyPoints.ts).
+    const hunt = find('The Hunt');
+    expect(hunt.metresPerModel).toBeGreaterThan(1972 * 0.99);
+    expect(hunt.metresPerModel).toBeLessThan(1972 * 1.01);
+    expect(haversineMeters([hunt.lng, hunt.lat], [-105.4459, 40.0248])).toBeLessThan(50);
+    expect(find('Cabin Resort').metresPerModel).toBeCloseTo(hunt.metresPerModel / 2, 0);
+    // The school buses stand in Provo, on the downtown (east) side of the walk — inland, away
+    // from Utah Lake to the west.
+    const buses = find('The Bus Depot');
+    expect(haversineMeters([buses.lng, buses.lat], buses.coord)).toBeLessThan(5_000);
+    expect(buses.lng).toBeGreaterThan(route.journey.pointAt(buses.distance)[0]);
     // The State House stands near its real gold dome.
     expect(haversineMeters([capitol.lng, capitol.lat], capitol.coord)).toBeLessThan(150);
   });

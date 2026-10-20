@@ -63,18 +63,31 @@ const PITCH_SPEED = 1.5;
 const BEARING_SPEED = 1.1;
 /**
  * How far (zoom levels) the user may zoom out (−) or in (+) from the camera's own choice.
- * Out: only one level, so the travellers never become specks. In: 3.5 levels, so you can
- * get close to the street where the satellite imagery is sharpest.
+ * Out: only one level, so the travellers never become specks. In: just 1 level — enough to get
+ * a little closer, but not so close that the walking models fill the screen.
  */
 const MIN_ZOOM_OFFSET = -1;
-const MAX_ZOOM_OFFSET = 3.5;
+const MAX_ZOOM_OFFSET = 1;
 /**
- * The box "Explore the map" is fenced into: North America from Alaska's Aleutians to
- * Newfoundland, and from Panama up into the Canadian Arctic ([west, south], [east, north]).
+ * The box "Explore the map" is fenced into: 150° of longitude by 7°–72° N (Panama up into the
+ * Canadian Arctic). With the fence, Mapbox will not show anything outside the box, so zoomed
+ * out as far as it goes the box fills the view and the map is LOCKED in place.
+ *
+ * USA IN THE MIDDLE: Mapbox fits the box to the part of the screen NOT covered by the panels
+ * (the map padding — the story panel on the left), so when locked, the middle of the BOX is in
+ * the middle of THAT area, which is right of the screen's middle. The fence is therefore
+ * shifted east by exactly that difference (see exploreFence), so the locked view has the
+ * middle of the USA (−95°) in the middle of the whole screen. With no side panel (phones) the
+ * shift is zero and the box is centred on the USA.
  */
+const USA_CENTRE_LNG = -95;
+const FENCE_HALF_WIDTH = 75;
+const FENCE_SOUTH = 7;
+const FENCE_NORTH = 72;
+/** The fence centred on the USA, before the shift for the panels. */
 const NORTH_AMERICA: [[number, number], [number, number]] = [
-  [-170, 7],
-  [-50, 72],
+  [USA_CENTRE_LNG - FENCE_HALF_WIDTH, FENCE_SOUTH],
+  [USA_CENTRE_LNG + FENCE_HALF_WIDTH, FENCE_NORTH],
 ];
 /** Zoom levels per wheel "pixel" (a typical mouse notch is 100 px → ~0.4 levels). */
 const WHEEL_ZOOM_RATE = 1 / 250;
@@ -119,7 +132,7 @@ export class CameraDirector {
   private centre: MutableLngLat = [0, 0];
   private zoom = 9;
   private pitch = 0;
-  /** Smoothed map heading (degrees; 0 = north up). Only parts with `camera.heading` turn it. */
+  /** Smoothed map heading (degrees; 0 = north up). Only parts with `camera.heading` or `camera.bearing` turn it. */
   private bearing = 0;
   private readonly map: MapboxMap;
   private readonly engine: PlaybackEngine;
@@ -232,15 +245,21 @@ export class CameraDirector {
     const id = ++this.flightCounter;
     this.flightId = reduced ? 0 : id;
     this.setModeInternal('free');
-    // Work out the camera that fits all markers, then keep the zoom between 2.8 and 6:
-    // on a narrow phone the exact fit would zoom out to the whole planet.
+    // Work out the camera that fits all markers (and their name labels), at most zoom 6.
+    // There is no lower limit any more: a phone needs to zoom out further (to ~1.7) to show
+    // every place from Salt Lake City to Boston — the old minimum of 2.8 cut the West off —
+    // and the North America fence (applyInteraction) already stops Mapbox from zooming out
+    // past the continent. The margin around the markers is smaller on narrow screens, but
+    // always wider than half a name label, so labels at the edges are not cut off.
     // cameraForBounds returns undefined when the padding leaves no room (e.g. for a moment
     // while the panels are changing size); then retry with a small margin instead.
     const bounds = boundsOf(coords);
+    const width = this.map.getContainer().clientWidth;
+    const margin = width < 600 ? 46 : 50;
     const camera =
-      this.map.cameraForBounds(bounds, { padding: this.overviewPadding() }) ??
+      this.map.cameraForBounds(bounds, { padding: this.overviewPadding(margin) }) ??
       this.map.cameraForBounds(bounds, { padding: 20 });
-    const zoom = Math.min(6, Math.max(2.8, camera?.zoom ?? 3.5));
+    const zoom = Math.min(6, camera?.zoom ?? 3.5);
     this.map.easeTo(
       { center: camera?.center ?? [-96, 39], zoom, pitch: 0, bearing: 0, duration: reduced ? 0 : 1800 },
       { flightId: id },
@@ -256,6 +275,9 @@ export class CameraDirector {
   setPadding(padding: { top: number; right: number; bottom: number; left: number }): void {
     const wasFlying = this.flightId !== 0;
     this.map.setPadding(padding);
+    // The panels moved: re-centre the fence. Not mid-flight — measuring jumps the camera, which
+    // would cut the flight short (the next panel change or resize catches up).
+    if (this.exploring && !wasFlying) this.refreshExploreFence();
     if (wasFlying && this.lastFlight) {
       this.jumpZoom.clear(); // the visible area changed, so jump framing must be recomputed
       this.lastFlight();
@@ -345,7 +367,9 @@ export class CameraDirector {
     // and to zoom out so far that anything outside it would show. The journey needs no
     // fence (the camera director moves the camera there), so it is removed again.
     // (Mapbox removes the fence when given null; its TypeScript types only list a box.)
-    map.setMaxBounds(free ? NORTH_AMERICA : (null as unknown as LngLatBoundsLike));
+    // (The box is shifted for the panels so the USA ends up in the middle — see exploreFence.)
+    if (free) this.refreshExploreFence();
+    else map.setMaxBounds(null as unknown as LngLatBoundsLike);
     // Without panning, the "grab" hand cursor would promise something that does nothing.
     map.getContainer().classList.toggle('map--zoom-only', !free);
   }
@@ -411,7 +435,57 @@ export class CameraDirector {
     this.bearing = this.map.getBearing();
   };
 
-  private onResize = (): void => this.jumpZoom.clear();
+  private onResize = (): void => {
+    this.jumpZoom.clear();
+    // A new screen shape: the panel shift is another number of degrees. (Not mid-flight: the
+    // measuring jumps would cut a flight short; the next resize or panel change catches up.)
+    if (this.exploring && this.flightId === 0) this.refreshExploreFence();
+  };
+
+  /**
+   * The fence for "Explore the map" (see NORTH_AMERICA): the box, shifted east so that when
+   * zoomed all the way out — where the fence locks the view — the USA is in the middle of the
+   * whole screen rather than of the area beside the panel.
+   *
+   *   shift (pixels)  = half of (left panel − right panel): how far the middle of the
+   *                     uncovered area is from the middle of the screen
+   *   shift (degrees) = pixels × 360° ÷ the world's width in pixels at the zoom-out limit
+   *                     (512 × 2^zoom)
+   *
+   * The zoom-out limit depends on the screen's shape, the panels and the tilt, so instead of
+   * calculating it we MEASURE it with the unshifted box (shifting sideways does not change it):
+   * ask for zoom 0 — Mapbox stops at the limit — read the zoom, and put the camera straight
+   * back. Both jumps happen before the next frame is drawn, so nothing is seen.
+   */
+  /** Re-measures the fence only when the screen size or the panels changed since last time. */
+  private lastFenceKey = '';
+  private refreshExploreFence(): void {
+    const p = this.map.getPadding();
+    const c = this.map.getContainer();
+    const key = `${c.clientWidth}x${c.clientHeight}:${p.left ?? 0},${p.right ?? 0},${p.top ?? 0},${p.bottom ?? 0}`;
+    if (key === this.lastFenceKey && this.map.getMaxBounds()) return; // same shape: same fence
+    this.lastFenceKey = key;
+    this.map.setMaxBounds(this.exploreFence());
+  }
+
+  private exploreFence(): [[number, number], [number, number]] {
+    const map = this.map;
+    const padding = map.getPadding();
+    const shiftPx = ((padding.left ?? 0) - (padding.right ?? 0)) / 2;
+    if (Math.abs(shiftPx) < 1) return NORTH_AMERICA;
+    const centre = map.getCenter();
+    const zoom = map.getZoom();
+    map.setMaxBounds(NORTH_AMERICA);
+    map.jumpTo({ zoom: 0 });
+    const floor = map.getZoom();
+    map.jumpTo({ center: centre, zoom });
+    const shiftDeg = (shiftPx * 360) / (512 * 2 ** floor);
+    const middle = USA_CENTRE_LNG + shiftDeg;
+    return [
+      [middle - FENCE_HALF_WIDTH, FENCE_SOUTH],
+      [middle + FENCE_HALF_WIDTH, FENCE_NORTH],
+    ];
+  }
 
   /** Cinematic flight to the travellers' current position. */
   private flyToStory(): void {
@@ -468,9 +542,10 @@ export class CameraDirector {
   private storyTarget(withUserZoom: boolean): { zoom: number; look: MutableLngLat; jumping: boolean; bearing: number } {
     const frame = this.engine.frame;
     const journey = this.engine.route.journey;
-    const leg = this.engine.route.legs[frame.legIndex];
     journey.pointAt(frame.distance, this.target);
-    const jumping = leg !== undefined && isJumpKind(leg.kind);
+    // A jump: a jump leg, or a `hidden` part of a walked leg (the span's kind says both).
+    const currentSpan = this.engine.timeline.chapters[frame.chapterIndex]?.legSpans[frame.spanIndex];
+    const jumping = currentSpan !== undefined && isJumpKind(currentSpan.kind);
     let zoom = this.spanZoom.get(`${frame.chapterIndex}:${frame.spanIndex}`) ?? 9;
     if (jumping) zoom = this.zoomForJump(frame.legIndex);
     if (withUserZoom) zoom = clamp(zoom + this.zoomOffset, 1.5, 18.5);
@@ -480,7 +555,10 @@ export class CameraDirector {
     // Heading: averaged over ~250 screen pixels of route either side, so small wiggles do not
     // swing the whole map.
     const span = this.engine.timeline.chapters[frame.chapterIndex]?.legSpans[frame.spanIndex];
-    const bearing = !jumping && span?.camera.heading === 'route' ? journey.bearingAt(frame.distance, metersPerPixel(zoom, this.target[1]) * 250) : 0;
+    const bearing =
+      jumping ? 0
+      : span?.camera.heading === 'route' ? journey.bearingAt(frame.distance, metersPerPixel(zoom, this.target[1]) * 250)
+      : (span?.camera.bearing ?? 0); // a part's fixed heading (PartCamera.bearing), else north up
     return { zoom, look: this.ahead, jumping, bearing };
   }
 
@@ -505,6 +583,13 @@ export class CameraDirector {
     for (const chapter of this.engine.timeline.chapters) {
       for (const [spanIndex, span] of chapter.legSpans.entries()) {
         if (isJumpKind(span.kind)) continue;
+        // A pause (Ellie's hunt) does not move at all, so "a comfortable on-screen speed" would
+        // mean zooming in without limit: keep the framing of the stretch walked just before it.
+        const before = zooms.get(`${chapter.index}:${spanIndex - 1}`);
+        if (span.pause && before !== undefined) {
+          zooms.set(`${chapter.index}:${spanIndex}`, before);
+          continue;
+        }
         const lat = this.engine.route.legs[span.legIndex]!.coordinates[0]![1];
         zooms.set(`${chapter.index}:${spanIndex}`, comfortableZoom(span, lat));
       }
@@ -516,9 +601,9 @@ export class CameraDirector {
    * `fitBounds` padding REPLACES the map's own padding (the space under the
    * story panel and player bar), so we add a 50 px margin on top of it ourselves.
    */
-  private overviewPadding(): { top: number; right: number; bottom: number; left: number } {
+  private overviewPadding(margin = 50): { top: number; right: number; bottom: number; left: number } {
     const p = this.map.getPadding();
-    return { top: (p.top ?? 0) + 50, right: (p.right ?? 0) + 50, bottom: (p.bottom ?? 0) + 50, left: (p.left ?? 0) + 50 };
+    return { top: (p.top ?? 0) + margin, right: (p.right ?? 0) + margin, bottom: (p.bottom ?? 0) + margin, left: (p.left ?? 0) + margin };
   }
 
   private journeyBounds(): LngLatBoundsLike {

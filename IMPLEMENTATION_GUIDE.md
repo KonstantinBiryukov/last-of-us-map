@@ -135,9 +135,23 @@ npm run preview          # http://localhost:4173/last-of-us-map/#/
 visitor's browser needs it to download map tiles, so it ends up inside the published
 JavaScript. Protect it in the Mapbox dashboard instead:
 
-- **URL restrictions:** `https://konstantinbiryukov.github.io/last-of-us-map/*`,
-  plus `http://localhost:5173/*` and `http://localhost:4173/*` for development.
+- **URL restrictions:** `https://konstantinbiryukov.github.io` — the *origin only*, without
+  the `/last-of-us-map/` path — plus `http://localhost:5173` (and `http://localhost:4173` for
+  `npm run preview`) for development. Why the origin: browsers send other websites (here
+  api.mapbox.com) only the origin in the `Referer` header, not the page path, so a restriction
+  that includes the path never matches and every map tile fails with **403 Forbidden** (the app
+  then shows the fallback map with "The Mapbox token was rejected"). The origin is still safe:
+  only this GitHub account can publish under `konstantinbiryukov.github.io`, so only its own
+  sites can use the token; any other website gets 403. Note: the *Default public token* cannot
+  be restricted — create a new token.
 - Keep only the default public scopes. Never put a secret (`sk.…`) token in this app.
+
+**GitHub push protection** flags any Mapbox token in the built JavaScript as a "Mapbox Secret
+Access Token" and blocks `npm run deploy` the first time a new token is published. If the token
+is a public `pk.` token with a URL restriction, open the "unblock-secret" link from the error,
+choose *false positive* → *Allow secret*, and deploy again. `npm run deploy` reports such
+failures (it used to say "Done" even when the upload was rejected) and only says "Done" once
+GitHub's `gh-pages` branch really has the new build.
 
 **Without a token** (or if the token is rejected, or WebGL is unavailable) the app
 shows `FallbackMap`: an SVG map of the same route and locations, still fully
@@ -386,7 +400,7 @@ to their speed and swoops out over jumps; *Overview* frames the whole journey;
 *Free* never moves on its own ("Explore the map"). During the journey the map **cannot be
 panned** (dragging it away let the travellers walk off-screen while the story played): wheel,
 pinch and the +/− buttons zoom around the centre and following continues at that zoom (kept
-as an offset from the camera's own choice: at most 1 level out, 3.5 levels in). Explore allows panning
+as an offset from the camera's own choice: at most 1 level out, 1 level in). Explore allows panning
 again, fenced to North America (`setMaxBounds`): it cannot be dragged or zoomed out past it.
 Any story navigation — next/previous chapter, clicking a location, releasing the
 timeline — switches back to Follow and flies there. Users can pan and zoom but **not rotate

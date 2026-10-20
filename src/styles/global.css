@@ -117,7 +117,18 @@ img {
 
 .map-marker {
   --size: 34px;
-  position: relative;
+  /*
+   * ABSOLUTE, like Mapbox's own `.mapboxgl-marker` rule — never `relative`. Both rules have
+   * the same weight, so whichever stylesheet loads LAST wins: in development Mapbox's CSS
+   * came last (absolute — fine), but the production build loads it FIRST, so a `relative`
+   * here won. Then every marker was offset by the markers before it in the page flow and
+   * jumped around whenever one changed size (the current chapter's marker grows). Stating
+   * Mapbox's own values here makes the order irrelevant. (It is also the containing block for
+   * the ring, icon and label inside.)
+   */
+  position: absolute;
+  top: 0;
+  left: 0;
   width: var(--size);
   height: var(--size);
   padding: 0;
@@ -259,6 +270,27 @@ img {
 .map-marker--explore .map-marker__label {
   opacity: 1;
 }
+/*
+ * Label declutter (map/markers.ts): a label that would overlap another label or marker moves
+ * to the other side of its marker (--label-flip) or, if both sides collide, is hidden
+ * (--label-hidden) — hovering or focusing its marker still shows it.
+ */
+.map-marker--label-flip .map-marker__label {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.map-marker--next.map-marker--label-flip .map-marker__label {
+  bottom: auto;
+  top: calc(100% + 6px);
+}
+.map-marker--label-hidden .map-marker__label {
+  opacity: 0;
+}
+.map-marker--label-hidden:hover .map-marker__label,
+.map-marker--label-hidden:focus-visible .map-marker__label {
+  opacity: 1;
+}
+
 /* The location whose card is open. */
 .map-marker--selected {
   --size: 48px;

@@ -19,6 +19,11 @@
  * their coordinate, turned along the given heading, rules 1 and 3 aside. Placed
  * first with the close places; everything else avoids it.
  *
+ * ARRIVAL BUILDINGS (`arrive`: the hospital): where the walk ends. The prop stands straight
+ * ahead of the route's end (in the direction they arrive from), facing them, its front door a
+ * step beyond where they stop — so they walk across its forecourt right up to the door, as if
+ * entering. Placed first; others avoid it.
+ *
  * CLOSE PLACES (`close`: Joel's house where the drive starts, the State House where the
  * Boston walk ends, the Fireflies' hospital): the travellers come right up to them, and rule 1
  * shrinks to "no route inside the footprint" — they brush right past. Best of all, the prop
@@ -44,12 +49,24 @@
  * east metres = Δlongitude × 111 320 × cos(latitude), north metres = Δlatitude × 111 320),
  * accurate to well under 1 % over the few kilometres that matter here.
  */
-import type { Chapter, KeyPoint, LngLat } from '../data/types';
+import type { Chapter, KeyPoint } from '../data/types';
 import type { Route } from '../geo/route';
 import { KEY_POINTS, PROP_RADIUS } from '../data/keyPoints';
 import { metersPerPixel } from '../geo/mercator';
 import { comfortableZoom } from './followZoom';
-import { isJumpKind, locate, type LegSpan, type Timeline } from './timeline';
+import { locate, type LegSpan, type Timeline } from './timeline';
+import {
+  closestDistance,
+  DEG,
+  distanceToSegment,
+  flatDistance,
+  METRES_PER_DEGREE,
+  spanAt,
+  timeFraction,
+  travelledSegments,
+  travelledSpans,
+  type Segment,
+} from './keyPointGeometry';
 
 /** A key point placed beside the route. */
 export interface KeyPointPlacement extends KeyPoint {
@@ -94,6 +111,14 @@ const TRAVELLER_CLEARANCE = 3;
 const CLOSE_CLEARANCE = 1;
 /** Half the deck length (model metres) of props the travellers cross (see props.ts: the bridge deck is 4.6 long). */
 const DECK_HALF_LENGTH = { bridge: 2.3 } as const;
+/**
+ * Arrival buildings: how far back (m) the arrival direction is measured, and where the walk
+ * stops, in model metres from the building's centre: 0.9 = just outside the hospital's front
+ * wall (its front is 0.7 in front of the centre, see props.ts), on its forecourt — right at
+ * the door, as if they are about to walk in.
+ */
+const ARRIVE_LOOKBACK_M = 1500;
+const ARRIVE_STOP_MODEL = 0.9;
 /** How deep (in landmark radii) the clear view corridor in front of an exact landmark is. */
 const VIEW_CORRIDOR = 5;
 /** Extra space kept between two props (model metres). */
@@ -109,8 +134,6 @@ const SHIFTS = [0, 0.5, -0.5, 1, -1, 1.5, -1.5, 2, -2];
 const CLOSE_SHIFTS = [0, 0.5, -0.5, 1, -1];
 /** How far from its real coordinate a close place may stand and still count as on its site (m). */
 const REAL_SITE_METRES = 120;
-/** Two candidate spots within this many metres of the same distance count as a tie. */
-const TIE_METRES = 30;
 /**
  * Props this close (in units of their combined footprint radii) form a GROUP sharing one size,
  * unless their travellers' scales differ more than GROUP_MAX_SCALE_RATIO (such places are seen
@@ -126,43 +149,6 @@ const GROUP_MAX_SCALE_RATIO = 4;
 const PROP_SCALE = 1.15;
 /** How much further from the route than the minimum a prop may stand, in half footprints. */
 const FURTHER_OUT = [0, 1, 2];
-const METRES_PER_DEGREE = 111_320;
-const DEG = Math.PI / 180;
-
-/** A short straight piece of the travelled route, in degrees ([lng, lat] → [lng, lat]). */
-type Segment = readonly [number, number, number, number];
-
-/** Every piece of the route that is actually travelled (jump arcs are just drawn, not walked). */
-function travelledSegments(route: Route): Segment[] {
-  const out: Segment[] = [];
-  route.legs.forEach((leg) => {
-    if (isJumpKind(leg.kind)) return;
-    const c = leg.coordinates;
-    for (let k = 1; k < c.length; k++) out.push([c[k - 1]![0], c[k - 1]![1], c[k]![0], c[k]![1]]);
-  });
-  return out;
-}
-
-/** Distance in metres from point (lng, lat) to a segment, on a flat patch around the point. */
-function distanceToSegment(lng: number, lat: number, s: Segment): number {
-  const kx = METRES_PER_DEGREE * Math.cos(lat * DEG);
-  const ax = (s[0] - lng) * kx;
-  const ay = (s[1] - lat) * METRES_PER_DEGREE;
-  const bx = (s[2] - lng) * kx;
-  const by = (s[3] - lat) * METRES_PER_DEGREE;
-  // Closest point of segment a→b to the origin: a + t·(b − a), t clamped to 0‥1.
-  const dx = bx - ax;
-  const dy = by - ay;
-  const lengthSq = dx * dx + dy * dy;
-  const t = lengthSq > 0 ? Math.min(1, Math.max(0, -(ax * dx + ay * dy) / lengthSq)) : 0;
-  return Math.hypot(ax + dx * t, ay + dy * t);
-}
-
-/** Distance in metres between two points (flat patch; fine at these scales). */
-function flatDistance(aLng: number, aLat: number, bLng: number, bLat: number): number {
-  const kx = METRES_PER_DEGREE * Math.cos(((aLat + bLat) / 2) * DEG);
-  return Math.hypot((bLng - aLng) * kx, (bLat - aLat) * METRES_PER_DEGREE);
-}
 
 /**
  * Would a prop at (lng, lat) with footprint `radius` stand in front of `landmark` as the follow
@@ -177,48 +163,6 @@ function blocksView(lng: number, lat: number, radius: number, landmark: KeyPoint
   const east = (lng - landmark.lng) * kx;
   const north = (lat - landmark.lat) * METRES_PER_DEGREE;
   return north < 0 && north > -VIEW_CORRIDOR * landmark.radiusMetres && Math.abs(east) < landmark.radiusMetres + radius;
-}
-
-/** The chapter's travelled (non-jump) parts. */
-function travelledSpans(timeline: Timeline, chapterIndex: number): readonly LegSpan[] {
-  return timeline.chapters[chapterIndex]!.legSpans.filter((s) => !isJumpKind(s.kind));
-}
-
-/**
- * The point of these route parts closest to `coord`, after journey distance `after`: its
- * distance along the journey. On a tie (within TIE_METRES) the earliest point wins.
- */
-function closestDistance(route: Route, spans: readonly LegSpan[], coord: LngLat, after: number): number {
-  // Pass 1: sample the route every ~25 m and remember how far each sample is from the place.
-  const point: [number, number] = [0, 0];
-  const samples: { d: number; metres: number }[] = [];
-  for (const span of spans) {
-    const length = span.endDistance - span.startDistance;
-    const steps = Math.min(4000, Math.max(20, Math.ceil(length / 25))); // every ~25 m (≤ 4000 samples)
-    for (let i = 0; i <= steps; i++) {
-      const d = span.startDistance + (length * i) / steps;
-      if (d <= after) continue;
-      route.journey.pointAt(d, point);
-      samples.push({ d, metres: flatDistance(point[0], point[1], coord[0], coord[1]) });
-    }
-  }
-  if (samples.length === 0) return spans.at(-1)!.endDistance;
-  // Pass 2: the closest distance, then the EARLIEST sample that is (nearly) as close.
-  const closest = Math.min(...samples.map((s) => s.metres));
-  return samples.find((s) => s.metres <= closest + TIE_METRES)!.d;
-}
-
-/** The span (of these) containing journey distance d, if any. */
-function spanAt(spans: readonly LegSpan[], d: number): LegSpan | undefined {
-  return spans.find((s) => d >= s.startDistance && d <= s.endDistance);
-}
-
-/** When the travellers are at distance d (inside `span`), as a fraction of the chapter's time. */
-function timeFraction(timeline: Timeline, chapterIndex: number, span: LegSpan, d: number): number {
-  const chapter = timeline.chapters[chapterIndex]!;
-  const along = span.endDistance > span.startDistance ? (d - span.startDistance) / (span.endDistance - span.startDistance) : 0;
-  const time = span.start + (span.end - span.start) * along;
-  return (time - chapter.start) / (chapter.end - chapter.start);
 }
 
 /** Everything known about a key point before its final spot is chosen. */
@@ -254,7 +198,10 @@ export function placeKeyPoints(
   const spansOf: LegSpan[][] = [];
   chapters.forEach((chapter, chapterIndex) => {
     const travelled = travelledSpans(timeline, chapterIndex);
-    const walked = travelled.filter((s) => s.mode === 'walk');
+    // Props stand by the WALKED parts when a chapter has some (Pittsburgh: by the walk, not the
+    // drive). Joel's run with Sarah (`carry`, Hometown) does not count as one: it is the end of
+    // the escape drive, and its props (the house, the burning house) stand along the drive.
+    const walked = travelled.filter((s) => s.mode === 'walk' && !s.carry);
     const spans = walked.length > 0 ? walked : travelled;
     spansOf[chapterIndex] = [...spans];
     let previousIdeal = -Infinity; // ideal spots must follow the game order
@@ -439,6 +386,28 @@ export function placeKeyPoints(
     metresPerModel: size,
     radiusMetres: PROP_RADIUS[c.keyPoint.prop] * size,
   });
+
+  // Arrival buildings (the hospital): straight ahead of the route's end, facing the travellers.
+  for (const c of candidates) {
+    if (!c.keyPoint.arrive) continue;
+    const size = baseOf.get(c)!;
+    // The direction they arrive from: the last ~ARRIVE_LOOKBACK_M metres of their route.
+    const end: [number, number] = [0, 0];
+    route.journey.pointAt(c.ideal, end);
+    route.journey.pointAt(Math.max(0, c.ideal - ARRIVE_LOOKBACK_M), point);
+    const kx = METRES_PER_DEGREE * Math.cos(end[1] * DEG);
+    const east = (end[0] - point[0]) * kx;
+    const north = (end[1] - point[1]) * METRES_PER_DEGREE;
+    const length = Math.hypot(east, north) || 1;
+    // Centre: ARRIVE_STOP_MODEL beyond the end, so its front door is a step ahead of where they stop.
+    const out = ARRIVE_STOP_MODEL * size;
+    const lng = end[0] + ((east / length) * out) / kx;
+    const lat = end[1] + ((north / length) * out) / METRES_PER_DEGREE;
+    const arrivalBearing = (Math.atan2(east, north) * 180) / Math.PI;
+    // Facing back towards them: the prop's front (−Z) points opposite to their direction.
+    placed.push({ ...make(c, c.ideal, c.span, lng, lat, size, 1, arrivalBearing), heading: arrivalBearing + 180 });
+    closeFactor.set(keyOf(c), 1);
+  }
 
   // Exact landmarks (a bridge): exactly in place, along their real axis, at their group's size.
   for (const c of candidates) {

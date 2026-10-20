@@ -15,9 +15,9 @@
  * instantly. "Begin the journey" is a real click, which is what browsers
  * require before allowing sound — so the music can start right away.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { assetUrl, optimizedImage } from '../config/assets';
-import { UI_CLICK_SOUND } from '../data/soundtrack';
+import { isUiSoundOn, playUiSound, preloadUiSound, unlockUiSound } from '../audio/uiSound';
 import styles from './Intro.module.css';
 
 interface IntroProps {
@@ -36,45 +36,33 @@ interface IntroProps {
 export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAbout }: IntroProps) {
   /** The original title-screen image (optimized copy + blurred placeholder). */
   const background = optimizedImage('server/assets/large_images/main_background.jpg');
-  /** The short hover "click" sound from the original menu. */
-  const clickRef = useRef<HTMLAudioElement | null>(null);
   /** The main button, focused automatically so Enter/Space starts the journey. */
   const beginRef = useRef<HTMLButtonElement>(null);
 
-  /** True once the browser allows this page to play sound (see the effect below). */
-  const unlockedRef = useRef(false);
+  /**
+   * True once sound is on (audio/uiSound.ts). While false, a small "Sound on" button is shown:
+   * browsers give a page sound only after a click/tap/key press, and hovering is not one — so
+   * on a first visit the menu's hover sound cannot play until the visitor clicks something.
+   * This button is that click, offered openly (any other first click turns sound on too).
+   */
+  const [soundOn, setSoundOn] = useState(isUiSoundOn);
 
   useEffect(() => {
-    const audio = new Audio(assetUrl(UI_CLICK_SOUND));
-    audio.volume = 0.25;
-    audio.preload = 'auto';
-    clickRef.current = audio;
-    // BROWSER RULE: a page may play no sound until the visitor has clicked, tapped or pressed a
-    // key on it — hovering does not count. (After a reload Chrome remembers the earlier visit
-    // and allows it, which is why the hover sound used to start working only after a refresh.)
-    // So on the very FIRST click/tap/key anywhere on the page we "unlock" the sound: play it
-    // silently once, which the browser now allows, and from then on every hover can play it.
+    preloadUiSound(); // download the click now, so it is ready the moment sound is allowed
+    // The first click, tap or key press ANYWHERE on the page switches sound on. These are the
+    // events browsers accept as "the visitor did something" (a touch only counts when the
+    // finger lifts: touchend / pointerup, not touchstart).
+    const events = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'] as const;
     const unlock = () => {
-      if (unlockedRef.current) return;
-      audio.muted = true;
-      audio
-        .play()
-        .then(() => {
-          audio.pause();
-          audio.currentTime = 0;
-          audio.muted = false;
-          unlockedRef.current = true;
-        })
-        .catch(() => {
-          audio.muted = false; // still blocked: try again on the next interaction
-        });
+      void unlockUiSound().then((on) => {
+        if (!on) return; // still blocked: the next interaction tries again
+        setSoundOn(true);
+        for (const type of events) document.removeEventListener(type, unlock, { capture: true });
+      });
     };
-    const events = ['pointerdown', 'keydown', 'touchstart'] as const;
     for (const type of events) document.addEventListener(type, unlock, { capture: true });
     return () => {
       for (const type of events) document.removeEventListener(type, unlock, { capture: true });
-      audio.pause();
-      clickRef.current = null;
     };
   }, []);
 
@@ -82,17 +70,16 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
     if (ready) beginRef.current?.focus();
   }, [ready]);
 
-  /** Plays the click sound from the start on hover. */
+  /** Plays the click sound on hover (silent until sound is on — see above). */
   const hoverSound = () => {
-    const audio = clickRef.current;
-    if (!audio) return;
-    audio.currentTime = 0;
-    // Before the first click the browser may still refuse (see above): then stay silent. A
-    // successful play also means sound is allowed from now on.
-    audio
-      .play()
-      .then(() => (unlockedRef.current = true))
-      .catch(() => undefined);
+    playUiSound();
+  };
+
+  /** The "Sound on" button: switches sound on and plays the click once, so the visitor hears it worked. */
+  const turnSoundOn = () => {
+    void unlockUiSound().then((on) => {
+      if (on) playUiSound();
+    });
   };
 
   return (
@@ -110,7 +97,8 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
         </h1>
         <p className={styles.lede}>
           Follow Joel and Ellie across America — from Austin to Boston, west through Pittsburgh, the Rockies and
-          Salt Lake City, and home to Jackson — with the places, the moments and the music of their road.
+          Salt Lake City, and home to Jackson — through beautiful places and unforgettable moments, set to the
+          game's haunting score.
         </p>
 
         <div className={styles.actions}>
@@ -140,6 +128,20 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
         <p className={styles.warning}>
           <strong>Warning:</strong> The journey contains major spoilers for the entire game. Best experienced with sound on.
         </p>
+        {/* Shown until sound is allowed (see `soundOn`), then it fades away — but it KEEPS its
+            place on the page (only invisible, `soundOnDone`), so the text around it does not jump.
+            Hidden from screen readers and the keyboard once done. */}
+        <button
+          type="button"
+          className={`${styles.soundOn} ${soundOn ? styles.soundOnDone : ''}`}
+          onClick={turnSoundOn}
+          aria-label="Turn sound on"
+          aria-hidden={soundOn}
+          tabIndex={soundOn ? -1 : 0}
+          disabled={soundOn}
+        >
+          <span aria-hidden="true">🔊</span> Sound on
+        </button>
       </div>
     </div>
   );

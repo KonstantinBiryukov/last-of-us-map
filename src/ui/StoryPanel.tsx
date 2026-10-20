@@ -47,9 +47,11 @@ const NAMES: Record<Traveller, string> = {
  *   ['joel','tess','ellie']  → "Joel, Tess & Ellie"
  *   ['ellie']                → "Ellie, alone"
  *   wounded                  → "Ellie, with Joel wounded"
+ *   carry                    → "Joel, carrying Sarah" (outbreak night)
  */
-function partyLabel(party: readonly Traveller[], wounded: boolean): string | null {
+function partyLabel(party: readonly Traveller[], wounded: boolean, carry: boolean): string | null {
   if (wounded) return 'Ellie, with Joel wounded';
+  if (carry) return 'Joel, carrying Sarah';
   if (party.length === 2 && party.includes('joel') && party.includes('ellie')) return null;
   if (party.length === 1) return `${NAMES[party[0]!]}, alone`;
   const names = party.map((p) => NAMES[p]);
@@ -77,7 +79,7 @@ export const StoryPanel = memo(function StoryPanel() {
   const leg = playback.legIndex >= 0 ? engine.route.legs[playback.legIndex] : undefined;
   // The current part of the chapter's travel: its own mode, party and note (see data/chapters.ts).
   const span = engine.timeline.chapters[playback.chapterIndex]!.legSpans[playback.spanIndex];
-  const who = span ? partyLabel(span.party, span.wounded) : null;
+  const who = span ? partyLabel(span.party, span.wounded, span.carry) : null;
   const finished = playback.status === 'finished';
   /** Whether the "About …" text is expanded. */
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -128,12 +130,14 @@ export const StoryPanel = memo(function StoryPanel() {
               <strong>Time passes</strong> · {leg.note}
             </span>
           </>
-        ) : leg.kind === 'jump' ? (
+        ) : leg.kind === 'jump' || span?.kind === 'jump' ? (
           <>
             <JumpIcon size={18} />
             <span>
-              <strong>Jump</strong> · {leg.note}
-              <span className={styles.travelMeta}>shown as an arc — the real path is unknown</span>
+              <strong>Jump</strong> · {span?.note ?? leg.note}
+              <span className={styles.travelMeta}>
+                {leg.kind === 'jump' ? 'shown as an arc — the real path is unknown' : 'a long walk, skipped ahead'}
+              </span>
             </span>
           </>
         ) : (
@@ -142,7 +146,7 @@ export const StoryPanel = memo(function StoryPanel() {
             <span>
               <strong>
                 {who ? `${who} · ` : ''}
-                {MODE_LABEL[span?.mode ?? leg.mode]}
+                {span?.carry ? 'Running' : MODE_LABEL[span?.mode ?? leg.mode]}
               </strong>{' '}
               · {span?.note ?? leg.note}
               <span className={styles.travelMeta}>{travelDescription(leg.modeSource)}</span>

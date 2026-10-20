@@ -142,6 +142,34 @@ export class MusicPlayer extends Store<MusicState> {
     }
   }
 
+  /**
+   * Start the music now if the browser allows it, otherwise on the visitor's first click, tap
+   * or key press anywhere on the page. For pages that open straight into the journey (a reload,
+   * a shared link): browsers only allow sound after the visitor has done something on the page
+   * — though Chrome usually allows it right away after a reload — so the first attempt may be
+   * refused, and then the first interaction starts it. Does nothing if the music was already
+   * started (or paused by the visitor) in this page.
+   */
+  playWhenAllowed(): void {
+    if (this.getSnapshot().status !== 'idle') return;
+    void this.play().then(() => {
+      if (this.getSnapshot().status !== 'blocked') return; // it started (or failed for another reason)
+      const events = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'] as const;
+      const retry = () => {
+        for (const type of events) document.removeEventListener(type, retry, { capture: true });
+        // Still blocked only if the visitor has not touched the music controls meanwhile.
+        if (this.getSnapshot().status === 'blocked') void this.play();
+      };
+      for (const type of events) document.addEventListener(type, retry, { capture: true });
+      this.removeGestureListeners = () => {
+        for (const type of events) document.removeEventListener(type, retry, { capture: true });
+      };
+    });
+  }
+
+  /** Removes playWhenAllowed's waiting listeners (when the player is disposed). */
+  private removeGestureListeners: () => void = () => undefined;
+
   /** Pause, keeping the exact position. */
   pause(): void {
     this.wantsToPlay = false;
@@ -218,6 +246,7 @@ export class MusicPlayer extends Store<MusicState> {
 
   /** Stop and release the audio element (called when the app unmounts). */
   dispose(): void {
+    this.removeGestureListeners();
     this.audio.pause();
     this.audio.removeEventListener('loadedmetadata', this.onMetadata);
     this.audio.removeEventListener('playing', this.onPlaying);
