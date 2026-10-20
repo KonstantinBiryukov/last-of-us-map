@@ -28,15 +28,22 @@
  *    forth within ~1 km of downtown, so the travellers seemed to walk in place. It is
  *    replaced by a street route through the game's places (QZ → docks → Fireflies →
  *    Downtown → Museum → Capitol), generated once from the Mapbox Directions API
- *    (scripts/build-boston-route.mjs → boston-streets.geojson). The original line is
+ *    (scripts/build-street-routes.mjs → boston-streets.geojson). The original line is
  *    re-joined at its point closest to the Capitol (the State House) and followed from
  *    there to Lincoln. See `spliceStart()`.
+ * 5. Pittsburgh wandered: the truck now stops downtown (`trimEnd()`) and a generated street
+ *    route walks from it straight across the Roberto Clemente Bridge (`spliceStart()`).
+ * 4. Salt Lake City ends early. The original line stops downtown; the game ends at the
+ *    Fireflies' hospital (St. Mary's, based on the real St. Mark's Hospital, ~10 km
+ *    away). A generated street route continues the leg there (`appendEnd()`), and a
+ *    generated driving route starts the drive away (leg 14) at the hospital, joining the
+ *    original line on I-80 (`spliceStart()` again).
  *
  * The original file is never modified; corrections happen in memory, in pure
  * functions covered by unit tests.
  */
-import type { Leg, LegMeta, LngLat } from '../data/types';
-import { BOSTON_STREETS_URL, LEG_META, ROUTE_URL } from '../data/legs';
+import type { Leg, LegMeta, LngLat, StreetRoute } from '../data/types';
+import { LEG_META, ROUTE_URL, STREET_ROUTES, streetsUrl } from '../data/legs';
 import { assetUrl } from '../config/assets';
 import { Polyline, arcBetween, haversineMeters } from './polyline';
 
@@ -130,20 +137,42 @@ export function spliceStart(original: readonly LngLat[], replacement: readonly L
   return [...replacement, ...original.slice(best + 1)];
 }
 
-/** Reads the LineString out of boston-streets.geojson (validated). */
-function bostonStreetsLine(geojson: unknown): LngLat[] {
+/** Ends `original` at its point closest to `place` (that point included). */
+export function trimEnd(original: readonly LngLat[], place: LngLat): LngLat[] {
+  let best = 0;
+  let bestDistance = Infinity;
+  original.forEach((p, i) => {
+    const d = haversineMeters(p, place);
+    if (d < bestDistance) {
+      bestDistance = d;
+      best = i;
+    }
+  });
+  return original.slice(0, best + 1);
+}
+
+/** Continues `original` with `extension`, whose first point is the original's last point. */
+export function appendEnd(original: readonly LngLat[], extension: readonly LngLat[]): LngLat[] {
+  return [...original, ...extension.slice(1)];
+}
+
+/** Reads the LineString out of a generated *-streets.geojson file (validated). */
+function streetsLine(geojson: unknown, route: StreetRoute): LngLat[] {
   const fc = geojson as RouteFeatureCollection | undefined;
   const line = fc?.features?.find((f) => f.geometry.type === 'LineString');
-  if (!line || !Array.isArray(line.geometry.coordinates)) throw new Error('Boston street route is missing its LineString');
+  if (!line || !Array.isArray(line.geometry.coordinates)) throw new Error(`Street route "${route}" is missing its LineString`);
   return (line.geometry.coordinates as unknown[]).filter(isLngLat).map((c) => [c[0], c[1]] as const);
 }
 
+/** The generated street route files, by name (any may be missing). */
+export type StreetRouteFiles = Partial<Record<StreetRoute, unknown>>;
+
 /**
  * Pure function (easy to test): GeoJSON + metadata → Route.
- * `bostonStreets` is the generated street route (optional: without it, leg 2 keeps the
- * original Boston section). Throws a readable error if a file looks wrong.
+ * `streets` are the generated street routes (optional: a missing one leaves that leg as in
+ * the original file). Throws a readable error if a file looks wrong.
  */
-export function buildRoute(geojson: unknown, meta: readonly LegMeta[] = LEG_META, bostonStreets?: unknown): Route {
+export function buildRoute(geojson: unknown, meta: readonly LegMeta[] = LEG_META, streets: StreetRouteFiles = {}): Route {
   const fc = geojson as RouteFeatureCollection;
   if (!fc || fc.type !== 'FeatureCollection' || !Array.isArray(fc.features)) {
     throw new Error('Route file is not a GeoJSON FeatureCollection');
@@ -157,8 +186,11 @@ export function buildRoute(geojson: unknown, meta: readonly LegMeta[] = LEG_META
     }
     let coordinates: LngLat[] = (feature.geometry.coordinates as unknown[]).filter(isLngLat).map((c) => [c[0], c[1]] as const);
     if (coordinates.length < 2) throw new Error(`Route feature ${m.featureIndex} has fewer than 2 points`);
-    if (m.replaceStartWithBostonStreets && bostonStreets !== undefined) {
-      coordinates = spliceStart(coordinates, bostonStreetsLine(bostonStreets));
+    if (m.trimEndAt) coordinates = trimEnd(coordinates, m.trimEndAt);
+    const file = m.streets ? streets[m.streets.route] : undefined;
+    if (m.streets && file !== undefined) {
+      const line = streetsLine(file, m.streets.route);
+      coordinates = m.streets.at === 'start' ? spliceStart(coordinates, line) : appendEnd(coordinates, line);
     }
     return coordinates;
   });
@@ -190,16 +222,20 @@ export function buildRoute(geojson: unknown, meta: readonly LegMeta[] = LEG_META
   return { legs, legLines, journey, legStart, legEnd };
 }
 
-/** Downloads both route files (in parallel) and builds the Route. `signal` lets the caller cancel. */
+/** Downloads the route file and the street routes (in parallel) and builds the Route. */
 export async function loadRoute(signal?: AbortSignal): Promise<Route> {
   const init = signal ? { signal } : {};
-  const [routeResponse, bostonResponse] = await Promise.all([
+  const [routeResponse, ...streetResponses] = await Promise.all([
     fetch(assetUrl(ROUTE_URL), init),
-    fetch(assetUrl(BOSTON_STREETS_URL), init),
+    ...STREET_ROUTES.map((name) => fetch(assetUrl(streetsUrl(name)), init)),
   ]);
-  if (!routeResponse.ok) throw new Error(`Could not load the route (${routeResponse.status})`);
-  const json: unknown = await routeResponse.json();
-  // The Boston street route is an improvement, not a requirement: without it, keep the original line.
-  const boston: unknown = bostonResponse.ok ? await bostonResponse.json() : undefined;
-  return buildRoute(json, LEG_META, boston);
+  if (!routeResponse!.ok) throw new Error(`Could not load the route (${routeResponse!.status})`);
+  const json: unknown = await routeResponse!.json();
+  // Street routes are improvements, not requirements: a missing one keeps the original line.
+  const streets: StreetRouteFiles = {};
+  for (const [i, name] of STREET_ROUTES.entries()) {
+    const response = streetResponses[i]!;
+    if (response.ok) streets[name] = await response.json();
+  }
+  return buildRoute(json, LEG_META, streets);
 }

@@ -107,7 +107,13 @@ export class Trail {
       vertexShader: trailVertex,
       fragmentShader: trailFragment,
       uniforms: { uColor: { value: new THREE.Color(0xffc56b) }, uOpacity: { value: 0.9 } },
-      transparent: true,
+      // DRAWN FIRST, UNDER THE TRAVELLERS. Three.js draws all solid ("opaque") objects before
+      // all transparent ones, so a transparent trail would always come after — and, ignoring
+      // depth, paint OVER the characters walking on it. Marked non-transparent instead, it is
+      // drawn in the solid pass, and renderOrder −1 puts it before the characters and props;
+      // since it writes no depth, they then cover it where they stand on it. (Three.js still
+      // blends it additively: only NormalBlending is switched off for opaque materials.)
+      transparent: false,
       depthWrite: false, // a glow must not hide what is behind it
       depthTest: false, // …and must not be cut by hills when terrain is on
       blending: THREE.AdditiveBlending, // adds light: overlapping glows get brighter
@@ -115,7 +121,7 @@ export class Trail {
     });
     this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.mesh.frustumCulled = false; // the map supplies the projection; Three's culling would be wrong
-    this.mesh.renderOrder = 1;
+    this.mesh.renderOrder = -1;
   }
 
   /**

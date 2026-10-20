@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { CHAPTERS, TOTAL_SLIDES } from './chapters';
-import { LOCATIONS, LOCATIONS_BY_ID } from './locations';
+import { LOCATIONS, LOCATIONS_BY_ID, ORIGINAL_SALT_LAKE_CITY } from './locations';
 import { LEG_META } from './legs';
 import { SOUNDTRACK } from './soundtrack';
 import { loadRealRoute } from '../playback/testUtils';
@@ -27,7 +27,9 @@ describe('story data', () => {
     original.features.forEach((feature, i) => {
       const location = LOCATIONS[i]!;
       expect(location.title).toBe(feature.properties.title);
-      expect(location.coordinates).toEqual(feature.geometry.coordinates);
+      // Salt Lake City's marker deliberately moved to the hospital (see locations.ts).
+      if (location.id === 'salt-lake-city') expect(feature.geometry.coordinates).toEqual(ORIGINAL_SALT_LAKE_CITY);
+      else expect(location.coordinates).toEqual(feature.geometry.coordinates);
       expect(location.icon).toBe(feature.properties.icon);
       expect(location.photo).toBe(feature.properties.photo);
     });
@@ -167,6 +169,16 @@ describe('each chapter travels only where its images are set', () => {
   it('Bus Depot and The Firefly Lab stay near Salt Lake City (no Colorado)', () => {
     expect(maxKm(9, SLC)).toBeLessThan(80);
     expect(maxKm(10, SLC)).toBeLessThan(16);
+  });
+  it('the journey through Salt Lake City ends at the hospital, where its marker is', () => {
+    const hospital = LOCATIONS_BY_ID.get('salt-lake-city')!.coordinates;
+    const end = route.journey.pointAt(timeline.chapters[10]!.legSpans.at(-1)!.endDistance);
+    expect(haversineMeters(end, hospital)).toBeLessThan(200);
+    // …and the drive away starts there, without heading back downtown first.
+    const drive = timeline.chapters[11]!.legSpans[0]!;
+    for (let d = drive.startDistance; d <= drive.startDistance + 5_000; d += 250) {
+      expect(haversineMeters(route.journey.pointAt(d), hospital)).toBeLessThan(5_000);
+    }
   });
 });
 

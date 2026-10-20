@@ -107,13 +107,26 @@ export interface LegMeta {
   /** Human-readable note explaining the leg (shown in the story panel). */
   note: string;
   /**
-   * Optional correction: replace the START of this leg with the Boston street route
-   * (public/server/info/boston-streets.geojson), joining the original line at its point
-   * closest to where the street route ends. Used for leg 2, whose original Boston section
-   * meanders on the spot (see geo/route.ts).
+   * Optional correction with a generated street route (scripts/build-street-routes.mjs):
+   *   at 'start' – replace the START of this leg with the street route, joining the original
+   *                line at its point closest to where the street route ends (leg 2: Boston's
+   *                original section meandered on the spot);
+   *                Leg 14 also uses it: the drive away starts at the hospital and joins
+   *                the original line on I-80;
+   *   at 'end'   – continue this leg with the street route after its last point (leg 13:
+   *                on from downtown Salt Lake City to the Fireflies' hospital).
    */
-  replaceStartWithBostonStreets?: boolean;
+  streets?: { route: StreetRoute; at: 'start' | 'end' };
+  /**
+   * Optional correction: end this leg early, at its point closest to this place (leg 5: Bill's
+   * truck stops near Monroeville, east of Pittsburgh, where they leave it and walk into the
+   * city, instead of driving on across the river).
+   */
+  trimEndAt?: LngLat;
 }
+
+/** The generated street routes (files in public/server/info/<route>-streets.geojson). */
+export type StreetRoute = 'boston' | 'hospital' | 'escape' | 'pittsburgh';
 
 /** A leg after its coordinates have been loaded, corrected and measured. */
 export interface Leg extends LegMeta {
@@ -122,10 +135,12 @@ export interface Leg extends LegMeta {
 }
 
 /**
- * A character who can appear on the map. Joel and Ellie travel most of the way;
- * Tess is with them in Boston and Bill in Lincoln, exactly where the game has them.
+ * A character who can appear on the map. Joel and Ellie travel most of the way; the
+ * others join exactly where the game has them: Tess (Boston), Bill (Lincoln), Henry and
+ * Sam (Pittsburgh and the suburbs), Tommy (his dam near Jackson), David (with Ellie in
+ * Lakeside Resort).
  */
-export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill';
+export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david';
 
 /**
  * A slice of a leg travelled during one chapter.
@@ -140,6 +155,7 @@ export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill';
  *             the last 20 % of the Epilogue on foot), instead of the usual share
  *             by distance and speed
  *   note    – overrides the leg's note shown in the story panel
+ *   camera  – how the follow camera frames this slice (see PartCamera)
  */
 export interface LegPart {
   leg: number;
@@ -150,6 +166,25 @@ export interface LegPart {
   wounded?: boolean;
   timeShare?: number;
   note?: string;
+  camera?: PartCamera;
+}
+
+/**
+ * Optional camera framing for one slice of a chapter (map/camera.ts):
+ *   zoom    – zoom levels closer (+) or further (−) than the camera's usual choice for the
+ *             slice (which keeps the travellers moving ~28 px per second on screen)
+ *   heading – 'route': turn the map so the travellers move UP the screen (the camera rides
+ *             behind them) instead of keeping north up — for slices that head south, where
+ *             the travellers would otherwise walk straight down into their own trail
+ */
+export interface PartCamera {
+  zoom?: number;
+  heading?: 'route';
+  /**
+   * Draw the travellers' models this many times their usual on-screen size during the part
+   * (e.g. 2 for Lakeside Resort's ride). Props, trail and everything else keep their size.
+   */
+  modelScale?: number;
 }
 
 /** The four seasons the game is split into (plus the 2013 prologue). */
@@ -203,6 +238,72 @@ export interface Chapter {
   legs: readonly LegPart[];
   /** Particle moods floating around the travellers during this chapter (1–2). */
   ambience: readonly AmbienceKind[];
+}
+
+/**
+ * The blockmesh props that mark a chapter's key points beside the route (three/models/props.ts).
+ * Each is a small diorama in the same low-poly palette style as the characters.
+ */
+export type PropKind =
+  | 'house' // a family house (Hometown)
+  | 'checkpoint' // a military checkpoint: wall, gate and watchtower (the QZ)
+  | 'slums' // a cluster of patched-up shacks
+  | 'cargo' // stacked shipping containers at the docks
+  | 'wall' // a stretch of concrete wall with a breach
+  | 'trees' // a small wood
+  | 'towers' // a cluster of high-rise towers (downtown)
+  | 'museum' // a columned museum front
+  | 'capitol' // a domed capitol building
+  | 'safehouse' // a boarded-up house with a fence
+  | 'graveyard' // headstones and a cross by a church gate
+  | 'school' // a long school building with a flagpole
+  | 'hotel' // a tall hotel with a sign on the roof
+  | 'bridge' // a yellow self-anchored suspension bridge (Pittsburgh's "Three Sisters")
+  | 'sewer' // a sewer outlet pipe in a concrete wall
+  | 'suburb' // two small suburban houses with a fence
+  | 'dam' // a hydroelectric dam with water behind it
+  | 'ranch' // a ranch house with a barn
+  | 'campus' // a university hall with a banner
+  | 'lab' // a science building with a rooftop dish
+  | 'cabins' // a couple of resort cabins
+  | 'hospital' // a hospital block with a red cross
+  | 'giraffe' // a giraffe (the giraffes of Salt Lake City)
+  | 'town'; // a fortified town gate (Jackson)
+
+/** One key point of a chapter (data/keyPoints.ts). */
+export interface KeyPoint {
+  /** The game's name for this part of the chapter, e.g. "The Museum". */
+  name: string;
+  /** Which blockmesh prop marks it. */
+  prop: PropKind;
+  /**
+   * The real place it stands for ([longitude, latitude]). The prop goes to the closest
+   * point of the chapter's route, on the side where this place lies (playback/keyPoints.ts).
+   */
+  coord: LngLat;
+  /** What real place that is (the game's places are fictionalised; this is the stand-in). */
+  basis: string;
+  /**
+   * True for a place the travellers come right up to in the game (Joel's house where the drive
+   * starts, the State House where the Boston walk ends, the Fireflies' hospital): the prop stands
+   * immediately beside the route — they pass within a step of it, then carry on — instead of
+   * keeping the usual room around the walking party.
+   */
+  close?: boolean;
+  /**
+   * For a landmark that IS a fixed real structure the travellers cross (Pittsburgh's bridge):
+   * it stands exactly at `coord`, turned along `heading` (degrees clockwise from north — the
+   * real structure's axis), whatever the route does around it.
+   */
+  exact?: { heading: number };
+  /** Size factor on top of the usual size (e.g. 1.4 = 40 % larger, 0.5 = half size). */
+  scale?: number;
+  /**
+   * When in the chapter the point counts as reached (fraction 0‥1 of the chapter's time), for a
+   * landmark that stands away from the route (the dam north of Jackson): otherwise it is the
+   * moment the travellers pass closest to `coord`.
+   */
+  moment?: number;
 }
 
 /** One song of the soundtrack. */

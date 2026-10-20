@@ -204,7 +204,20 @@ export const CHAPTERS: readonly Chapter[] = [
     ]),
     // Opens on the road west in Bill's truck (the game starts this chapter in the truck,
     // entering Pittsburgh), then on foot through the city.
-    legs: [{ leg: 3, from: 0.1 }, { leg: 4 }, { leg: 5 }, { leg: 6, from: 0, to: 0.71 }],
+    // Near the end of the chapter they meet Henry and his younger brother Sam.
+    legs: [
+      { leg: 3, from: 0.1 },
+      { leg: 4 },
+      { leg: 5 },
+      // Leg 6 starts with the Pittsburgh street route (scripts/build-street-routes.mjs): from
+      // the truck near Monroeville they walk ~20 km into the city. Henry and Sam join them well
+      // inside the city (25 %, around Oakland), so the FOUR walk past the hotel (39.2 %) and the
+      // Financial District (40.4 %) and onto the Roberto Clemente Bridge together — its deck walk
+      // is drawn from ~30 % (the deck model is long at this zoom), the bridge itself at 41.4–41.8 %.
+      // 0.7875 = the same place as before the street route was added (where The Suburbs begin).
+      { leg: 6, from: 0, to: 0.25, note: 'On foot from Monroeville into Pittsburgh' },
+      { leg: 6, from: 0.25, to: 0.7875, party: ['joel', 'henry', 'sam', 'ellie'], note: 'Henry and Sam join them — together through the city and across the bridge' },
+    ],
     ambience: ['dust', 'fireflies'],
   },
   {
@@ -222,8 +235,9 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_3.jpg',
       'img_4.jpg',
     ]),
-    // The rest of the walk, out of Pittsburgh into its suburbs.
-    legs: [{ leg: 6, from: 0.71 }],
+    // The rest of the walk, out of Pittsburgh into its suburbs, with Henry and Sam (the game
+    // loses both of them at the very end of this chapter; the next one is Joel and Ellie again).
+    legs: [{ leg: 6, from: 0.7875, party: ['joel', 'henry', 'sam', 'ellie'], note: 'With Henry and Sam, through the suburbs' }],
     ambience: ['fireflies', 'dust'],
   },
   {
@@ -248,7 +262,13 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_8.jpg',
       'img_9.png',
     ]),
-    legs: [{ leg: 7 }, { leg: 8 }],
+    // Months pass (the jump), then towards the dam — where they find Tommy, who goes on with them.
+    legs: [
+      { leg: 7 },
+      { leg: 8, from: 0, to: 0.75, note: "Towards Tommy's dam" },
+      // Tommy (and his wife Maria) wait at the dam — they stand there (a prop), they do not walk on.
+      { leg: 8, from: 0.75, note: 'Reunited with Tommy and Maria at his dam' },
+    ],
     ambience: ['leaves', 'dust'],
   },
   {
@@ -270,7 +290,13 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_6.jpg',
       'img_7.jpg',
     ]),
-    legs: [{ leg: 9 }],
+    // The long ride from Jackson, then the last few kilometres onto the campus (they spend the
+    // chapter at the university): a quarter of the chapter's time, so the camera comes in close
+    // and the university's key-point props stand right there, at their size for that view.
+    legs: [
+      { leg: 9, from: 0, to: 0.995 },
+      { leg: 9, from: 0.995, timeShare: 0.25, note: 'Riding onto the university campus' },
+    ],
     ambience: ['leaves', 'dust'],
   },
   {
@@ -295,19 +321,23 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_7.jpg',
     ]),
     // As in the game: it starts with Ellie riding Callus while wounded Joel lies across the
-    // horse behind her (the escape after the university); in winter Ellie hunts and survives
-    // on her own; Joel, recovered, searches for her alone; they end the chapter together.
-    // Distances: leg 10 = 105.6 km, leg 11 = 64.6 km, together 170.2 km →
-    //   ride with wounded Joel 40 % (68.1 km) = leg 10, 0 → 0.645
-    //   Ellie alone on foot    30 % (51.1 km) = leg 10, 0.645 → 1  +  leg 11, 0 → 0.21
-    //   Joel alone on foot     20 % (34.0 km) = leg 11, 0.21 → 0.737
-    //   together again         10 % (17.0 km) = leg 11, 0.737 → 1
+    // horse behind her (the escape after the university); in winter Ellie is on her own; Joel,
+    // recovered, searches for her alone; they end the chapter together. Fixed shares of the
+    // chapter's TIME (`timeShare`):
+    //   ride with wounded Joel  50 %  leg 10, 0 → 0.806                        (85.1 km)
+    //   Ellie alone             30 %  leg 10, 0.806 → 1  +  leg 11, 0 → 0.21   (20.5 + 13.6 km,
+    //                                 split 18 % + 12 % by distance)
+    //   Joel alone              10 %  leg 11, 0.21 → 0.737                     (34.0 km)
+    //   together again          10 %  leg 11, 0.737 → 1                        (17.0 km)
+    // Camera: during the ride it rides BEHIND the horse (map turned so the horse moves up the
+    // screen); when the ride ends it turns smoothly back to north up for the second half. 0.8
+    // levels closer than usual throughout (the walks are compressed, so it would pull far out).
     legs: [
-      { leg: 10, from: 0, to: 0.645, mode: 'horse', wounded: true, note: 'Ellie rides on, wounded Joel lying across the horse' },
-      { leg: 10, from: 0.645, party: ['ellie'], mode: 'walk', note: 'Ellie hunts and survives alone while Joel recovers' },
-      { leg: 11, from: 0, to: 0.21, party: ['ellie'], note: 'Ellie alone in the snow' },
-      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], note: 'Joel, barely recovered, searches for Ellie alone' },
-      { leg: 11, from: 0.737, note: 'Together again' },
+      { leg: 10, from: 0, to: 0.806, mode: 'horse', wounded: true, timeShare: 0.5, note: 'Ellie rides on, wounded Joel lying across the horse', camera: { zoom: 0.8, heading: 'route', modelScale: 2 } }, // horse and riders drawn twice as large
+      { leg: 10, from: 0.806, party: ['ellie'], mode: 'walk', timeShare: 0.18, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8 } },
+      { leg: 11, from: 0, to: 0.21, party: ['ellie'], timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8 } },
+      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], timeShare: 0.1, note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },
+      { leg: 11, from: 0.737, timeShare: 0.1, note: 'Together again', camera: { zoom: 0.8 } },
     ],
     ambience: ['snow'],
   },
@@ -331,7 +361,9 @@ export const CHAPTERS: readonly Chapter[] = [
     ]),
     // Spring: the jump from Colorado to Utah plays during the title card, then they walk
     // into Salt Lake City (they are together again).
-    legs: [{ leg: 12 }, { leg: 13, from: 0, to: 0.8 }],
+    // Leg 13 is ~95.9 km: 83.1 km of original line into downtown, then 12.8 km of streets to
+    // the hospital. 0.694 ≈ 66.5 km, ~14 km from downtown, where the original split was.
+    legs: [{ leg: 12 }, { leg: 13, from: 0, to: 0.694 }],
     ambience: ['pollen', 'petals'],
   },
   {
@@ -350,8 +382,9 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_6.jpg',
       'img_7.png',
     ]),
-    // The last ~14 km into Salt Lake City, to the Fireflies' hospital.
-    legs: [{ leg: 13, from: 0.8 }],
+    // The last ~17 km into downtown Salt Lake City, then ~13 km of streets south-east to
+    // the Fireflies' hospital (St. Mark's — the game's St. Mary's).
+    legs: [{ leg: 13, from: 0.694 }],
     ambience: ['fireflies', 'pollen'],
   },
   {

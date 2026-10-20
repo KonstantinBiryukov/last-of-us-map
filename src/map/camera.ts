@@ -9,8 +9,20 @@
  *              (a stretch with no detailed path) it pulls out to show the whole
  *              leap, then dives back in at the other end.
  *   overview – the whole journey framed at once.
- *   free     – the user is in control (they dragged/zoomed the map, or chose
- *              "Explore the map"). The camera never moves on its own.
+ *   free     – the user is in control ("Explore the map"). The camera never moves
+ *              on its own.
+ *
+ * WHAT THE USER MAY DO DURING THE JOURNEY (see `applyInteraction`)
+ * Only ZOOM. Dragging the map away let the travellers walk off-screen while the story
+ * kept playing, so panning (drag, keyboard arrows, box zoom, double-click zoom, which
+ * all move the centre) is switched off in the journey. Wheel, pinch and the +/− buttons
+ * still zoom, and they do NOT stop following: they change an offset (`zoomOffset`, e.g.
+ * +1 = one level closer than the camera's own choice) that follow keeps applying, so the
+ * zoom always happens around the travellers. Mapbox's own wheel/pinch zoom cannot be used
+ * for this: follow moves the camera every frame, and every such move cancels a zoom
+ * gesture Mapbox has just begun. So in the journey the wheel and two-finger pinch are read
+ * here (`onWheel`, `onTouch…`) and turned into offset changes.
+ * In "Explore the map" everything is Mapbox's again — that mode is for free browsing.
  *
  * Story navigation (next/previous chapter, clicking a location, releasing the
  * timeline) ALWAYS switches back to "follow" and flies to the new spot — that is
@@ -31,24 +43,15 @@
  */
 import type { LngLatBoundsLike, Map as MapboxMap } from 'mapbox-gl';
 import type { PlaybackEngine } from '../playback/engine';
-import type { MutableLngLat } from '../geo/polyline';
+import { haversineMeters, type MutableLngLat } from '../geo/polyline';
 import { metersPerPixel } from '../geo/mercator';
 import { isJumpKind } from '../playback/timeline';
+import { comfortableZoom, MAX_FOLLOW_ZOOM } from '../playback/followZoom';
 
 export type CameraMode = 'follow' | 'free' | 'overview';
 
 type Listener = () => void;
 
-/** Comfortable on-screen speed of the travellers, in pixels per second. */
-const TARGET_SCREEN_SPEED_PX = 28;
-/**
- * Zoom limits while following (4 ≈ several states visible, 15.5 ≈ city blocks).
- * The upper limit matters for slow city walks (Boston, Lincoln): with a cap of 11.5 a
- * walk of a few blocks moved only ~4 px per second on screen, which looked like walking
- * on the spot. At street level the same walk visibly crosses the city.
- */
-const MIN_FOLLOW_ZOOM = 4.2;
-const MAX_FOLLOW_ZOOM = 15.5;
 /** Camera tilt while following, in degrees (0 = straight down). */
 const FOLLOW_PITCH = 52;
 /** Smoothing speeds (bigger = snappier). Jumps use faster zoom so the swoop fits in 4.5 s. */
@@ -56,9 +59,42 @@ const CENTRE_SPEED = 2.6;
 const ZOOM_SPEED = 0.9;
 const JUMP_ZOOM_SPEED = 2.4;
 const PITCH_SPEED = 1.5;
-/** How long story flights last (ms): short hops are quick, cross-country ones a bit longer. */
-const FLIGHT_MIN_MS = 1100;
-const FLIGHT_MAX_MS = 2400;
+/** How fast the map turns towards a part's heading (see PartCamera in data/types.ts). */
+const BEARING_SPEED = 1.1;
+/**
+ * How far (zoom levels) the user may zoom out (−) or in (+) from the camera's own choice.
+ * Out: only one level, so the travellers never become specks. In: 3.5 levels, so you can
+ * get close to the street where the satellite imagery is sharpest.
+ */
+const MIN_ZOOM_OFFSET = -1;
+const MAX_ZOOM_OFFSET = 3.5;
+/**
+ * The box "Explore the map" is fenced into: North America from Alaska's Aleutians to
+ * Newfoundland, and from Panama up into the Canadian Arctic ([west, south], [east, north]).
+ */
+const NORTH_AMERICA: [[number, number], [number, number]] = [
+  [-170, 7],
+  [-50, 72],
+];
+/** Zoom levels per wheel "pixel" (a typical mouse notch is 100 px → ~0.4 levels). */
+const WHEEL_ZOOM_RATE = 1 / 250;
+/** Right after a user zoom, the camera zooms this much faster, so the gesture feels direct. */
+const USER_ZOOM_SPEED = 6;
+const USER_ZOOM_BOOST_MS = 700;
+/**
+ * How long story flights last (ms). The duration grows with the LOGARITHM of the distance
+ * (see flightDuration): within a city ≈ 2 s, to a nearby town ≈ 3 s, to another state or
+ * across the country ≈ 4.5–5 s. A straight "ms per pixel" rule hit its cap for almost every
+ * chapter change, so long flights crammed a continent into the same time as a short one —
+ * that is what felt like rushing.
+ */
+const FLIGHT_MIN_MS = 2000;
+const FLIGHT_MAX_MS = 5000;
+/**
+ * Easing of story flights: "ease in-out sine" — starts and ends gently, with no sudden lurch
+ * (Mapbox's default curve accelerates quite sharply at the start). t = 0…1 → progress 0…1.
+ */
+const flightEasing = (t: number): number => 0.5 - Math.cos(Math.PI * t) / 2;
 
 export interface CameraOptions {
   /** Returns true when the user prefers reduced motion (we then cut instead of flying). */
@@ -83,6 +119,8 @@ export class CameraDirector {
   private centre: MutableLngLat = [0, 0];
   private zoom = 9;
   private pitch = 0;
+  /** Smoothed map heading (degrees; 0 = north up). Only parts with `camera.heading` turn it. */
+  private bearing = 0;
   private readonly map: MapboxMap;
   private readonly engine: PlaybackEngine;
   private readonly options: CameraOptions;
@@ -99,6 +137,12 @@ export class CameraDirector {
    * story jumps are ignored (the story is not on screen in that mode).
    */
   private exploring = false;
+  /** The user's own zoom on top of the camera's choice while following (see the top of this file). */
+  private zoomOffset = 0;
+  /** When the user last changed the zoom offset (performance.now() ms), for the fast-zoom boost. */
+  private userZoomAt = -Infinity;
+  /** Finger distance (px) of the two-finger pinch in progress, or 0 when there is none. */
+  private pinchDistance = 0;
   /**
    * The last camera move we started (fly to the story, frame the journey, frame the
    * locations). If something interrupts it before it finishes — e.g. the panels change
@@ -121,12 +165,20 @@ export class CameraDirector {
       map.on(type, this.onUserMove);
     }
     map.on('moveend', this.onMoveEnd);
+    // Journey zoom gestures (see the top of this file). Passive: false so the page does not scroll.
+    const container = map.getContainer();
+    container.addEventListener('wheel', this.onWheel, { passive: false });
+    container.addEventListener('touchstart', this.onTouchStart, { passive: true });
+    container.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    container.addEventListener('touchend', this.onTouchEnd);
+    container.addEventListener('touchcancel', this.onTouchEnd);
     // The screen size changed → jump framing must be recomputed.
     map.on('resize', this.onResize);
     // Story navigation (chapter buttons, timeline, markers in the journey) → follow and fly there.
     this.unsubscribeJump = engine.onJump(() => {
       if (!this.exploring) this.follow();
     });
+    this.applyInteraction(); // the app starts in the journey: zoom only
   }
 
   // ───────────────────────── store for React (useSyncExternalStore) ─────────────────────────
@@ -168,6 +220,7 @@ export class CameraDirector {
   setExploring(exploring: boolean): void {
     if (exploring === this.exploring) return;
     this.exploring = exploring;
+    this.applyInteraction();
     if (exploring) this.frameLocations();
   }
 
@@ -215,8 +268,15 @@ export class CameraDirector {
     this.setModeInternal('free');
   }
 
-  /** Smoothly zoom in (+1) or out (−1) one level. */
+  /**
+   * Zoom buttons: one level in (+1) or out (−1). While following, this changes the user's
+   * zoom offset (the camera glides there and keeps following); otherwise it zooms the map.
+   */
   zoomBy(delta: number): void {
+    if (this.mode === 'follow' && !this.exploring) {
+      this.changeZoomOffset(delta);
+      return;
+    }
     this.map.easeTo({ zoom: this.map.getZoom() + delta, duration: this.options.reducedMotion() ? 0 : 400 });
   }
 
@@ -231,9 +291,10 @@ export class CameraDirector {
   frame(dt: number): void {
     if (this.mode !== 'follow' || this.flightId !== 0) return; // only glide when following and not flying
 
-    const { zoom, look, jumping } = this.storyTarget();
+    const { zoom, look, jumping, bearing } = this.storyTarget(true);
     const kCentre = 1 - Math.exp(-dt * CENTRE_SPEED);
-    const kZoom = 1 - Math.exp(-dt * (jumping ? JUMP_ZOOM_SPEED : ZOOM_SPEED));
+    const boosted = performance.now() - this.userZoomAt < USER_ZOOM_BOOST_MS;
+    const kZoom = 1 - Math.exp(-dt * (boosted ? USER_ZOOM_SPEED : jumping ? JUMP_ZOOM_SPEED : ZOOM_SPEED));
     const kPitch = 1 - Math.exp(-dt * PITCH_SPEED);
     this.centre[0] += (look[0] - this.centre[0]) * kCentre;
     this.centre[1] += (look[1] - this.centre[1]) * kCentre;
@@ -241,7 +302,10 @@ export class CameraDirector {
     // Flatten the view during a jump (easier to read a cross-country arc from above).
     const pitchTarget = this.options.reducedMotion() ? 30 : jumping ? 25 : FOLLOW_PITCH;
     this.pitch += (pitchTarget - this.pitch) * kPitch;
-    this.map.jumpTo({ center: this.centre, zoom: this.zoom, pitch: this.pitch, bearing: 0 });
+    // Turn the shortest way round: the difference wrapped into −180…180° (350° → 10° is +20°).
+    const turn = ((bearing - this.bearing + 540) % 360) - 180;
+    this.bearing += turn * (1 - Math.exp(-dt * BEARING_SPEED));
+    this.map.jumpTo({ center: this.centre, zoom: this.zoom, pitch: this.pitch, bearing: this.bearing });
   }
 
   /** Remove all listeners (called when the map is destroyed). */
@@ -250,6 +314,12 @@ export class CameraDirector {
       this.map.off(type, this.onUserMove);
     }
     this.map.off('moveend', this.onMoveEnd);
+    const container = this.map.getContainer();
+    container.removeEventListener('wheel', this.onWheel);
+    container.removeEventListener('touchstart', this.onTouchStart);
+    container.removeEventListener('touchmove', this.onTouchMove);
+    container.removeEventListener('touchend', this.onTouchEnd);
+    container.removeEventListener('touchcancel', this.onTouchEnd);
     this.map.off('resize', this.onResize);
     this.unsubscribeJump();
     this.listeners.clear();
@@ -257,12 +327,75 @@ export class CameraDirector {
 
   // ───────────────────────── internals ─────────────────────────
 
-  /** A camera movement started. If a human caused it, give them control. */
+  /**
+   * Switches the map's mouse/touch/keyboard handlers for the current experience:
+   * explore → all of Mapbox's handlers; journey → none (zoom gestures are read by this
+   * class instead, see the top of this file). Rotation and tilt stay off in both.
+   */
+  private applyInteraction(): void {
+    const map = this.map;
+    const free = this.exploring;
+    for (const handler of [map.dragPan, map.keyboard, map.boxZoom, map.doubleClickZoom, map.scrollZoom, map.touchZoomRotate]) {
+      if (free) handler.enable();
+      else handler.disable();
+    }
+    map.touchZoomRotate.disableRotation();
+    map.keyboard.disableRotation();
+    // Explore stays over North America: with maxBounds Mapbox refuses to pan past the box
+    // and to zoom out so far that anything outside it would show. The journey needs no
+    // fence (the camera director moves the camera there), so it is removed again.
+    // (Mapbox removes the fence when given null; its TypeScript types only list a box.)
+    map.setMaxBounds(free ? NORTH_AMERICA : (null as unknown as LngLatBoundsLike));
+    // Without panning, the "grab" hand cursor would promise something that does nothing.
+    map.getContainer().classList.toggle('map--zoom-only', !free);
+  }
+
+  /** A camera movement started. If a human caused it, react (see the top of this file). */
   private onUserMove = (event: object): void => {
     // Programmatic moves (our own jumpTo/flyTo) have no originalEvent; real mouse/touch/wheel moves do.
     if (!('originalEvent' in event) || !event.originalEvent) return;
+    if (!this.exploring) return; // journey: Mapbox's handlers are off, nothing can take over
     this.flightId = 0;
     this.setModeInternal('free');
+  };
+
+  /** Changes the user's zoom offset by `delta` levels (clamped) and boosts the zoom speed. */
+  private changeZoomOffset(delta: number): void {
+    this.zoomOffset = clamp(this.zoomOffset + delta, MIN_ZOOM_OFFSET, MAX_ZOOM_OFFSET);
+    this.userZoomAt = performance.now();
+  }
+
+  /** Is a journey zoom gesture meaningful right now? (Following, not in Explore.) */
+  private journeyZoom(): boolean {
+    return !this.exploring && this.mode === 'follow';
+  }
+
+  /** Mouse wheel / trackpad scroll in the journey: wheel up = closer. */
+  private onWheel = (event: WheelEvent): void => {
+    if (this.exploring) return; // Explore: Mapbox's own scroll zoom handles it
+    event.preventDefault(); // never scroll the page behind the map
+    if (!this.journeyZoom()) return;
+    // deltaMode 1 = lines (some mice/Firefox): about 40 px per line.
+    const pixels = event.deltaMode === 1 ? event.deltaY * 40 : event.deltaY;
+    this.changeZoomOffset(-pixels * WHEEL_ZOOM_RATE);
+  };
+
+  /** Two fingers down: remember their distance (the start of a pinch). */
+  private onTouchStart = (event: TouchEvent): void => {
+    this.pinchDistance = !this.exploring && event.touches.length === 2 ? touchDistance(event.touches) : 0;
+  };
+
+  /** Two fingers moving: zoom by how much their distance changed (doubling it = one level closer). */
+  private onTouchMove = (event: TouchEvent): void => {
+    if (this.exploring || this.pinchDistance === 0 || event.touches.length !== 2) return;
+    event.preventDefault(); // no browser page zoom
+    const distance = touchDistance(event.touches);
+    if (this.journeyZoom() && distance > 0) this.changeZoomOffset(Math.log2(distance / this.pinchDistance));
+    this.pinchDistance = distance;
+  };
+
+  private onTouchEnd = (event: TouchEvent): void => {
+    if (event.touches.length < 2) this.pinchDistance = 0;
   };
 
   /** A camera movement ended. Only the end of OUR current flight matters (see top of file). */
@@ -275,6 +408,7 @@ export class CameraDirector {
     this.centre = [c.lng, c.lat];
     this.zoom = this.map.getZoom();
     this.pitch = this.map.getPitch();
+    this.bearing = this.map.getBearing();
   };
 
   private onResize = (): void => this.jumpZoom.clear();
@@ -282,25 +416,29 @@ export class CameraDirector {
   /** Cinematic flight to the travellers' current position. */
   private flyToStory(): void {
     this.lastFlight = () => this.flyToStory();
-    const { zoom, look } = this.storyTarget();
+    const { zoom, look, bearing } = this.storyTarget(true);
     if (this.options.reducedMotion()) {
       this.flightId = 0;
       this.centre = [look[0], look[1]];
       this.zoom = zoom;
       this.pitch = 30;
-      this.map.jumpTo({ center: this.centre, zoom, pitch: 30, bearing: 0 });
+      this.bearing = bearing;
+      this.map.jumpTo({ center: this.centre, zoom, pitch: 30, bearing });
       return;
     }
-    // Duration grows with how far the camera must travel on screen (pixels at the current zoom).
-    const from = this.map.project(this.map.getCenter());
-    const to = this.map.project([look[0], look[1]]);
-    const pixels = Math.hypot(to.x - from.x, to.y - from.y) + Math.abs(zoom - this.map.getZoom()) * 400;
-    const duration = Math.min(FLIGHT_MAX_MS, Math.max(FLIGHT_MIN_MS, pixels * 0.9));
+    // Duration grows with how far the camera must travel, measured as the GROUND distance in
+    // pixels of the current zoom. (Projecting the target on screen does not work for far
+    // targets: in a tilted view a point beyond the horizon projects to a misleadingly small
+    // distance, so a flight across the country was timed like a short hop.)
+    const centre = this.map.getCenter();
+    const metres = haversineMeters([centre.lng, centre.lat], [look[0], look[1]]);
+    const pixels = metres / metersPerPixel(this.map.getZoom(), centre.lat) + Math.abs(zoom - this.map.getZoom()) * 400;
+    const duration = flightDuration(pixels);
     const id = ++this.flightCounter;
     this.flightId = id;
     // The second argument is "eventData": Mapbox copies it onto the movestart/moveend events.
     this.map.flyTo(
-      { center: [look[0], look[1]], zoom, pitch: FOLLOW_PITCH, bearing: 0, curve: 1.42, duration, essential: false },
+      { center: [look[0], look[1]], zoom, pitch: FOLLOW_PITCH, bearing, curve: 1.42, duration, easing: flightEasing, essential: false },
       { flightId: id },
     );
   }
@@ -320,11 +458,14 @@ export class CameraDirector {
 
   /**
    * Where the camera should be for the current story moment.
-   *   zoom    – comfortable zoom for the current leg (or the framing zoom of a jump)
+   *   zoom    – comfortable zoom for the current leg (or the framing zoom of a jump),
+   *             plus the user's zoom offset when `withUserZoom` is true
    *   look    – the point to centre on (slightly ahead of the travellers)
    *   jumping – true during jumps and time skips
+   *   bearing – the map heading: 0 (north up), or for a part with `camera.heading: 'route'`
+   *             the travel direction, so they move up the screen
    */
-  private storyTarget(): { zoom: number; look: MutableLngLat; jumping: boolean } {
+  private storyTarget(withUserZoom: boolean): { zoom: number; look: MutableLngLat; jumping: boolean; bearing: number } {
     const frame = this.engine.frame;
     const journey = this.engine.route.journey;
     const leg = this.engine.route.legs[frame.legIndex];
@@ -332,10 +473,15 @@ export class CameraDirector {
     const jumping = leg !== undefined && isJumpKind(leg.kind);
     let zoom = this.spanZoom.get(`${frame.chapterIndex}:${frame.spanIndex}`) ?? 9;
     if (jumping) zoom = this.zoomForJump(frame.legIndex);
+    if (withUserZoom) zoom = clamp(zoom + this.zoomOffset, 1.5, 18.5);
     // Look ~90 px ahead along the route so the travellers sit a little behind centre.
     const ahead = jumping ? 0 : metersPerPixel(zoom, this.target[1]) * 90;
     journey.pointAt(frame.distance + ahead, this.ahead);
-    return { zoom, look: this.ahead, jumping };
+    // Heading: averaged over ~250 screen pixels of route either side, so small wiggles do not
+    // swing the whole map.
+    const span = this.engine.timeline.chapters[frame.chapterIndex]?.legSpans[frame.spanIndex];
+    const bearing = !jumping && span?.camera.heading === 'route' ? journey.bearingAt(frame.distance, metersPerPixel(zoom, this.target[1]) * 250) : 0;
+    return { zoom, look: this.ahead, jumping, bearing };
   }
 
   /** The zoom at which the whole arc of jump leg `legIndex` fits on screen (cached). */
@@ -351,22 +497,16 @@ export class CameraDirector {
   }
 
   /**
-   * For each detailed leg part, the zoom where the travellers move at a comfortable on-screen speed.
-   * Maths: pixels/second = (metres/second) ÷ (metres per pixel at that zoom), and
-   * metersPerPixel(z) = C·cos(lat) / (512·2^z). Solving for z:
-   *     z = log2( C·cos(lat)·pixelsPerSecond / (512·metresPerSecond) )
+   * For each detailed leg part, the zoom where the travellers move at a comfortable on-screen
+   * speed (formula and limits in playback/followZoom.ts).
    */
   private computeSpanZooms(): Map<string, number> {
     const zooms = new Map<string, number>();
     for (const chapter of this.engine.timeline.chapters) {
       for (const [spanIndex, span] of chapter.legSpans.entries()) {
         if (isJumpKind(span.kind)) continue;
-        const metres = span.endDistance - span.startDistance;
-        const seconds = Math.max(span.end - span.start, 0.1);
-        const speed = Math.max(metres / seconds, 1);
         const lat = this.engine.route.legs[span.legIndex]!.coordinates[0]![1];
-        const z = Math.log2((40_075_016.686 * Math.cos((lat * Math.PI) / 180) * TARGET_SCREEN_SPEED_PX) / (512 * speed));
-        zooms.set(`${chapter.index}:${spanIndex}`, Math.min(MAX_FOLLOW_ZOOM, Math.max(MIN_FOLLOW_ZOOM, z)));
+        zooms.set(`${chapter.index}:${spanIndex}`, comfortableZoom(span, lat));
       }
     }
     return zooms;
@@ -384,6 +524,28 @@ export class CameraDirector {
   private journeyBounds(): LngLatBoundsLike {
     return boundsOf(this.engine.route.journey.coords);
   }
+}
+
+/** Distance in pixels between the first two fingers of a touch list. */
+function touchDistance(touches: TouchList): number {
+  const a = touches[0]!;
+  const b = touches[1]!;
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
+/**
+ * Story flight duration (ms) for a camera move of `pixels` (ground distance in pixels at the
+ * current zoom):  1600 + 380 × log2(1 + pixels / 300), kept between FLIGHT_MIN_MS and
+ * FLIGHT_MAX_MS. Each doubling of the distance adds only 0.38 s, so far flights take longer
+ * but never drag. E.g. at street zoom: 1 km ≈ 2 s, 20 km ≈ 3.2 s, 300+ km = 5 s.
+ */
+function flightDuration(pixels: number): number {
+  return clamp(1600 + 380 * Math.log2(1 + pixels / 300), FLIGHT_MIN_MS, FLIGHT_MAX_MS);
+}
+
+/** Keeps `value` between `min` and `max`. */
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 /** Smallest box containing all points of a flat [lng0, lat0, lng1, lat1, …] list. */

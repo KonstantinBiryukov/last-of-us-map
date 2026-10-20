@@ -111,22 +111,24 @@ describe('timeline built from the real story data', () => {
     expect(completedLegCount(timeline, endOfFive)).toBe(6);
   });
 
-  it('Lakeside Resort follows the game: ride with wounded Joel 40 %, Ellie alone 30 %, Joel alone 20 %, together 10 %', () => {
-    const spans = timeline.chapters[8]!.legSpans; // Chapter IX
-    const km = (sp: (typeof spans)[number]) => (sp.endDistance - sp.startDistance) / 1000;
-    const total = spans.reduce((sum, sp) => sum + km(sp), 0);
-    const share = (pick: (sp: (typeof spans)[number]) => boolean) => spans.filter(pick).reduce((a, sp) => a + km(sp), 0) / total;
-    const alone = (who: string) => (sp: (typeof spans)[number]) => sp.party.length === 1 && sp.party[0] === who;
-    expect(share((sp) => sp.wounded && sp.mode === 'horse')).toBeCloseTo(0.4, 2);
-    expect(share(alone('ellie'))).toBeCloseTo(0.3, 2);
-    expect(share(alone('joel'))).toBeCloseTo(0.2, 2);
-    expect(spans.filter(alone('ellie')).every((sp) => sp.mode === 'walk')).toBe(true);
-    expect(spans.filter(alone('joel')).every((sp) => sp.mode === 'walk')).toBe(true);
-    // Order: ride → Ellie alone → Joel alone → together (the last 10 %).
-    expect(spans[0]!.wounded).toBe(true);
-    const last = spans.at(-1)!;
-    expect(last.party).toEqual(['joel', 'ellie']);
-    expect(km(last) / total).toBeCloseTo(0.1, 2);
+  it('Lakeside Resort follows the game: ride with wounded Joel 50 %, Ellie alone 30 %, Joel alone 10 %, together the last 10 % (of the time)', () => {
+    const chapter = timeline.chapters[8]!; // Chapter IX
+    const spans = chapter.legSpans;
+    const length = chapter.end - chapter.start;
+    const timeShare = (pick: (sp: (typeof spans)[number]) => boolean) => spans.filter(pick).reduce((a, sp) => a + (sp.end - sp.start), 0) / length;
+    expect(timeShare((sp) => sp.wounded && sp.mode === 'horse')).toBeCloseTo(0.5, 5);
+    expect(timeShare((sp) => sp.party.length === 1 && sp.party[0] === 'ellie')).toBeCloseTo(0.3, 5);
+    expect(timeShare((sp) => sp.party.length === 1 && sp.party[0] === 'joel')).toBeCloseTo(0.1, 5);
+    expect((spans.at(-1)!.end - spans.at(-1)!.start) / length).toBeCloseTo(0.1, 5);
+    expect(spans.filter((sp) => !sp.wounded).every((sp) => sp.mode === 'walk')).toBe(true);
+    // Order: ride → Ellie alone → Joel alone → together.
+    expect(spans.map((sp) => (sp.wounded ? 'ride' : sp.party.join('+')))).toEqual(['ride', 'ellie', 'ellie', 'joel', 'joel+ellie']);
+    // The camera rides behind the horse for the ride, then is north up for the second half.
+    expect(spans[0]!.camera.heading).toBe('route');
+    // Horse and riders drawn twice as large during the ride only.
+    expect(spans[0]!.camera.modelScale).toBe(2);
+    expect(spans.slice(1).every((sp) => sp.camera.modelScale === undefined)).toBe(true);
+    expect(spans.slice(1).every((sp) => sp.camera.heading === undefined)).toBe(true);
     for (const span of timeline.chapters[9]!.legSpans) expect(span.party).toEqual(['joel', 'ellie']);
   });
 
@@ -141,10 +143,18 @@ describe('timeline built from the real story data', () => {
     expect(parties(1)).toEqual(['joel+tess', 'joel+tess+ellie']); // QZ: Joel & Tess, then Ellie joins
     expect(parties(2)).toEqual(['joel+tess+ellie', 'joel+ellie']); // downtown with Tess, then without her
     expect(parties(3)).toEqual(['joel+ellie', 'joel+bill+ellie', 'joel+ellie']); // into Lincoln, with Bill, then the truck
-    for (let c = 4; c < 12; c++) {
-      for (const s of timeline.chapters[c]!.legSpans) {
-        expect(s.party.includes('tess') || s.party.includes('bill')).toBe(false);
-      }
+    expect(parties(4).at(-1)).toBe('joel+henry+sam+ellie'); // Pittsburgh: Henry and Sam join near the end
+    expect(parties(5)).toEqual(['joel+henry+sam+ellie']); // The Suburbs: with them all chapter
+    expect(parties(6).at(-1)).toBe('joel+ellie'); // Tommy's Dam: Tommy and Maria wait at the dam (a prop), not walking
+  });
+
+  it('each companion appears only in the chapters where the game has them', () => {
+    const where: Record<string, number[]> = { tess: [1, 2], bill: [3], henry: [4, 5], sam: [4, 5], tommy: [], david: [] };
+    for (const [name, chapters] of Object.entries(where)) {
+      timeline.chapters.forEach((c, i) => {
+        const present = c.legSpans.some((s) => (s.party as readonly string[]).includes(name));
+        expect(present, `${name} in chapter ${i + 1}`).toBe(chapters.includes(i));
+      });
     }
   });
 

@@ -102,6 +102,24 @@
   color: var(--color-text-faint);
   font-size: 12px;
 }
+/* The chapter's key points (props beside the route); passed ones light up. */
+.keyPoints {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text-faint);
+}
+.keyPointsLabel {
+  margin-right: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.keyPoint[data-passed='true'] {
+  color: var(--color-text);
+}
 .resting {
   color: var(--color-text-faint);
   font-style: italic;

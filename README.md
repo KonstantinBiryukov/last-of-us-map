@@ -7,7 +7,7 @@ travellers, the route, the story images and the soundtrack all move together
 on one timeline — press play and watch. Or choose **Explore the map**: a free map
 of the USA with only the locations, where you click a place to read about it.
 
-- **Mapbox GL JS** draws the satellite/atlas map, the route lines and the location markers.
+- **Mapbox GL JS** draws the satellite map, the route lines and the location markers.
 - **Three.js**, running *inside* the Mapbox map, draws Joel and Ellie walking, riding a
   horse or driving a truck, a glowing trail, dust, seasonal particles and a destination ripple.
 - **React + TypeScript (strict)** build the interface: story panel with a synchronised
@@ -54,7 +54,7 @@ Without a token the app still works, using a simplified built-in map (no 3D).
 | `npm run check` | Type check + tests + build (what CI runs) |
 | `npm run deploy` | Build and publish `dist/` to the `gh-pages` branch |
 | `npm run optimize:images` | Regenerate WebP images + blur placeholders |
-| `npm run build:boston` | Regenerate the Boston street route (needs the token in `.env.local`) |
+| `npm run build:streets -- boston\|hospital\|escape\|pittsburgh` | Regenerate one generated street route (needs the token in `.env.local`) |
 
 ## Keyboard
 

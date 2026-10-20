@@ -1,12 +1,10 @@
 /**
- * settings.ts — user preferences (map style, terrain, effects).
+ * settings.ts — the map's display settings (map style, terrain, effects).
  *
- * Saved in localStorage so they survive a page reload. localStorage can be
- * unavailable (private windows, blocked storage), so every access is wrapped in
- * try/catch and the app works fine with the defaults.
- *
- * Defaults adapt to the device: on machines with few CPU cores (a rough sign
- * of low power) 3D terrain and particle effects start switched off.
+ * These are the app's own choices, not the user's: there is no settings menu. Satellite
+ * imagery always; 3D terrain and particle effects on, except on machines with few CPU cores
+ * (a rough sign of low power), where both start switched off to keep the journey smooth.
+ * Nothing is saved: choices stored by older versions of the app are ignored.
  */
 import { Store } from './store';
 
@@ -23,9 +21,6 @@ export interface Settings {
   effects: boolean;
 }
 
-/** localStorage key. The "-v1" suffix lets a future version ignore old, incompatible data. */
-const STORAGE_KEY = 'tlou-map-settings-v1';
-
 /**
  * Defaults that adapt to the device. `navigator.hardwareConcurrency` = number of CPU
  * threads; 4 or fewer is a rough hint of a low-power machine.
@@ -36,37 +31,15 @@ function defaults(): Settings {
   return { mapStyle: 'satellite', terrain: !lowPower, effects: !lowPower };
 }
 
-/** Reads saved settings, validating every field (stored data may be old or edited by hand). */
-function load(): Settings {
-  const base = defaults();
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return base;
-    const parsed = JSON.parse(raw) as Partial<Settings>;
-    return {
-      mapStyle: parsed.mapStyle === 'atlas' || parsed.mapStyle === 'satellite' ? parsed.mapStyle : base.mapStyle,
-      terrain: typeof parsed.terrain === 'boolean' ? parsed.terrain : base.terrain,
-      effects: typeof parsed.effects === 'boolean' ? parsed.effects : base.effects,
-    };
-  } catch {
-    return base;
-  }
-}
-
 /** The settings as an external store React can subscribe to (see state/store.ts). */
 export class SettingsStore extends Store<Settings> {
   constructor() {
-    super(load());
+    super(defaults());
   }
 
-  /** Changes some settings (`Partial` = any subset of the fields) and saves them. */
+  /** Changes some settings (`Partial` = any subset of the fields) for this visit. */
   update(patch: Partial<Settings>): void {
     this.set(patch);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.getSnapshot()));
-    } catch {
-      // Storage unavailable: the setting still applies for this visit.
-    }
   }
 }
 
