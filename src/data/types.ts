@@ -180,6 +180,8 @@ export interface LegPart {
   bow?: boolean;
   pauseSeconds?: number;
   hunt?: boolean;
+  /** During the pause, Ellie walks up to the giraffe and pets it (Bus Depot; three/petGiraffe.ts). */
+  pet?: boolean;
   blizzard?: boolean;
   timeShare?: number;
   note?: string;
@@ -194,10 +196,17 @@ export interface LegPart {
  *   heading – 'route': turn the map so the travellers move UP the screen (the camera rides
  *             behind them) instead of keeping north up — for slices that head south, where
  *             the travellers would otherwise walk straight down into their own trail
+ *   bearing – a fixed map heading instead (degrees), so the path is seen from an angle
  */
 export interface PartCamera {
   zoom?: number;
   heading?: 'route';
+  /**
+   * A fixed map heading for the part, in degrees clockwise from north (e.g. 30), instead of
+   * north up — the view turned so a path running straight down the screen is seen from an
+   * angle (the slow ride onto the campus in The University). Ignored when `heading` is set.
+   */
+  bearing?: number;
   /**
    * Draw the travellers' models this many times their usual on-screen size during the part
    * (e.g. 2 for Lakeside Resort's ride). Props, trail and everything else keep their size.

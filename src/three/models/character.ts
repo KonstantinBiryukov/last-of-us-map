@@ -463,3 +463,18 @@ export function poseWalkIntoWind(c: Character, phase: number): void {
   c.torso.rotation.z = -gust * 0.6;
   if (c.ponytail) c.ponytail.rotation.set(1.1 + Math.sin(phase * 3) * 0.15, 0, 0.4); // whipped back by the wind
 }
+
+/**
+ * Reaching up to pet something tall (Ellie and the giraffe, three/petGiraffe.ts). Applied ON
+ * TOP of poseIdle, so only the arm, head and back change.
+ *   reach  – 0‥1: the right arm rises from hanging down to raised up and forward, the forearm
+ *            slightly bent (an open hand on the giraffe's head), head tipped back to look up,
+ *            the back arched a touch
+ *   stroke – a slow up-and-down of the raised arm while she strokes (radians of extra swing)
+ */
+export function poseReach(c: Character, reach: number, stroke = 0): void {
+  c.armR.rotation.set(0.05 + 2.45 * reach + stroke, 0, 0.08 - 0.2 * reach);
+  c.forearmR.rotation.x = 0.15 + 0.25 * reach;
+  c.head.rotation.x = -0.35 * reach; // looking up at the giraffe
+  c.torso.rotation.x = -0.08 * reach; // leaning back a little, as you do reaching up
+}

@@ -694,11 +694,21 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     // The neck: 1.5 long, centred at (0, 2.3, −0.55), leaning FORWARD by 0.35 rad (a negative
     // x-rotation tips its top towards −z). Its top end then sits at about (0, 3.0, −0.81) —
     // inside the head below — and its bottom end at (0, 1.6, −0.29), inside the body.
-    const neck = box(g, 0.26, 1.5, 0.3, 'giraffeTan', 0, 1.55, -0.55);
+    // Neck, head and ossicones hang on one PIVOT at the neck's base, so the whole neck can bend
+    // down and forward to Ellie when she pets it (three/petGiraffe.ts). Positions inside the
+    // pivot are relative to it (hence the − NECK_BASE below); at rest it is not turned at all.
+    const NECK_BASE = [0, 1.6, -0.29] as const;
+    const neckPivot = new THREE.Group();
+    neckPivot.position.set(...NECK_BASE);
+    g.add(neckPivot);
+    const at = (x: number, y: number, z: number) => [x - NECK_BASE[0], y - NECK_BASE[1], z - NECK_BASE[2]] as const;
+    const neck = box(neckPivot, 0.26, 1.5, 0.3, 'giraffeTan', ...at(0, 1.55, -0.55));
     neck.rotation.x = -0.35;
-    box(g, 0.3, 0.3, 0.55, 'giraffeTan', 0, 2.88, -0.95); // head (y 2.88–3.18, z −1.22…−0.67)
-    box(g, 0.05, 0.18, 0.05, 'giraffeSpot', -0.08, 3.18, -0.82); // ossicones
-    box(g, 0.05, 0.18, 0.05, 'giraffeSpot', 0.08, 3.18, -0.82);
+    const head = box(neckPivot, 0.3, 0.3, 0.55, 'giraffeTan', ...at(0, 2.88, -0.95)); // head (y 2.88–3.18, z −1.22…−0.67)
+    box(neckPivot, 0.05, 0.18, 0.05, 'giraffeSpot', ...at(-0.08, 3.18, -0.82)); // ossicones
+    box(neckPivot, 0.05, 0.18, 0.05, 'giraffeSpot', ...at(0.08, 3.18, -0.82));
+    root.userData['giraffeNeck'] = neckPivot; // bent by the petting (three/petGiraffe.ts)
+    root.userData['giraffeHead'] = head; // where Ellie reaches to
     // Patches: small darker squares just proud of the body.
     for (const [px, py, pz] of [[0.38, 1.6, -0.3], [0.38, 1.4, 0.25], [-0.38, 1.55, 0.05], [-0.38, 1.35, -0.4], [0, 1.86, 0.3]] as const) {
       box(g, px === 0 ? 0.3 : 0.02, px === 0 ? 0.02 : 0.2, 0.25, 'giraffeSpot', px, py, pz);

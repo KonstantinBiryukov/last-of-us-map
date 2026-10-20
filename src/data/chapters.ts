@@ -307,7 +307,12 @@ export const CHAPTERS: readonly Chapter[] = [
     // slow stretch, and the props are sized for that view.
     legs: [
       { leg: 9, from: 0, to: 0.995 },
-      { leg: 9, from: 0.995, timeShare: 0.75, note: 'Riding onto the university campus' },
+      // The view is turned −30° for the slow ride (`bearing`): the riders head south, straight down
+      // a north-up screen with the path hidden behind them; turned, the path runs diagonally
+      // and is seen from an angle, with the campus and the autumn trees on either side. One zoom
+      // level further out than the camera's own choice (`zoom: -1`): the ride is so slow that
+      // it would otherwise frame single streets, and zooming in from there went far too close.
+      { leg: 9, from: 0.995, timeShare: 0.75, note: 'Riding onto the university campus', camera: { bearing: -30, zoom: -1 } },
     ],
     ambience: ['leaves', 'dust'],
   },
@@ -386,7 +391,14 @@ export const CHAPTERS: readonly Chapter[] = [
     // into Salt Lake City (they are together again).
     // Leg 13 is ~95.9 km: 83.1 km of original line into downtown, then 12.8 km of streets to
     // the hospital. 0.694 ≈ 66.5 km, ~14 km from downtown, where the original split was.
-    legs: [{ leg: 12 }, { leg: 13, from: 0, to: 0.694 }],
+    // Halfway, Joel and Ellie stop for 6 s at the giraffe (leg 13 at 0.5558, where
+    // they pass it); Ellie walks up and pets it, as in the game (`pet`, three/petGiraffe.ts).
+    legs: [
+      { leg: 12 },
+      { leg: 13, from: 0, to: 0.5558 },
+      { leg: 13, from: 0.5558, to: 0.5558, pauseSeconds: 6, pet: true, note: 'Ellie meets the giraffes' },
+      { leg: 13, from: 0.5558, to: 0.694 },
+    ],
     ambience: ['pollen', 'petals'],
   },
   {

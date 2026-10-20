@@ -63,6 +63,26 @@ interface Recipe {
   height: number;
 }
 
+/**
+ * How big the particle box is, in screen pixels at the travellers: about twice the width of a
+ * large screen. It used to be 1400, which on a tilted view only covered the middle of the
+ * screen — the camera looks across the land, so the upper part of the screen shows far more
+ * ground than the middle, and zoomed out the leaves were a small cluster around the riders.
+ */
+const BOX_PIXELS = 3000;
+/**
+ * Each recipe's `count` was tuned for the old 1400-pixel box; the box's AREA is now
+ * (3000 / 1400)² ≈ 4.6 times larger, so the counts are multiplied by that to keep the same
+ * density. Still only a few thousand points per kind, each moved entirely by the GPU.
+ */
+const COUNT_SCALE = (BOX_PIXELS / 1400) ** 2;
+/**
+ * Sideways speeds and sway in the recipes are fractions of the box width, and the layer height
+ * a fraction of the box: scaled by this so, in the larger box, particles move, sway and float
+ * exactly as they did before — only over more of the view.
+ */
+const BOX_RATIO = 1400 / BOX_PIXELS;
+
 const RECIPES: Record<AmbienceKind, Recipe> = {
   // Glowing sparks rising and flickering above burning Austin.
   embers: { count: 220, colorA: 0xff6a1f, colorB: 0xffc35a, velocity: [0.012, 0.09, 0.004], sway: 0.03, size: 6, shape: SHAPE.glow, twinkle: 0.8, twinkleSpeed: 9, spin: 0, opacity: 0.95, additive: true, height: 0.16 },
@@ -217,12 +237,13 @@ class ParticleLayer {
 
   constructor(recipe: Recipe) {
     this.recipe = recipe;
-    const seeds = new Float32Array(recipe.count * 4);
+    const count = Math.round(recipe.count * COUNT_SCALE); // same density in the larger box
+    const seeds = new Float32Array(count * 4);
     for (let i = 0; i < seeds.length; i++) seeds[i] = Math.random();
     this.geometry = new THREE.BufferGeometry();
     this.geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 4));
     // Three.js requires a `position` attribute to know how many points to draw; the shader ignores it.
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(recipe.count * 3), 3));
+    this.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
     this.material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -231,8 +252,10 @@ class ParticleLayer {
         uBox: { value: 1000 },
         uHeight: { value: 500 },
         uOffset: { value: new THREE.Vector2() },
-        uVelocity: { value: new THREE.Vector3(...recipe.velocity) },
-        uSway: { value: recipe.sway },
+        // Sideways drift (x, z) is in box widths, so it is scaled; the fall (y) is in layer
+        // heights, and the layer height is already scaled (update()), so y stays as it is.
+        uVelocity: { value: new THREE.Vector3(recipe.velocity[0] * BOX_RATIO, recipe.velocity[1], recipe.velocity[2] * BOX_RATIO) },
+        uSway: { value: recipe.sway * BOX_RATIO },
         uSize: { value: recipe.size },
         uPixelRatio: { value: 1 },
         uTwinkle: { value: recipe.twinkle },
@@ -284,7 +307,7 @@ export class Ambience {
   update(frame: AmbienceFrame): void {
     // Box size snapped to a power of two of the pixel size: it only changes when the zoom
     // crosses a whole level, so particles do not reshuffle continuously while zooming.
-    const box = 2 ** Math.round(Math.log2(frame.metersPerPixel * 1400));
+    const box = 2 ** Math.round(Math.log2(frame.metersPerPixel * BOX_PIXELS));
     // Fraction of the box the travellers have moved (float64 maths on the CPU, then a small
     // number goes to the GPU — GPUs only have float32, which could not hold ~10 000 km precisely).
     const offsetX = fract(frame.worldX / box);
@@ -304,7 +327,7 @@ export class Ambience {
       const u = layer.material.uniforms;
       u['uTime']!.value = frame.time;
       u['uBox']!.value = box;
-      u['uHeight']!.value = box * layer.recipe.height;
+      u['uHeight']!.value = box * layer.recipe.height * BOX_RATIO;
       (u['uOffset']!.value as THREE.Vector2).set(offsetX, offsetY);
       u['uPixelRatio']!.value = frame.pixelRatio;
       u['uIntensity']!.value = frame.intensity;

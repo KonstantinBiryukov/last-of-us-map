@@ -10,7 +10,7 @@ describe('timeline built from the real story data', () => {
   it('has one entry per chapter and lasts 5 s per slide (original pacing), plus its pauses', () => {
     expect(timeline.chapters).toHaveLength(12);
     const pauses = CHAPTERS.flatMap((c) => c.legs).reduce((sum, part) => sum + (part.pauseSeconds ?? 0), 0);
-    expect(pauses).toBe(5); // Ellie's hunt in Lakeside Resort
+    expect(pauses).toBe(11); // Ellie's hunt in Lakeside Resort (5 s) + petting the giraffe in Bus Depot (6 s)
     expect(timeline.duration).toBeCloseTo(TOTAL_SLIDES * 5 + pauses);
     // A chapter with a pause spreads its slides over the longer time.
     const lakeside = timeline.chapters[8]!;

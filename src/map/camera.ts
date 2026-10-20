@@ -132,7 +132,7 @@ export class CameraDirector {
   private centre: MutableLngLat = [0, 0];
   private zoom = 9;
   private pitch = 0;
-  /** Smoothed map heading (degrees; 0 = north up). Only parts with `camera.heading` turn it. */
+  /** Smoothed map heading (degrees; 0 = north up). Only parts with `camera.heading` or `camera.bearing` turn it. */
   private bearing = 0;
   private readonly map: MapboxMap;
   private readonly engine: PlaybackEngine;
@@ -555,7 +555,10 @@ export class CameraDirector {
     // Heading: averaged over ~250 screen pixels of route either side, so small wiggles do not
     // swing the whole map.
     const span = this.engine.timeline.chapters[frame.chapterIndex]?.legSpans[frame.spanIndex];
-    const bearing = !jumping && span?.camera.heading === 'route' ? journey.bearingAt(frame.distance, metersPerPixel(zoom, this.target[1]) * 250) : 0;
+    const bearing =
+      jumping ? 0
+      : span?.camera.heading === 'route' ? journey.bearingAt(frame.distance, metersPerPixel(zoom, this.target[1]) * 250)
+      : (span?.camera.bearing ?? 0); // a part's fixed heading (PartCamera.bearing), else north up
     return { zoom, look: this.ahead, jumping, bearing };
   }
 

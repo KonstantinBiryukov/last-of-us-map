@@ -67,6 +67,9 @@ export class KeyPointProps {
   readonly group = new THREE.Group();
   /** The rabbit of The Hunt (props.ts), which Ellie shoots in Lakeside Resort (hunt.ts); null if absent. */
   huntRabbit: THREE.Object3D | null = null;
+  /** The giraffe's neck pivot and head (props.ts), for Ellie petting it (petGiraffe.ts); null if absent. */
+  giraffeNeck: THREE.Object3D | null = null;
+  giraffeHead: THREE.Object3D | null = null;
   private readonly props: PlacedProp[] = [];
 
   constructor(placements: readonly KeyPointPlacement[]) {
@@ -101,6 +104,8 @@ export class KeyPointProps {
             : -placement.bearing * DEG + (placement.side * Math.PI) / 2;
       this.group.add(root);
       this.huntRabbit ??= (root.userData['huntRabbit'] as THREE.Object3D | undefined) ?? null;
+      this.giraffeNeck ??= (root.userData['giraffeNeck'] as THREE.Object3D | undefined) ?? null;
+      this.giraffeHead ??= (root.userData['giraffeHead'] as THREE.Object3D | undefined) ?? null;
       this.props.push({
         object: root,
         lng,

@@ -124,7 +124,7 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     // side west of I-15 (not the mountains). Far enough south that they are passed in the middle
     // of "Bus Depot", not at its very end, where they were still on screen in "The Firefly Lab"
     // (the game's depot is fictional).
-    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.9391, 40.5219], basis: 'Riverton, Utah, in the south of the Salt Lake valley, by the bus depot (fictional)', scale: 2 }, // twice the usual size
+    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.895, 40.5176], basis: 'Riverton, Utah, in the south of the Salt Lake valley, by the bus depot (fictional)', close: true, scale: 2 }, // twice the usual size; right beside the walk (`close`), so Ellie can pet it
   ],
   // The walk ends at the hospital: it stands straight ahead of them at the end of the route,
   // facing them, so they walk right up to its front, as if entering (`arrive`).

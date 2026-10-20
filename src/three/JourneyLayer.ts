@@ -44,6 +44,7 @@ import { Beacon, BlobShadow, Comet, createSharedTexture, Dust, Trail, TRAIL_POIN
 import { Ambience } from './ambience';
 import { KeyPointProps } from './keyPoints';
 import { Hunt, HUNT_HIT, type HuntFrame } from './hunt';
+import { PetGiraffe, type PetFrame } from './petGiraffe';
 import { keyPointPlacements, type KeyPointPlacement } from '../playback/keyPoints';
 
 /** Degrees → radians multiplier (Three.js angles are in radians: 180° = π). */
@@ -121,6 +122,9 @@ export class JourneyLayer implements CustomLayerInterface {
   /** The hunt's pause on the clock (story seconds), found once from the timeline (null if none). */
   private huntSpan: { start: number; end: number } | null = null;
   private readonly huntFrame: HuntFrame = { active: false, progress: 0, sinceHit: -1, routeHeading: 0, scale: 1 };
+  /** Ellie petting the giraffe in Bus Depot (petGiraffe.ts). */
+  private readonly pet = new PetGiraffe();
+  private readonly petFrame: PetFrame = { active: false, progress: 0, routeHeading: 0, time: 0 };
 
   // Scratch objects reused every frame (no garbage → no stutter from the garbage collector).
   private readonly pos: MutableLngLat = [0, 0];
@@ -318,7 +322,15 @@ export class JourneyLayer implements CustomLayerInterface {
     hf.sinceHit = huntSpan ? storyTime - (huntSpan.start + HUNT_HIT * (huntSpan.end - huntSpan.start)) : -1;
     hf.routeHeading = heading;
     hf.scale = this.subject.scale.x;
-    this.subject.rotation.y = -this.hunt.update(hf, this.rigs.walk.people.ellie, this.keyPoints.huntRabbit) * DEG;
+    const afterHunt = this.hunt.update(hf, this.rigs.walk.people.ellie, this.keyPoints.huntRabbit);
+    this.subject.rotation.y = -afterHunt * DEG;
+    // Ellie pets the giraffe (petGiraffe.ts): during its pause she walks over to it.
+    const pf = this.petFrame;
+    pf.active = span.pet;
+    pf.progress = span.pet ? (storyTime - span.start) / (span.end - span.start) : 0;
+    pf.routeHeading = afterHunt;
+    pf.time = storyTime;
+    this.subject.rotation.y = -this.pet.update(pf, this.subject, this.rigs.walk.people.ellie, this.keyPoints.giraffeNeck, this.keyPoints.giraffeHead) * DEG;
     const [sw, sl] = SHADOW_SIZE[mode];
     this.shadow.setSize(sw, sl);
 
