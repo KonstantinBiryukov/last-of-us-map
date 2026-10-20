@@ -259,6 +259,27 @@ img {
 .map-marker--explore .map-marker__label {
   opacity: 1;
 }
+/*
+ * Label declutter (map/markers.ts): a label that would overlap another label or marker moves
+ * to the other side of its marker (--label-flip) or, if both sides collide, is hidden
+ * (--label-hidden) — hovering or focusing its marker still shows it.
+ */
+.map-marker--label-flip .map-marker__label {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.map-marker--next.map-marker--label-flip .map-marker__label {
+  bottom: auto;
+  top: calc(100% + 6px);
+}
+.map-marker--label-hidden .map-marker__label {
+  opacity: 0;
+}
+.map-marker--label-hidden:hover .map-marker__label,
+.map-marker--label-hidden:focus-visible .map-marker__label {
+  opacity: 1;
+}
+
 /* The location whose card is open. */
 .map-marker--selected {
   --size: 48px;

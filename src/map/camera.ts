@@ -245,15 +245,21 @@ export class CameraDirector {
     const id = ++this.flightCounter;
     this.flightId = reduced ? 0 : id;
     this.setModeInternal('free');
-    // Work out the camera that fits all markers, then keep the zoom between 2.8 and 6:
-    // on a narrow phone the exact fit would zoom out to the whole planet.
+    // Work out the camera that fits all markers (and their name labels), at most zoom 6.
+    // There is no lower limit any more: a phone needs to zoom out further (to ~1.7) to show
+    // every place from Salt Lake City to Boston — the old minimum of 2.8 cut the West off —
+    // and the North America fence (applyInteraction) already stops Mapbox from zooming out
+    // past the continent. The margin around the markers is smaller on narrow screens, but
+    // always wider than half a name label, so labels at the edges are not cut off.
     // cameraForBounds returns undefined when the padding leaves no room (e.g. for a moment
     // while the panels are changing size); then retry with a small margin instead.
     const bounds = boundsOf(coords);
+    const width = this.map.getContainer().clientWidth;
+    const margin = width < 600 ? 46 : 50;
     const camera =
-      this.map.cameraForBounds(bounds, { padding: this.overviewPadding() }) ??
+      this.map.cameraForBounds(bounds, { padding: this.overviewPadding(margin) }) ??
       this.map.cameraForBounds(bounds, { padding: 20 });
-    const zoom = Math.min(6, Math.max(2.8, camera?.zoom ?? 3.5));
+    const zoom = Math.min(6, camera?.zoom ?? 3.5);
     this.map.easeTo(
       { center: camera?.center ?? [-96, 39], zoom, pitch: 0, bearing: 0, duration: reduced ? 0 : 1800 },
       { flightId: id },
@@ -592,9 +598,9 @@ export class CameraDirector {
    * `fitBounds` padding REPLACES the map's own padding (the space under the
    * story panel and player bar), so we add a 50 px margin on top of it ourselves.
    */
-  private overviewPadding(): { top: number; right: number; bottom: number; left: number } {
+  private overviewPadding(margin = 50): { top: number; right: number; bottom: number; left: number } {
     const p = this.map.getPadding();
-    return { top: (p.top ?? 0) + 50, right: (p.right ?? 0) + 50, bottom: (p.bottom ?? 0) + 50, left: (p.left ?? 0) + 50 };
+    return { top: (p.top ?? 0) + margin, right: (p.right ?? 0) + margin, bottom: (p.bottom ?? 0) + margin, left: (p.left ?? 0) + margin };
   }
 
   private journeyBounds(): LngLatBoundsLike {

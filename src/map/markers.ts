@@ -13,6 +13,16 @@
  * Changing state only swaps a CSS class (done when the chapter changes, never
  * per frame). Hovering or focusing a marker opens a small preview card;
  * clicking it asks the engine to jump to that location's first chapter.
+ *
+ * LABELS NEVER OVERLAP (declutter): zoomed out, several places are close together
+ * (Jackson, Salt Lake City, Fort Collins, Silver Lake; Boston and Lincoln) and their name
+ * labels piled on top of each other. After the map moves (at most once per frame), the
+ * labels that are showing are placed one by one in order of importance — the open card's
+ * place, then the current chapter's, the next destination, then the rest in story order.
+ * A label keeps its usual side (below the marker; "Next" above) if that is clear of the
+ * labels already placed and of every other marker's icon; otherwise it tries the other
+ * side; if both collide it is hidden (hovering its marker still shows it, and zooming in
+ * brings it back as the places move apart).
  */
 import mapboxgl from 'mapbox-gl';
 import type { Map as MapboxMap } from 'mapbox-gl';
@@ -84,6 +94,8 @@ export class MarkerLayer {
   private mode: MarkerMode = 'journey';
   /** Location highlighted in explore mode (its card is open), or null. */
   private selected: LocationId | null = null;
+  /** A label re-layout waiting for the next animation frame (null when none is scheduled). */
+  private layoutFrame: number | null = null;
 
   constructor(
     map: MapboxMap,
@@ -140,6 +152,60 @@ export class MarkerLayer {
       element.setAttribute('role', 'button');
       this.entries.push({ location, marker, element, state: null });
     }
+    // Re-place the labels whenever the map moves or resizes (see LABELS in the header).
+    map.on('move', this.scheduleLabelLayout);
+    map.on('resize', this.scheduleLabelLayout);
+    this.scheduleLabelLayout();
+  }
+
+  /** Asks for a label re-layout on the next animation frame (several moves → one layout). */
+  private scheduleLabelLayout = (): void => {
+    if (this.layoutFrame !== null) return;
+    this.layoutFrame = requestAnimationFrame(() => {
+      this.layoutFrame = null;
+      this.layoutLabels();
+    });
+  };
+
+  /** Places the labels so none overlaps another label or another marker (file header). */
+  private layoutLabels(): void {
+    // Which labels are showing at all: every one in explore; in the journey only the
+    // current place's and the next destination's (the rest appear on hover).
+    const showing = (e: MarkerEntry) => this.mode === 'explore' || e.state === 'current' || e.state === 'next';
+    const rank = (e: MarkerEntry) =>
+      e.location.id === this.selected ? 0 : e.state === 'current' ? 1 : e.state === 'next' ? 2 : 3;
+    // Story order breaks ties (sort is stable, and the entries are already in story order).
+    const ordered = this.entries.filter(showing).sort((a, b) => rank(a) - rank(b));
+    // Obstacles: every marker's round icon, and each label once it has been placed.
+    const icons = this.entries.map((e) => ({ entry: e, rect: (e.element.querySelector('.map-marker__icon') ?? e.element).getBoundingClientRect() }));
+    const placed: DOMRect[] = [];
+    const GAP = 3; // pixels kept free around each label
+    const hits = (r: DOMRect, self: MarkerEntry) =>
+      placed.some((p) => overlaps(r, p, GAP)) || icons.some((i) => i.entry !== self && overlaps(r, i.rect, GAP));
+    for (const entry of this.entries) {
+      if (!showing(entry)) entry.element.classList.remove('map-marker--label-flip', 'map-marker--label-hidden');
+    }
+    for (const entry of ordered) {
+      const label = entry.element.querySelector<HTMLElement>('.map-marker__label');
+      if (!label) continue;
+      entry.element.classList.remove('map-marker--label-hidden', 'map-marker--label-flip');
+      const usual = label.getBoundingClientRect();
+      if (!hits(usual, entry)) {
+        placed.push(usual);
+        continue;
+      }
+      // The other side of the marker: the same box mirrored across the marker's middle.
+      const marker = entry.element.getBoundingClientRect();
+      const middle = marker.top + marker.height / 2;
+      const flippedTop = 2 * middle - usual.bottom;
+      const flipped = new DOMRect(usual.left, flippedTop, usual.width, usual.height);
+      if (!hits(flipped, entry)) {
+        entry.element.classList.add('map-marker--label-flip');
+        placed.push(flipped);
+      } else {
+        entry.element.classList.add('map-marker--label-hidden');
+      }
+    }
   }
 
   /** Updates marker classes for the current chapter. */
@@ -159,6 +225,7 @@ export class MarkerLayer {
       entry.element.style.zIndex = '1';
     }
     this.setSelected(mode === 'explore' ? this.selected : null);
+    this.scheduleLabelLayout();
   }
 
   /** Highlights the marker whose information card is open (explore mode). */
@@ -170,6 +237,7 @@ export class MarkerLayer {
       entry.element.setAttribute('aria-pressed', String(isSelected));
       if (this.mode === 'explore') entry.element.style.zIndex = isSelected ? '3' : '1';
     }
+    this.scheduleLabelLayout();
   }
 
   /** Updates marker classes for the current chapter (called only when the chapter changes). */
@@ -186,6 +254,7 @@ export class MarkerLayer {
       // Keep the current marker on top of its neighbours (Boston and Lincoln are close).
       entry.element.style.zIndex = state === 'current' ? '3' : state === 'next' ? '2' : '1';
     }
+    this.scheduleLabelLayout();
   }
 
   /** Builds the hover card (photo, title, chapters) and shows it above the marker. */
@@ -217,8 +286,16 @@ export class MarkerLayer {
 
   /** Removes all markers and the popup from the map. */
   remove(): void {
+    this.map.off('move', this.scheduleLabelLayout);
+    this.map.off('resize', this.scheduleLabelLayout);
+    if (this.layoutFrame !== null) cancelAnimationFrame(this.layoutFrame);
     this.popup.remove();
     for (const entry of this.entries) entry.marker.remove();
     this.entries = [];
   }
+}
+
+/** Do two screen boxes overlap (with `gap` pixels of breathing room)? */
+function overlaps(a: DOMRect, b: DOMRect, gap: number): boolean {
+  return a.left < b.right + gap && b.left < a.right + gap && a.top < b.bottom + gap && b.top < a.bottom + gap;
 }
