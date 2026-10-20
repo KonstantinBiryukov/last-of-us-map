@@ -8,7 +8,8 @@
  * It keeps the original site's essentials: the main background image, the
  * Firefly emblem, the spoiler/age warning, the two ways to experience the map
  * (follow the path, or explore freely), the About page, and the soft "click"
- * sound when hovering the menu.
+ * sound when hovering the menu (once the browser allows sound: after the first click, tap or
+ * key press on the page — see the effect in the component).
  *
  * The map is already loading behind this screen, so the journey starts
  * instantly. "Begin the journey" is a real click, which is what browsers
@@ -40,11 +41,38 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
   /** The main button, focused automatically so Enter/Space starts the journey. */
   const beginRef = useRef<HTMLButtonElement>(null);
 
+  /** True once the browser allows this page to play sound (see the effect below). */
+  const unlockedRef = useRef(false);
+
   useEffect(() => {
     const audio = new Audio(assetUrl(UI_CLICK_SOUND));
     audio.volume = 0.25;
+    audio.preload = 'auto';
     clickRef.current = audio;
+    // BROWSER RULE: a page may play no sound until the visitor has clicked, tapped or pressed a
+    // key on it — hovering does not count. (After a reload Chrome remembers the earlier visit
+    // and allows it, which is why the hover sound used to start working only after a refresh.)
+    // So on the very FIRST click/tap/key anywhere on the page we "unlock" the sound: play it
+    // silently once, which the browser now allows, and from then on every hover can play it.
+    const unlock = () => {
+      if (unlockedRef.current) return;
+      audio.muted = true;
+      audio
+        .play()
+        .then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.muted = false;
+          unlockedRef.current = true;
+        })
+        .catch(() => {
+          audio.muted = false; // still blocked: try again on the next interaction
+        });
+    };
+    const events = ['pointerdown', 'keydown', 'touchstart'] as const;
+    for (const type of events) document.addEventListener(type, unlock, { capture: true });
     return () => {
+      for (const type of events) document.removeEventListener(type, unlock, { capture: true });
       audio.pause();
       clickRef.current = null;
     };
@@ -59,8 +87,12 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
     const audio = clickRef.current;
     if (!audio) return;
     audio.currentTime = 0;
-    // Browsers block sound before the first click; that is fine — just stay silent.
-    audio.play().catch(() => undefined);
+    // Before the first click the browser may still refuse (see above): then stay silent. A
+    // successful play also means sound is allowed from now on.
+    audio
+      .play()
+      .then(() => (unlockedRef.current = true))
+      .catch(() => undefined);
   };
 
   return (

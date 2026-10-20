@@ -7,7 +7,7 @@ travellers, the route, the story images and the soundtrack all move together
 on one timeline — press play and watch. Or choose **Explore the map**: a free map
 of the USA with only the locations, where you click a place to read about it.
 
-- **Mapbox GL JS** draws the satellite/atlas map, the route lines and the location markers.
+- **Mapbox GL JS** draws the satellite map, the route lines and the location markers.
 - **Three.js**, running *inside* the Mapbox map, draws Joel and Ellie walking, riding a
   horse or driving a truck, a glowing trail, dust, seasonal particles and a destination ripple.
 - **React + TypeScript (strict)** build the interface: story panel with a synchronised

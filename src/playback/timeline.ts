@@ -28,8 +28,11 @@
  *     walk is not rushed through at truck speed. Chapters with many images and a
  *     short distance are naturally slower (more time to look).
  */
-import type { Chapter, LegKind, TravelMode, Traveller } from '../data/types';
+import type { Chapter, LegKind, PartCamera, TravelMode, Traveller } from '../data/types';
 import type { Route } from '../geo/route';
+
+/** The usual camera framing (no per-part override). */
+const NO_CAMERA: PartCamera = {};
 
 export interface TimelineConfig {
   /** Seconds each slide stays on screen (the original slideshow used 5 s). */
@@ -72,6 +75,8 @@ export interface LegSpan {
   mode: TravelMode;
   /** Text for the story panel (the part's override, else the leg's note). */
   note: string;
+  /** How the follow camera frames this part (data/types.ts PartCamera; {} = usual). */
+  camera: PartCamera;
   /** Metres along the journey line where this part starts / ends. */
   startDistance: number;
   endDistance: number;
@@ -179,6 +184,7 @@ export function buildTimeline(
         wounded: part.wounded ?? false,
         mode: part.mode ?? leg.mode,
         note: part.note ?? leg.note,
+        camera: part.camera ?? NO_CAMERA,
       };
     });
 
@@ -218,6 +224,7 @@ export function buildTimeline(
         wounded: p.wounded,
         mode: p.mode,
         note: p.note,
+        camera: p.camera,
         startDistance: legStart + legLength * p.from,
         endDistance: legStart + legLength * p.to,
       });

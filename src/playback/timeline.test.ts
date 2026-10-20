@@ -150,11 +150,11 @@ describe('timeline built from the real story data', () => {
     expect(parties(3)).toEqual(['joel+ellie', 'joel+bill+ellie', 'joel+ellie']); // into Lincoln, with Bill, then the truck
     expect(parties(4).at(-1)).toBe('joel+henry+sam+ellie'); // Pittsburgh: Henry and Sam join near the end
     expect(parties(5)).toEqual(['joel+henry+sam+ellie']); // The Suburbs: with them all chapter
-    expect(parties(6).at(-1)).toBe('joel+tommy+ellie'); // Tommy's Dam: Tommy goes on with them
+    expect(parties(6).at(-1)).toBe('joel+ellie'); // Tommy's Dam: Tommy and Maria wait at the dam (a prop), not walking
   });
 
   it('each companion appears only in the chapters where the game has them', () => {
-    const where: Record<string, number[]> = { tess: [1, 2], bill: [3], henry: [4, 5], sam: [4, 5], tommy: [6], david: [8] };
+    const where: Record<string, number[]> = { tess: [1, 2], bill: [3], henry: [4, 5], sam: [4, 5], tommy: [], david: [8] };
     for (const [name, chapters] of Object.entries(where)) {
       timeline.chapters.forEach((c, i) => {
         const present = c.legSpans.some((s) => (s.party as readonly string[]).includes(name));

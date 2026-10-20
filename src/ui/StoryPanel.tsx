@@ -19,6 +19,7 @@
 import { memo, useId, useState } from 'react';
 import { LOCATIONS_BY_ID } from '../data/locations';
 import { SEASON_LABELS } from '../data/chapters';
+import { keyPointPlacements } from '../playback/keyPoints';
 import type { TravelMode, TravelModeSource, Traveller } from '../data/types';
 import { useJourney, usePlayback } from '../journey/JourneyContext';
 import { Slideshow } from './Slideshow';
@@ -82,6 +83,13 @@ export const StoryPanel = memo(function StoryPanel() {
   const [aboutOpen, setAboutOpen] = useState(false);
   /** Unique id linking the toggle button to the text it controls (for screen readers). */
   const aboutId = useId();
+  // The chapter's key points (the props beside the route). Those already passed are
+  // highlighted. The panel re-renders on every new slide (~5 s), which is often enough.
+  const keyPoints = keyPointPlacements(engine.timeline, engine.chapters, engine.route).filter(
+    (point) => point.chapterIndex === playback.chapterIndex,
+  );
+  const timing = engine.timeline.chapters[playback.chapterIndex]!;
+  const progress = finished ? 1 : (engine.time - timing.start) / (timing.end - timing.start);
 
   return (
     <section className={styles.panel} aria-label="Story">
@@ -142,6 +150,18 @@ export const StoryPanel = memo(function StoryPanel() {
           </>
         )}
       </div>
+
+      {keyPoints.length > 0 && (
+        <p className={styles.keyPoints}>
+          <span className={styles.keyPointsLabel}>Key points</span>
+          {keyPoints.map((point, i) => (
+            <span key={point.name} className={styles.keyPoint} data-passed={progress >= point.at}>
+              {i > 0 && <span aria-hidden="true"> · </span>}
+              {point.name}
+            </span>
+          ))}
+        </p>
+      )}
 
       <div className={styles.about}>
         <button

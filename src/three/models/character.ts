@@ -29,7 +29,7 @@ import { part, type PaletteKey } from '../materials';
 
 export interface CharacterLook {
   /** Also used as a key for caching each character's geometry sizes. */
-  name: 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david';
+  name: 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david' | 'maria';
   /** Overall size multiplier (Joel = 1). */
   scale: number;
   /** Shoulder width multiplier (Joel is broader). */
@@ -240,6 +240,19 @@ export const TOMMY: CharacterLook = {
   hair: 'tommyHair',
   beard: true,
   ponytail: false,
+};
+
+/** Maria: Tommy's wife, who runs Jackson — not travelling: she stands at the dam with Tommy (props.ts). */
+export const MARIA: CharacterLook = {
+  name: 'maria',
+  scale: 0.9,
+  build: 0.92,
+  skin: 'skin',
+  shirt: 'mariaJacket',
+  pants: 'mariaPants',
+  hair: 'mariaHair',
+  beard: false,
+  ponytail: true,
 };
 
 /** David: stocky, grey-bearded, in a sheepskin-brown coat. */

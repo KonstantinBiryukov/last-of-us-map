@@ -46,21 +46,12 @@ import type { PlaybackEngine } from '../playback/engine';
 import { haversineMeters, type MutableLngLat } from '../geo/polyline';
 import { metersPerPixel } from '../geo/mercator';
 import { isJumpKind } from '../playback/timeline';
+import { comfortableZoom, MAX_FOLLOW_ZOOM } from '../playback/followZoom';
 
 export type CameraMode = 'follow' | 'free' | 'overview';
 
 type Listener = () => void;
 
-/** Comfortable on-screen speed of the travellers, in pixels per second. */
-const TARGET_SCREEN_SPEED_PX = 28;
-/**
- * Zoom limits while following (4 ≈ several states visible, 15.5 ≈ city blocks).
- * The upper limit matters for slow city walks (Boston, Lincoln): with a cap of 11.5 a
- * walk of a few blocks moved only ~4 px per second on screen, which looked like walking
- * on the spot. At street level the same walk visibly crosses the city.
- */
-const MIN_FOLLOW_ZOOM = 4.2;
-const MAX_FOLLOW_ZOOM = 15.5;
 /** Camera tilt while following, in degrees (0 = straight down). */
 const FOLLOW_PITCH = 52;
 /** Smoothing speeds (bigger = snappier). Jumps use faster zoom so the swoop fits in 4.5 s. */
@@ -68,13 +59,23 @@ const CENTRE_SPEED = 2.6;
 const ZOOM_SPEED = 0.9;
 const JUMP_ZOOM_SPEED = 2.4;
 const PITCH_SPEED = 1.5;
+/** How fast the map turns towards a part's heading (see PartCamera in data/types.ts). */
+const BEARING_SPEED = 1.1;
 /**
  * How far (zoom levels) the user may zoom out (−) or in (+) from the camera's own choice.
- * Out: only one level, so the travellers never become specks. In: 2.5 levels, so you can
+ * Out: only one level, so the travellers never become specks. In: 3.5 levels, so you can
  * get close to the street where the satellite imagery is sharpest.
  */
 const MIN_ZOOM_OFFSET = -1;
-const MAX_ZOOM_OFFSET = 2.5;
+const MAX_ZOOM_OFFSET = 3.5;
+/**
+ * The box "Explore the map" is fenced into: North America from Alaska's Aleutians to
+ * Newfoundland, and from Panama up into the Canadian Arctic ([west, south], [east, north]).
+ */
+const NORTH_AMERICA: [[number, number], [number, number]] = [
+  [-170, 7],
+  [-50, 72],
+];
 /** Zoom levels per wheel "pixel" (a typical mouse notch is 100 px → ~0.4 levels). */
 const WHEEL_ZOOM_RATE = 1 / 250;
 /** Right after a user zoom, the camera zooms this much faster, so the gesture feels direct. */
@@ -118,6 +119,8 @@ export class CameraDirector {
   private centre: MutableLngLat = [0, 0];
   private zoom = 9;
   private pitch = 0;
+  /** Smoothed map heading (degrees; 0 = north up). Only parts with `camera.heading` turn it. */
+  private bearing = 0;
   private readonly map: MapboxMap;
   private readonly engine: PlaybackEngine;
   private readonly options: CameraOptions;
@@ -288,7 +291,7 @@ export class CameraDirector {
   frame(dt: number): void {
     if (this.mode !== 'follow' || this.flightId !== 0) return; // only glide when following and not flying
 
-    const { zoom, look, jumping } = this.storyTarget(true);
+    const { zoom, look, jumping, bearing } = this.storyTarget(true);
     const kCentre = 1 - Math.exp(-dt * CENTRE_SPEED);
     const boosted = performance.now() - this.userZoomAt < USER_ZOOM_BOOST_MS;
     const kZoom = 1 - Math.exp(-dt * (boosted ? USER_ZOOM_SPEED : jumping ? JUMP_ZOOM_SPEED : ZOOM_SPEED));
@@ -299,7 +302,10 @@ export class CameraDirector {
     // Flatten the view during a jump (easier to read a cross-country arc from above).
     const pitchTarget = this.options.reducedMotion() ? 30 : jumping ? 25 : FOLLOW_PITCH;
     this.pitch += (pitchTarget - this.pitch) * kPitch;
-    this.map.jumpTo({ center: this.centre, zoom: this.zoom, pitch: this.pitch, bearing: 0 });
+    // Turn the shortest way round: the difference wrapped into −180…180° (350° → 10° is +20°).
+    const turn = ((bearing - this.bearing + 540) % 360) - 180;
+    this.bearing += turn * (1 - Math.exp(-dt * BEARING_SPEED));
+    this.map.jumpTo({ center: this.centre, zoom: this.zoom, pitch: this.pitch, bearing: this.bearing });
   }
 
   /** Remove all listeners (called when the map is destroyed). */
@@ -335,6 +341,11 @@ export class CameraDirector {
     }
     map.touchZoomRotate.disableRotation();
     map.keyboard.disableRotation();
+    // Explore stays over North America: with maxBounds Mapbox refuses to pan past the box
+    // and to zoom out so far that anything outside it would show. The journey needs no
+    // fence (the camera director moves the camera there), so it is removed again.
+    // (Mapbox removes the fence when given null; its TypeScript types only list a box.)
+    map.setMaxBounds(free ? NORTH_AMERICA : (null as unknown as LngLatBoundsLike));
     // Without panning, the "grab" hand cursor would promise something that does nothing.
     map.getContainer().classList.toggle('map--zoom-only', !free);
   }
@@ -397,6 +408,7 @@ export class CameraDirector {
     this.centre = [c.lng, c.lat];
     this.zoom = this.map.getZoom();
     this.pitch = this.map.getPitch();
+    this.bearing = this.map.getBearing();
   };
 
   private onResize = (): void => this.jumpZoom.clear();
@@ -404,13 +416,14 @@ export class CameraDirector {
   /** Cinematic flight to the travellers' current position. */
   private flyToStory(): void {
     this.lastFlight = () => this.flyToStory();
-    const { zoom, look } = this.storyTarget(true);
+    const { zoom, look, bearing } = this.storyTarget(true);
     if (this.options.reducedMotion()) {
       this.flightId = 0;
       this.centre = [look[0], look[1]];
       this.zoom = zoom;
       this.pitch = 30;
-      this.map.jumpTo({ center: this.centre, zoom, pitch: 30, bearing: 0 });
+      this.bearing = bearing;
+      this.map.jumpTo({ center: this.centre, zoom, pitch: 30, bearing });
       return;
     }
     // Duration grows with how far the camera must travel, measured as the GROUND distance in
@@ -425,7 +438,7 @@ export class CameraDirector {
     this.flightId = id;
     // The second argument is "eventData": Mapbox copies it onto the movestart/moveend events.
     this.map.flyTo(
-      { center: [look[0], look[1]], zoom, pitch: FOLLOW_PITCH, bearing: 0, curve: 1.42, duration, easing: flightEasing, essential: false },
+      { center: [look[0], look[1]], zoom, pitch: FOLLOW_PITCH, bearing, curve: 1.42, duration, easing: flightEasing, essential: false },
       { flightId: id },
     );
   }
@@ -449,8 +462,10 @@ export class CameraDirector {
    *             plus the user's zoom offset when `withUserZoom` is true
    *   look    – the point to centre on (slightly ahead of the travellers)
    *   jumping – true during jumps and time skips
+   *   bearing – the map heading: 0 (north up), or for a part with `camera.heading: 'route'`
+   *             the travel direction, so they move up the screen
    */
-  private storyTarget(withUserZoom: boolean): { zoom: number; look: MutableLngLat; jumping: boolean } {
+  private storyTarget(withUserZoom: boolean): { zoom: number; look: MutableLngLat; jumping: boolean; bearing: number } {
     const frame = this.engine.frame;
     const journey = this.engine.route.journey;
     const leg = this.engine.route.legs[frame.legIndex];
@@ -458,11 +473,15 @@ export class CameraDirector {
     const jumping = leg !== undefined && isJumpKind(leg.kind);
     let zoom = this.spanZoom.get(`${frame.chapterIndex}:${frame.spanIndex}`) ?? 9;
     if (jumping) zoom = this.zoomForJump(frame.legIndex);
-    if (withUserZoom) zoom = clamp(zoom + this.zoomOffset, 1.5, 17);
+    if (withUserZoom) zoom = clamp(zoom + this.zoomOffset, 1.5, 18.5);
     // Look ~90 px ahead along the route so the travellers sit a little behind centre.
     const ahead = jumping ? 0 : metersPerPixel(zoom, this.target[1]) * 90;
     journey.pointAt(frame.distance + ahead, this.ahead);
-    return { zoom, look: this.ahead, jumping };
+    // Heading: averaged over ~250 screen pixels of route either side, so small wiggles do not
+    // swing the whole map.
+    const span = this.engine.timeline.chapters[frame.chapterIndex]?.legSpans[frame.spanIndex];
+    const bearing = !jumping && span?.camera.heading === 'route' ? journey.bearingAt(frame.distance, metersPerPixel(zoom, this.target[1]) * 250) : 0;
+    return { zoom, look: this.ahead, jumping, bearing };
   }
 
   /** The zoom at which the whole arc of jump leg `legIndex` fits on screen (cached). */
@@ -478,22 +497,16 @@ export class CameraDirector {
   }
 
   /**
-   * For each detailed leg part, the zoom where the travellers move at a comfortable on-screen speed.
-   * Maths: pixels/second = (metres/second) ÷ (metres per pixel at that zoom), and
-   * metersPerPixel(z) = C·cos(lat) / (512·2^z). Solving for z:
-   *     z = log2( C·cos(lat)·pixelsPerSecond / (512·metresPerSecond) )
+   * For each detailed leg part, the zoom where the travellers move at a comfortable on-screen
+   * speed (formula and limits in playback/followZoom.ts).
    */
   private computeSpanZooms(): Map<string, number> {
     const zooms = new Map<string, number>();
     for (const chapter of this.engine.timeline.chapters) {
       for (const [spanIndex, span] of chapter.legSpans.entries()) {
         if (isJumpKind(span.kind)) continue;
-        const metres = span.endDistance - span.startDistance;
-        const seconds = Math.max(span.end - span.start, 0.1);
-        const speed = Math.max(metres / seconds, 1);
         const lat = this.engine.route.legs[span.legIndex]!.coordinates[0]![1];
-        const z = Math.log2((40_075_016.686 * Math.cos((lat * Math.PI) / 180) * TARGET_SCREEN_SPEED_PX) / (512 * speed));
-        zooms.set(`${chapter.index}:${spanIndex}`, Math.min(MAX_FOLLOW_ZOOM, Math.max(MIN_FOLLOW_ZOOM, z)));
+        zooms.set(`${chapter.index}:${spanIndex}`, comfortableZoom(span, lat));
       }
     }
     return zooms;

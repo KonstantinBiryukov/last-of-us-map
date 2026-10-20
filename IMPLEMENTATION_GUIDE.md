@@ -89,7 +89,7 @@ src/
   three/effects.ts         Trail ribbon, dust, season particles, beacon, shadow
   three/materials.ts       Shared colours/materials/geometries (created once)
   journey/                 React context + runtime creation (engine, loop, music)
-  state/                   Tiny external-store helper; user settings
+  state/                   Tiny external-store helper; display settings (fixed, no menu)
   ui/                      React components (+ *.module.css next to each)
   styles/global.css        Design tokens, marker/popup styles, reduced motion
 ```
@@ -248,7 +248,7 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
   `ambience` particle moods for that place.
 - **Leg parts** can override who travels and how:
   `{ leg, from, to, party, mode, wounded, timeShare, note }`. `party` is a list of characters
-  in walking order (default `['joel', 'ellie']`; companions: Tess, Bill, Henry, Sam, Tommy,
+  in walking order (default `['joel', 'ellie']`; companions: Tess, Bill, Henry, Sam,
   David); `wounded` lays Joel across the horse behind Ellie.
   Used exactly where the game has them:
   - *Quarantine Zone* — Joel and Tess cross the QZ to Robert and the Fireflies; Ellie joins
@@ -260,7 +260,8 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
     last 20 % is Bill's truck driving out of Lincoln (the drive continues in *Pittsburgh*).
   - *Pittsburgh* / *The Suburbs* — Henry and Sam join near the end of *Pittsburgh* and
     walk with them through *The Suburbs*.
-  - *Tommy's Dam* — the last quarter is with Tommy, reunited at his dam.
+  - *Tommy's Dam* — Tommy and his wife Maria do not walk with them: they stand at the dam (part
+    of the dam's key-point prop, the same blocky characters, held in a standing pose).
   - *Lakeside Resort* — 50 % Ellie riding with wounded Joel lying across the horse (the
     escape after the university), 20 % Ellie on foot (alone, then with David), 20 % Joel
     alone on foot searching for her, and the last 10 % together again.
@@ -325,7 +326,7 @@ exactly when paused, are identical after seeking and stay continuous across leg 
 chapter boundaries.
 
 **On-screen size.** The models are scaled to a constant height in screen pixels
-(walkers 58 px, horse 60 px, truck 40 px). The pixel size is *measured* every frame by
+(walkers 81 px, horse 60 px, truck 40 px). The pixel size is *measured* every frame by
 projecting the travellers' position and a point 100 m east of it through the real
 camera, so tilted views and flights no longer make the truck look huge.
 
@@ -339,12 +340,47 @@ travellers but is anchored to the world. The CPU only updates a few uniforms per
 frame. To add a mood: add a name to `AmbienceKind` (`data/types.ts`), a recipe in
 `RECIPES` (count, colours, velocity, shape, size…), and list it in a chapter.
 
+**Chapter key points** (`data/keyPoints.ts` → `playback/keyPoints.ts` → `three/keyPoints.ts`,
+models in `three/models/props.ts`). Each chapter lists the game's sections ("The Museum",
+"The Cargo", "The Giraffes", …) with a blockmesh prop kind and a real-world `coord` (the place
+the game's location is based on, or a fitting real stand-in — `basis` says which). Placement
+is computed once (`placeKeyPoints`, unit-tested) by these rules, most important first:
+nobody walks through a prop (its footprint keeps clear of every travelled part of the route,
+also where it doubles back, with room for the walking party even at the widest follow zoom);
+props never overlap; each stands at the point of its chapter's walked route closest to its
+real place (in game order), on the side where that place lies; and its size follows the
+travellers' size there (the follow camera's zoom, `playback/followZoom.ts`) × 0.7 — shared by
+neighbouring props seen at similar zooms (a group takes its smallest size), so nearby buildings
+stay in proportion (props are drawn at 1.15× the walkers' scale; Boston ×0.7 and Hometown ×0.5 via `scale`). *Close* places (`close:
+true`: Joel's house where the drive starts, the Massachusetts State House at the end of the
+Boston walk, the Fireflies' hospital) stand right beside the route — the travellers brush past
+them — preferably on their real site (the State House: within 60 m of its real dome, between
+the streets the trio walks). *Exact* landmarks (`exact: { heading }`: Pittsburgh's yellow
+Roberto Clemente Bridge) stand exactly at their coordinate along their real axis; nothing may
+stand in front of them as the north-looking camera sees them, and while the travellers cross
+the bridge they are drawn walking straight along its deck (`crossing`, JourneyLayer). The drawn
+path is also lightly smoothed (±10 screen pixels) so fast mountain stretches with switchbacks
+(Lakeside's ride) don't make the travellers snap from side to side. When an ideal spot
+breaks a rule, placement tries the other side, standing a little further out, small nudges along
+the route, and only then a smaller size for the whole group. Nothing changes at runtime: fixed
+size and spot, all props on the map from the first frame (far off-screen ones skipped while
+drawing), each standing on the highest of five terrain samples under its footprint with a deep
+plinth hidden in slopes. The story panel lists the chapter's key points and lights up the ones
+passed. To add a point: add it to `KEY_POINTS` (`coord`, `basis`, optional `close`/`exact`); to add a
+prop shape: add a `PropKind`, its `PROP_RADIUS` and a builder in `three/models/props.ts`.
+
+**Per-part camera** (`camera` on a leg part in `data/chapters.ts`): `zoom` brings the follow
+camera closer (+) or further (−) than usual for that part; `heading: 'route'` turns the map so
+the travellers move up the screen (used for Lakeside Resort's southbound ride, where they would
+otherwise ride straight down into their own trail). Key-point props follow the adjusted zoom.
+
 **Camera** (`map/camera.ts`). *Follow* glides after the travellers at a zoom matched
 to their speed and swoops out over jumps; *Overview* frames the whole journey;
 *Free* never moves on its own ("Explore the map"). During the journey the map **cannot be
 panned** (dragging it away let the travellers walk off-screen while the story played): wheel,
 pinch and the +/− buttons zoom around the centre and following continues at that zoom (kept
-as an offset from the camera's own choice: at most 1 level out, 2.5 levels in). Explore allows panning again.
+as an offset from the camera's own choice: at most 1 level out, 3.5 levels in). Explore allows panning
+again, fenced to North America (`setMaxBounds`): it cannot be dragged or zoomed out past it.
 Any story navigation — next/previous chapter, clicking a location, releasing the
 timeline — switches back to Follow and flies there. Users can pan and zoom but **not rotate
 or tilt** (right-click/Ctrl-drag, two-finger twist and tilt, Shift+arrows are disabled):
@@ -354,6 +390,10 @@ the camera stopped following after quick chapter clicks).
 
 Story flights last 2–5 s (growing with the logarithm of the distance) with a gentle "ease in-out sine"
 curve, so chapter clicks travel quickly without a jolt.
+
+**Trail under the travellers.** The glowing trail behind them ignores depth (so hills never cut
+it); it is drawn in the solid pass before the characters and props (`renderOrder −1`,
+non-transparent material, still additively blended), so they always stand on top of it.
 
 **Markers** are Mapbox HTML markers: Mapbox writes the marker element's `transform` on every
 camera move, so hover effects scale the inner icon/ring instead — a CSS transition on the
@@ -448,7 +488,7 @@ In the repository settings, Pages must stay on *Deploy from a branch → gh-page
 | Blank page on GitHub Pages, 404s for `/assets/…` | Something removed `base: '/last-of-us-map/'` from `vite.config.ts`. |
 | Files starting with `_` 404 on Pages | `.nojekyll` missing in `dist/` (it comes from `public/.nojekyll`). |
 | No music | Browser autoplay policy — press the music play button once. |
-| Slow or hot laptop | Map settings (layers icon) → turn off *3D terrain* and *Particles & dust*. Low-core machines start with them off. |
+| Slow or hot laptop | Machines with 4 or fewer CPU threads get no 3D terrain or particles automatically (`state/settings.ts`); there is no settings menu. |
 | Camera does not move | You are in *overview* (Overview button) or *Explore the map*. Press *Follow* (F) or pick a chapter. |
 | Want to see the frame rate | Open the page with `?stats` before the `#` (see Appendix A). |
 | `npm install` warns about engines | Use Node 24 LTS or newer (`brew upgrade node`). |

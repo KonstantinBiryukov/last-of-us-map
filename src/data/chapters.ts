@@ -209,8 +209,10 @@ export const CHAPTERS: readonly Chapter[] = [
       { leg: 3, from: 0.1 },
       { leg: 4 },
       { leg: 5 },
-      { leg: 6, from: 0, to: 0.5, note: 'On foot through Pittsburgh' },
-      { leg: 6, from: 0.5, to: 0.71, party: ['joel', 'henry', 'sam', 'ellie'], note: 'Henry and Sam join them' },
+      // Henry and Sam join at the end of the Financial District (≈9 % along this leg), before
+      // the four of them escape across the bridge (≈21 %) — as in the game.
+      { leg: 6, from: 0, to: 0.15, note: 'On foot through Pittsburgh' },
+      { leg: 6, from: 0.15, to: 0.71, party: ['joel', 'henry', 'sam', 'ellie'], note: 'Henry and Sam join them — across the bridge' },
     ],
     ambience: ['dust', 'fireflies'],
   },
@@ -260,7 +262,8 @@ export const CHAPTERS: readonly Chapter[] = [
     legs: [
       { leg: 7 },
       { leg: 8, from: 0, to: 0.75, note: "Towards Tommy's dam" },
-      { leg: 8, from: 0.75, party: ['joel', 'tommy', 'ellie'], note: 'Reunited with Tommy at his dam' },
+      // Tommy (and his wife Maria) wait at the dam — they stand there (a prop), they do not walk on.
+      { leg: 8, from: 0.75, note: 'Reunited with Tommy and Maria at his dam' },
     ],
     ambience: ['leaves', 'dust'],
   },
@@ -318,12 +321,16 @@ export const CHAPTERS: readonly Chapter[] = [
     //   Joel alone on foot     20 % (34.0 km) = leg 11, 0.21 → 0.737
     //   together again         10 % (17.0 km) = leg 11, 0.737 → 1
     legs: [
-      { leg: 10, from: 0, to: 0.806, mode: 'horse', wounded: true, timeShare: 0.5, note: 'Ellie rides on, wounded Joel lying across the horse' },
-      { leg: 10, from: 0.806, to: 0.935, party: ['ellie'], mode: 'walk', note: 'Ellie hunts alone while Joel recovers' },
-      { leg: 10, from: 0.935, party: ['david', 'ellie'], mode: 'walk', note: 'Ellie meets David — they fight side by side' },
-      { leg: 11, from: 0, to: 0.21, party: ['david', 'ellie'], note: 'Ellie and David' },
-      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], note: 'Joel, barely recovered, searches for Ellie alone' },
-      { leg: 11, from: 0.737, note: 'Together again' },
+      // The ride heads south: the camera rides behind the horse (map turned so it moves up the
+      // screen, not down into its own trail) and a little closer than usual.
+      { leg: 10, from: 0, to: 0.806, mode: 'horse', wounded: true, timeShare: 0.5, note: 'Ellie rides on, wounded Joel lying across the horse', camera: { zoom: 0.8, heading: 'route' } },
+      // The walks are compressed into the second half of the chapter, so the camera would
+      // pull far out; 0.8 levels closer keeps travellers and the props beside them modest.
+      { leg: 10, from: 0.806, to: 0.935, party: ['ellie'], mode: 'walk', note: 'Ellie hunts alone while Joel recovers', camera: { zoom: 0.8 } },
+      { leg: 10, from: 0.935, party: ['david', 'ellie'], mode: 'walk', note: 'Ellie meets David — they fight side by side', camera: { zoom: 0.8 } },
+      { leg: 11, from: 0, to: 0.21, party: ['david', 'ellie'], note: 'Ellie and David', camera: { zoom: 0.8 } },
+      { leg: 11, from: 0.21, to: 0.737, party: ['joel'], note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },
+      { leg: 11, from: 0.737, note: 'Together again', camera: { zoom: 0.8 } },
     ],
     ambience: ['snow'],
   },
