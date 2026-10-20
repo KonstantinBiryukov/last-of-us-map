@@ -180,6 +180,11 @@ export interface LegPart {
 export interface PartCamera {
   zoom?: number;
   heading?: 'route';
+  /**
+   * Draw the travellers' models this many times their usual on-screen size during the part
+   * (e.g. 2 for Lakeside Resort's ride). Props, trail and everything else keep their size.
+   */
+  modelScale?: number;
 }
 
 /** The four seasons the game is split into (plus the 2013 prologue). */

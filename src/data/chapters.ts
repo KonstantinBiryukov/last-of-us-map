@@ -329,10 +329,11 @@ export const CHAPTERS: readonly Chapter[] = [
     //                                 split 18 % + 12 % by distance)
     //   Joel alone              10 %  leg 11, 0.21 → 0.737                     (34.0 km)
     //   together again          10 %  leg 11, 0.737 → 1                        (17.0 km)
-    // Camera: north up (not turned), 0.8 levels closer than usual throughout (the walks are
-    // compressed, so it would otherwise pull far out).
+    // Camera: during the ride it rides BEHIND the horse (map turned so the horse moves up the
+    // screen); when the ride ends it turns smoothly back to north up for the second half. 0.8
+    // levels closer than usual throughout (the walks are compressed, so it would pull far out).
     legs: [
-      { leg: 10, from: 0, to: 0.806, mode: 'horse', wounded: true, timeShare: 0.5, note: 'Ellie rides on, wounded Joel lying across the horse', camera: { zoom: 0.8 } },
+      { leg: 10, from: 0, to: 0.806, mode: 'horse', wounded: true, timeShare: 0.5, note: 'Ellie rides on, wounded Joel lying across the horse', camera: { zoom: 0.8, heading: 'route', modelScale: 2 } }, // horse and riders drawn twice as large
       { leg: 10, from: 0.806, party: ['ellie'], mode: 'walk', timeShare: 0.18, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8 } },
       { leg: 11, from: 0, to: 0.21, party: ['ellie'], timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8 } },
       { leg: 11, from: 0.21, to: 0.737, party: ['joel'], timeShare: 0.1, note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },

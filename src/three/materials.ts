@@ -96,6 +96,11 @@ export const PALETTE = {
   giraffeSpot: 0x7a4e2a,
   gold: 0xc9a13b,
   bridgeYellow: 0xd9a21e,
+  // The pallet raft at Tommy's dam: weathered, sun-bleached pallet wood on murky water.
+  palletWood: 0x9c8058,
+  palletWoodLight: 0xb59c74,
+  palletWoodDark: 0x5e4a33,
+  waterDark: 0x2c4350,
 } as const;
 
 export type PaletteKey = keyof typeof PALETTE;

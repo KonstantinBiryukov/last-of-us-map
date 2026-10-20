@@ -84,7 +84,7 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   ],
   9: [
     { name: 'The Hunt', prop: 'trees', coord: [-105.49, 40.056], basis: 'the snowy forest west of Boulder' },
-    { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)' },
+    { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: 2 }, // twice the usual size
   ],
   10: [
     // The giraffes, met around the bus depot — in the city's southern part, on the valley side

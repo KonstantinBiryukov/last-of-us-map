@@ -123,8 +123,12 @@ describe('timeline built from the real story data', () => {
     expect(spans.filter((sp) => !sp.wounded).every((sp) => sp.mode === 'walk')).toBe(true);
     // Order: ride → Ellie alone → Joel alone → together.
     expect(spans.map((sp) => (sp.wounded ? 'ride' : sp.party.join('+')))).toEqual(['ride', 'ellie', 'ellie', 'joel', 'joel+ellie']);
-    // The camera stays north up here (no turning).
-    expect(spans.every((sp) => sp.camera.heading === undefined)).toBe(true);
+    // The camera rides behind the horse for the ride, then is north up for the second half.
+    expect(spans[0]!.camera.heading).toBe('route');
+    // Horse and riders drawn twice as large during the ride only.
+    expect(spans[0]!.camera.modelScale).toBe(2);
+    expect(spans.slice(1).every((sp) => sp.camera.modelScale === undefined)).toBe(true);
+    expect(spans.slice(1).every((sp) => sp.camera.heading === undefined)).toBe(true);
     for (const span of timeline.chapters[9]!.legSpans) expect(span.party).toEqual(['joel', 'ellie']);
   });
 

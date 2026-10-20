@@ -322,6 +322,24 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     }
     box(g, 0.6, 1.0, 0.05, 'water', 0, 0.2, -0.55); // spillway
     box(g, 0.8, 0.6, 0.6, 'plaster', 1.6, 1.8, 0);
+    // The pool below the spillway and the wooden pallet floating in it — the raft Ellie, who
+    // cannot swim, is pushed across on at the dam. Murky water (darker than the reservoir) with
+    // white foam where the spillway pours in. The pallet is a real shipping pallet: seven
+    // weathered, sun-bleached deck boards with gaps between them, on three thick runners; it
+    // floats low (runners under the surface) and tilts a little, as if bobbing in the current.
+    box(g, 2.8, 0.1, 0.95, 'waterDark', -0.55, 0.04, -1.1);
+    for (const [fx, fz, fw] of [[0, -0.7, 0.5], [0.25, -0.85, 0.25], [-0.3, -0.8, 0.3], [-1.6, -1.45, 0.35]] as const) {
+      box(g, fw, 0.02, fw * 0.45, 'offWhite', fx, 0.14, fz); // foam
+    }
+    const raft = new THREE.Group();
+    raft.position.set(-0.75, 0.12, -1.1);
+    raft.rotation.set(0.06, 0.32, -0.05); // drifting: turned, and tipped a little
+    for (const x of [-0.42, 0, 0.42]) box(raft, 0.12, 0.09, 0.82, 'palletWoodDark', x, -0.06, 0); // runners (mostly under water)
+    for (let i = 0; i < 7; i++) {
+      const length = 1.0 - (i % 3 === 1 ? 0.06 : 0); // slightly uneven boards
+      box(raft, length, 0.035, 0.09, i % 2 === 0 ? 'palletWood' : 'palletWoodLight', 0, 0.03, -0.36 + i * 0.12); // deck boards
+    }
+    g.add(raft);
     // Tommy and his wife Maria, standing in front of the dam to meet Joel and Ellie. They do
     // not travel: they are part of this prop. The same blocky characters as the travellers, at
     // ~0.9 so they match the travellers' size (props are drawn a little larger than them).

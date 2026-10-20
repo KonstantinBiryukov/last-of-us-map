@@ -149,6 +149,8 @@ const TRUCK_VISUAL_SPEED = 9;
  */
 const SMOOTH_PX: Record<TravelMode, number> = { walk: 10, horse: 25, vehicle: 20 };
 const SMOOTH_MAX_M = 6000;
+/** How fast the travellers' extra model size eases in and out (per second; ~1 s to settle). */
+const MODEL_SCALE_SPEED = 3;
 /** Fraction of a bridge crossing (at each end) over which the drawn path slides onto the deck. */
 const CROSSING_BLEND = 0.12;
 /** Distance used to measure "pixels per metre" at the travellers' position. */
@@ -206,6 +208,10 @@ export class JourneyLayer implements CustomLayerInterface {
    * smoothedPointAt(). Set each frame from the zoom (last frame's, which is close enough).
    */
   private smoothWindow = 0;
+  /** Current (eased) extra size of the travellers' models — see `camera.modelScale`. */
+  private modelScale = 1;
+  /** Time of the previous frame (performance.now()), for the easing above. */
+  private lastFrameAt = performance.now();
   /** Bridge crossings (playback/keyPoints.ts): where the travellers walk straight along a deck. */
   private crossings: NonNullable<KeyPointPlacement['crossing']>[] = [];
   /** Wall-clock reference for the seasonal particles. */
@@ -373,7 +379,14 @@ export class JourneyLayer implements CustomLayerInterface {
 
     // 5) Pose and scale the travellers.
     const storyTime = frame.time;
-    const scale = ((SCREEN_HEIGHT_PX[mode] * metresPerPixel) / MODEL_HEIGHT_M[mode]) * travellers;
+    // A part may draw the travellers larger (`camera.modelScale`, e.g. ×2 for Lakeside's ride).
+    // Eased towards the target each frame so the size never snaps at a part's boundary.
+    const now = performance.now();
+    const frameSeconds = Math.min(0.1, (now - this.lastFrameAt) / 1000);
+    this.lastFrameAt = now;
+    const targetModelScale = jumping ? 1 : (span.camera.modelScale ?? 1);
+    this.modelScale += (targetModelScale - this.modelScale) * (1 - Math.exp(-frameSeconds * MODEL_SCALE_SPEED));
+    const scale = ((SCREEN_HEIGHT_PX[mode] * metresPerPixel) / MODEL_HEIGHT_M[mode]) * travellers * this.modelScale;
     this.subject.scale.setScalar(Math.max(scale, 1e-6)); // never exactly 0 (Three dislikes it)
     this.subject.visible = travellers > 0.001;
     // Smoothed heading: look 40 px behind and ahead along the route (at least 250/600 m).

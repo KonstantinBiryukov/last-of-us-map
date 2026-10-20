@@ -378,8 +378,8 @@ prop shape: add a `PropKind`, its `PROP_RADIUS` and a builder in `three/models/p
 
 **Per-part camera** (`camera` on a leg part in `data/chapters.ts`): `zoom` brings the follow
 camera closer (+) or further (−) than usual for that part; `heading: 'route'` turns the map so
-the travellers move up the screen (available, currently unused: Lakeside Resort keeps north up
-and only zooms closer). Key-point props follow the adjusted zoom.
+the travellers move up the screen (Lakeside Resort's ride: the camera rides behind the horse,
+then turns back to north up for the second half). Key-point props follow the adjusted zoom.
 
 **Camera** (`map/camera.ts`). *Follow* glides after the travellers at a zoom matched
 to their speed and swoops out over jumps; *Overview* frames the whole journey;
