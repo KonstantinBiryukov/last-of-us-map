@@ -25,7 +25,11 @@ const BOSTON_SCALE = 0.7;
 
 export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   // The escape drive starts at Joel's house: the house stands right where the route begins.
-  1: [{ name: 'Hometown', prop: 'house', coord: [-97.619095, 30.175858], basis: "south-east Austin, where the escape drive starts (Joel's house is in the Austin suburbs)", close: true, scale: 0.5 }],
+  1: [
+    { name: 'Hometown', prop: 'house', coord: [-97.619095, 30.175858], basis: "south-east Austin, where the escape drive starts (Joel's house is in the Austin suburbs)", close: true, scale: 0.5 },
+    // Driving out of Austin through the outbreak: a house burning in Buda, beside the road.
+    { name: 'Outbreak Night', prop: 'burningHouse', coord: [-97.84, 30.082], basis: 'Buda, Texas, south of Austin on the escape route', scale: 0.5 }, // same size as the Hometown house
+  ],
   2: [
     // Boston places from scripts/build-street-routes.mjs (the street route's stops).
     // BOSTON_SCALE: see below.
@@ -83,16 +87,22 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     { name: 'Science Building', prop: 'lab', coord: [-105.083, 40.5755], basis: 'the Colorado State University campus' },
   ],
   9: [
-    { name: 'The Hunt', prop: 'trees', coord: [-105.49, 40.056], basis: 'the snowy forest west of Boulder' },
+    // Right beside Ellie's path (`close`) and 4× the usual size, so the deer and the rabbit are
+    // seen as she walks past (at the usual size it was a third of the travellers' height).
+    // `faceCamera`: the animals look at the camera, not away from it.
+    { name: 'The Hunt', prop: 'hunt', coord: [-105.49, 40.056], basis: 'the snowy forest west of Boulder (a deer and a rabbit, as Ellie hunts in the game)', close: true, scale: 4, faceCamera: true },
     { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: 2 }, // twice the usual size
   ],
   10: [
-    // The giraffes, met around the bus depot — in the city's southern part, on the valley side
-    // west of I-15 (not the mountains), well before the hospital (the game's depot is fictional).
-    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.93, 40.62], basis: 'southern Salt Lake City (Taylorsville / West Jordan), by the bus depot (fictional)', scale: 2 }, // twice the usual size
+    // The giraffes, met around the bus depot — in the valley's south (Riverton), on the valley
+    // side west of I-15 (not the mountains). Far enough south that they are passed in the middle
+    // of "Bus Depot", not at its very end, where they were still on screen in "The Firefly Lab"
+    // (the game's depot is fictional).
+    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.9391, 40.5219], basis: 'Riverton, Utah, in the south of the Salt Lake valley, by the bus depot (fictional)', scale: 2 }, // twice the usual size
   ],
-  // The walk ends right at the hospital, which stands beside the route's end.
-  11: [{ name: 'The Hospital', prop: 'hospital', coord: [-111.857112, 40.686071], basis: "St. Mark's Hospital (the basis of St. Mary's)", close: true, scale: 1.4 }],
+  // The walk ends at the hospital: it stands straight ahead of them at the end of the route,
+  // facing them, so they walk right up to its front, as if entering (`arrive`).
+  11: [{ name: 'The Hospital', prop: 'hospital', coord: [-111.857112, 40.686071], basis: "St. Mark's Hospital (the basis of St. Mary's)", arrive: true, scale: 1.4 }],
   // Home: the town stands right beside the end of the journey (`close`).
   12: [{ name: 'Jackson', prop: 'town', coord: [-110.762, 43.4799], basis: 'Jackson, Wyoming', close: true }],
 };
@@ -108,6 +118,8 @@ export const PROP_RADIUS: Readonly<Record<PropKind, number>> = {
   cargo: 2,
   wall: 2.3,
   trees: 1.8,
+  hunt: 1.9,
+  burningHouse: 1.6,
   towers: 1.9,
   museum: 2.1,
   capitol: 2.3,
@@ -116,7 +128,7 @@ export const PROP_RADIUS: Readonly<Record<PropKind, number>> = {
   school: 2.3,
   hotel: 1.6,
   bridge: 2.4,
-  sewer: 1.5,
+  sewer: 3, // the outlet plus, a good way off to its right, the beached boat
   suburb: 2.3,
   dam: 2.4,
   ranch: 2.3,

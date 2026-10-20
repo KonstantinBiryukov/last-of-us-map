@@ -29,7 +29,7 @@ import { part, type PaletteKey } from '../materials';
 
 export interface CharacterLook {
   /** Also used as a key for caching each character's geometry sizes. */
-  name: 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david' | 'maria';
+  name: 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | 'tommy' | 'david' | 'maria' | 'marlene';
   /** Overall size multiplier (Joel = 1). */
   scale: number;
   /** Shoulder width multiplier (Joel is broader). */
@@ -81,6 +81,8 @@ export interface Character {
   shinL: THREE.Group;
   shinR: THREE.Group;
   ponytail: THREE.Group | null;
+  /** Ellie's bow, held in her left hand (hidden unless a part says she carries it); null for others. */
+  bow: THREE.Group | null;
   /** Height of the hip joint above the feet when standing. */
   hipHeight: number;
 }
@@ -174,7 +176,33 @@ export function createCharacter(look: CharacterLook): Character {
   shinL.add(box(`${k}-boot`, 0.13 * s, 0.1 * s, 0.24 * s, 'boots', 0, -LEG * s + 0.02 * s, -0.04 * s));
   shinR.add(box(`${k}-boot`, 0.13 * s, 0.1 * s, 0.24 * s, 'boots', 0, -LEG * s + 0.02 * s, -0.04 * s));
 
-  return { root, hips, torso, head, armL, armR, forearmL, forearmR, thighL, thighR, shinL, shinR, ponytail, hipHeight };
+  // ── Ellie's bow (Lakeside Resort: she hunts alone) ──
+  // Held at its grip in her left hand, hanging down beside her like a bow carried while
+  // walking. Built in the hand's frame: the grip at the origin, the two limbs reaching up and
+  // down and curving back (+Z), and the string stretched straight between their tips.
+  // Hidden by default; JourneyLayer shows it for parts with `bow` (data/chapters.ts).
+  let bow: THREE.Group | null = null;
+  if (look.name === 'ellie') {
+    bow = joint(forearmL, 0, -ARM * 0.95 * s, 0); // at the hand (the end of the forearm)
+    bow.rotation.z = 0.2; // tilted out from her side, so her body never hides it
+    // Larger and thicker than a real bow, in light wood: at the map's scale a true-to-life
+    // bow is a hairline that disappears against the snow.
+    const LIMB = 0.62 * s; // each limb's length: the whole bow about 80 % of her height
+    const CURVE = 0.3; // how far each limb bends back from upright (radians)
+    for (const up of [1, -1]) {
+      // A limb: its inner end at the grip, its tip LIMB further up (or down) and bent back.
+      const limbMesh = box(`${k}-bowLimb`, 0.07 * s, LIMB, 0.08 * s, 'bowWood');
+      limbMesh.position.set(0, (up * LIMB * Math.cos(CURVE)) / 2, (LIMB * Math.sin(CURVE)) / 2);
+      limbMesh.rotation.x = up * CURVE; // the tip leans back (towards +Z) for both limbs
+      bow.add(limbMesh);
+    }
+    bow.add(box(`${k}-bowGrip`, 0.1 * s, 0.16 * s, 0.1 * s, 'strap')); // the leather-wrapped grip
+    // The string: a thin line from tip to tip, behind the grip.
+    bow.add(box(`${k}-bowString`, 0.02 * s, LIMB * Math.cos(CURVE) * 2, 0.02 * s, 'offWhite', 0, 0, LIMB * Math.sin(CURVE)));
+    bow.visible = false;
+  }
+
+  return { root, hips, torso, head, armL, armR, forearmL, forearmR, thighL, thighR, shinL, shinR, ponytail, bow, hipHeight };
 }
 
 /** Tess: adult woman, a little shorter than Joel, hair tied back, tan jacket. */
@@ -253,6 +281,19 @@ export const MARIA: CharacterLook = {
   hair: 'mariaHair',
   beard: false,
   ponytail: true,
+};
+
+/** Marlene: the Fireflies' leader — not travelling: she waits at the hospital door (props.ts). Short dark hair, olive field jacket. */
+export const MARLENE: CharacterLook = {
+  name: 'marlene',
+  scale: 0.92,
+  build: 0.95,
+  skin: 'skinDark',
+  shirt: 'marleneJacket',
+  pants: 'marlenePants',
+  hair: 'darkHair',
+  beard: false,
+  ponytail: false,
 };
 
 /** David: stocky, grey-bearded, in a sheepskin-brown coat. */

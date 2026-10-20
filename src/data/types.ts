@@ -116,7 +116,7 @@ export interface LegMeta {
    *   at 'end'   – continue this leg with the street route after its last point (leg 13:
    *                on from downtown Salt Lake City to the Fireflies' hospital).
    */
-  streets?: { route: StreetRoute; at: 'start' | 'end' };
+  streets?: { route: StreetRoute; at: 'start' | 'end'; simplify?: number };
   /**
    * Optional correction: end this leg early, at its point closest to this place (leg 5: Bill's
    * truck stops near Monroeville, east of Pittsburgh, where they leave it and walk into the
@@ -151,11 +151,16 @@ export type Traveller = 'joel' | 'ellie' | 'tess' | 'bill' | 'henry' | 'sam' | '
  *   mode    – overrides the leg's travel mode for this slice (e.g. Joel on foot)
  *   wounded – Joel lies wounded across the horse's back while Ellie rides
  *             (the escape after the university, in the game)
+ *   bow     – Ellie carries her bow in her left hand (hunting alone in Lakeside Resort)
  *   timeShare – a fixed fraction of the chapter's time for this slice (e.g. 0.2 =
  *             the last 20 % of the Epilogue on foot), instead of the usual share
  *             by distance and speed
  *   note    – overrides the leg's note shown in the story panel
  *   camera  – how the follow camera frames this slice (see PartCamera)
+ *   hidden  – play this slice like a JUMP (travellers fade out, a comet crosses, the camera
+ *             pulls back) instead of walking it: for a long stretch that would otherwise
+ *             have to be rushed through (the walk from Boston to Lincoln at the end of The
+ *             Outskirts), so the visible walking keeps the chapter's pace
  */
 export interface LegPart {
   leg: number;
@@ -164,9 +169,11 @@ export interface LegPart {
   party?: readonly Traveller[];
   mode?: TravelMode;
   wounded?: boolean;
+  bow?: boolean;
   timeShare?: number;
   note?: string;
   camera?: PartCamera;
+  hidden?: boolean;
 }
 
 /**
@@ -251,6 +258,8 @@ export type PropKind =
   | 'cargo' // stacked shipping containers at the docks
   | 'wall' // a stretch of concrete wall with a breach
   | 'trees' // a small wood
+  | 'hunt' // a snowy wood with a deer and a rabbit (Silver Lake)
+  | 'burningHouse' // a house on fire (Buda, Texas, outbreak night)
   | 'towers' // a cluster of high-rise towers (downtown)
   | 'museum' // a columned museum front
   | 'capitol' // a domed capitol building
@@ -299,11 +308,24 @@ export interface KeyPoint {
   /** Size factor on top of the usual size (e.g. 1.4 = 40 % larger, 0.5 = half size). */
   scale?: number;
   /**
+   * True for the place the walk ENDS at (the Fireflies' hospital): the prop stands just beyond
+   * the end of the route, straight ahead, facing the arriving travellers — they walk right up
+   * to its front, as if entering.
+   */
+  arrive?: boolean;
+  /**
    * When in the chapter the point counts as reached (fraction 0‥1 of the chapter's time), for a
    * landmark that stands away from the route (the dam north of Jackson): otherwise it is the
    * moment the travellers pass closest to `coord`.
    */
   moment?: number;
+  /**
+   * True for a prop whose figures should look AT THE CAMERA rather than at the route (The
+   * Hunt: the deer and the rabbit). The north-up follow camera looks north from the south, so
+   * the prop is simply turned to face south. Only its turn changes — where it stands is
+   * worked out as usual.
+   */
+  faceCamera?: boolean;
 }
 
 /** One song of the soundtrack. */

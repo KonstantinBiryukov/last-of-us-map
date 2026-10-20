@@ -19,6 +19,11 @@
  * their coordinate, turned along the given heading, rules 1 and 3 aside. Placed
  * first with the close places; everything else avoids it.
  *
+ * ARRIVAL BUILDINGS (`arrive`: the hospital): where the walk ends. The prop stands straight
+ * ahead of the route's end (in the direction they arrive from), facing them, its front door a
+ * step beyond where they stop — so they walk across its forecourt right up to the door, as if
+ * entering. Placed first; others avoid it.
+ *
  * CLOSE PLACES (`close`: Joel's house where the drive starts, the State House where the
  * Boston walk ends, the Fireflies' hospital): the travellers come right up to them, and rule 1
  * shrinks to "no route inside the footprint" — they brush right past. Best of all, the prop
@@ -94,6 +99,14 @@ const TRAVELLER_CLEARANCE = 3;
 const CLOSE_CLEARANCE = 1;
 /** Half the deck length (model metres) of props the travellers cross (see props.ts: the bridge deck is 4.6 long). */
 const DECK_HALF_LENGTH = { bridge: 2.3 } as const;
+/**
+ * Arrival buildings: how far back (m) the arrival direction is measured, and where the walk
+ * stops, in model metres from the building's centre: 0.9 = just outside the hospital's front
+ * wall (its front is 0.7 in front of the centre, see props.ts), on its forecourt — right at
+ * the door, as if they are about to walk in.
+ */
+const ARRIVE_LOOKBACK_M = 1500;
+const ARRIVE_STOP_MODEL = 0.9;
 /** How deep (in landmark radii) the clear view corridor in front of an exact landmark is. */
 const VIEW_CORRIDOR = 5;
 /** Extra space kept between two props (model metres). */
@@ -439,6 +452,28 @@ export function placeKeyPoints(
     metresPerModel: size,
     radiusMetres: PROP_RADIUS[c.keyPoint.prop] * size,
   });
+
+  // Arrival buildings (the hospital): straight ahead of the route's end, facing the travellers.
+  for (const c of candidates) {
+    if (!c.keyPoint.arrive) continue;
+    const size = baseOf.get(c)!;
+    // The direction they arrive from: the last ~ARRIVE_LOOKBACK_M metres of their route.
+    const end: [number, number] = [0, 0];
+    route.journey.pointAt(c.ideal, end);
+    route.journey.pointAt(Math.max(0, c.ideal - ARRIVE_LOOKBACK_M), point);
+    const kx = METRES_PER_DEGREE * Math.cos(end[1] * DEG);
+    const east = (end[0] - point[0]) * kx;
+    const north = (end[1] - point[1]) * METRES_PER_DEGREE;
+    const length = Math.hypot(east, north) || 1;
+    // Centre: ARRIVE_STOP_MODEL beyond the end, so its front door is a step ahead of where they stop.
+    const out = ARRIVE_STOP_MODEL * size;
+    const lng = end[0] + ((east / length) * out) / kx;
+    const lat = end[1] + ((north / length) * out) / METRES_PER_DEGREE;
+    const arrivalBearing = (Math.atan2(east, north) * 180) / Math.PI;
+    // Facing back towards them: the prop's front (−Z) points opposite to their direction.
+    placed.push({ ...make(c, c.ideal, c.span, lng, lat, size, 1, arrivalBearing), heading: arrivalBearing + 180 });
+    closeFactor.set(keyOf(c), 1);
+  }
 
   // Exact landmarks (a bridge): exactly in place, along their real axis, at their group's size.
   for (const c of candidates) {

@@ -128,12 +128,14 @@ export const StoryPanel = memo(function StoryPanel() {
               <strong>Time passes</strong> · {leg.note}
             </span>
           </>
-        ) : leg.kind === 'jump' ? (
+        ) : leg.kind === 'jump' || span?.kind === 'jump' ? (
           <>
             <JumpIcon size={18} />
             <span>
-              <strong>Jump</strong> · {leg.note}
-              <span className={styles.travelMeta}>shown as an arc — the real path is unknown</span>
+              <strong>Jump</strong> · {span?.note ?? leg.note}
+              <span className={styles.travelMeta}>
+                {leg.kind === 'jump' ? 'shown as an arc — the real path is unknown' : 'a long walk, skipped ahead'}
+              </span>
             </span>
           </>
         ) : (

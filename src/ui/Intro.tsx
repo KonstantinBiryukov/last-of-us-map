@@ -15,7 +15,7 @@
  * instantly. "Begin the journey" is a real click, which is what browsers
  * require before allowing sound — so the music can start right away.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { assetUrl, optimizedImage } from '../config/assets';
 import { UI_CLICK_SOUND } from '../data/soundtrack';
 import styles from './Intro.module.css';
@@ -43,6 +43,15 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
 
   /** True once the browser allows this page to play sound (see the effect below). */
   const unlockedRef = useRef(false);
+  /**
+   * The same, for the screen: while false, a small "Sound on" button is shown. Browsers give a
+   * page sound only after a click/tap/key press, and hovering is not one — so on a first visit
+   * the menu's hover sound cannot play until the visitor clicks something. This button is that
+   * click, offered openly (any other first click unlocks sound too).
+   */
+  const [soundOn, setSoundOn] = useState(false);
+  /** Unlocks sound (set up in the effect below; the "Sound on" button calls it). */
+  const unlockRef = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     const audio = new Audio(assetUrl(UI_CLICK_SOUND));
@@ -64,11 +73,13 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
           audio.currentTime = 0;
           audio.muted = false;
           unlockedRef.current = true;
+          setSoundOn(true);
         })
         .catch(() => {
           audio.muted = false; // still blocked: try again on the next interaction
         });
     };
+    unlockRef.current = unlock;
     const events = ['pointerdown', 'keydown', 'touchstart'] as const;
     for (const type of events) document.addEventListener(type, unlock, { capture: true });
     return () => {
@@ -91,8 +102,22 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
     // successful play also means sound is allowed from now on.
     audio
       .play()
-      .then(() => (unlockedRef.current = true))
+      .then(() => {
+        unlockedRef.current = true;
+        setSoundOn(true);
+      })
       .catch(() => undefined);
+  };
+
+  /** The "Sound on" button: unlocks sound and plays the click once, so the visitor hears it worked. */
+  const turnSoundOn = () => {
+    unlockRef.current();
+    const audio = clickRef.current;
+    if (!audio) return;
+    window.setTimeout(() => {
+      audio.currentTime = 0;
+      audio.play().catch(() => undefined);
+    }, 120); // just after the silent unlock above has finished
   };
 
   return (
@@ -140,6 +165,12 @@ export function Intro({ ready, inProgress, onBegin, onStartOver, onExplore, onAb
         <p className={styles.warning}>
           <strong>Warning:</strong> The journey contains major spoilers for the entire game. Best experienced with sound on.
         </p>
+        {/* Shown until sound is allowed (see `soundOn`); disappears once it is. */}
+        {!soundOn && (
+          <button type="button" className={styles.soundOn} onClick={turnSoundOn} aria-label="Turn sound on">
+            <span aria-hidden="true">🔊</span> Sound on
+          </button>
+        )}
       </div>
     </div>
   );

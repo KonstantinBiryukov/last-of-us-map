@@ -25,6 +25,7 @@ import type { Map as MapboxMap } from 'mapbox-gl';
 import { mercatorX, mercatorY, meterInMercatorUnits } from '../geo/mercator';
 import type { KeyPointPlacement } from '../playback/keyPoints';
 import { createProp } from './models/props';
+import { emittersOf, type ParticleEmitter } from './fire';
 
 /** Props whose centre projects further than this many screen-widths off screen are skipped. */
 const CULL_MARGIN = 1;
@@ -46,8 +47,10 @@ interface PlacedProp {
   metresPerModel: number;
   /** Mercator units per metre at its latitude. */
   unitsPerMeter: number;
-  /** Five points under its footprint where the terrain height is sampled. */
+  /** Points under its footprint where the terrain height is sampled. */
   samples: [number, number][];
+  /** Its particle emitters (fire, smoke), if any — animated every frame while on screen. */
+  emitters: ParticleEmitter[];
 }
 
 /** Inputs for one frame (the layer computes these anyway for the travellers). */
@@ -81,10 +84,13 @@ export class KeyPointProps {
       }
       // Turn the prop so its front (−Z) looks at the route: the route's heading turn (as for
       // the travellers) plus a quarter turn towards the road from its side.
+      // (`faceCamera`: half a turn instead, so the front looks south — at the north-up camera.)
       root.rotation.y =
         placement.heading !== undefined
           ? -placement.heading * DEG // an exact landmark: along its real axis (its length is the model's Z)
-          : -placement.bearing * DEG + (placement.side * Math.PI) / 2;
+          : placement.faceCamera
+            ? Math.PI
+            : -placement.bearing * DEG + (placement.side * Math.PI) / 2;
       this.group.add(root);
       this.props.push({
         object: root,
@@ -95,6 +101,7 @@ export class KeyPointProps {
         metresPerModel: placement.metresPerModel,
         unitsPerMeter: meterInMercatorUnits(lat),
         samples,
+        emitters: emittersOf(root),
       });
     }
   }
@@ -132,6 +139,17 @@ export class KeyPointProps {
         (prop.my - frame.my) * toLocal,
       );
       prop.object.scale.setScalar(prop.metresPerModel * ratio);
+      if (prop.emitters.length > 0) {
+        // Particles are sized in model metres: tell them how many screen pixels one model metre
+        // of this prop covers right now (project the centre and a point one model metre east).
+        const east = prop.metresPerModel / (METRES_PER_DEGREE * Math.cos(prop.lat * DEG));
+        const a = map.project([prop.lng, prop.lat]);
+        const b = map.project([prop.lng + east, prop.lat]);
+        const pxPerUnit = Math.hypot(b.x - a.x, b.y - a.y);
+        const time = performance.now() / 1000;
+        const pixelRatio = window.devicePixelRatio || 1;
+        for (const emitter of prop.emitters) emitter.update(time, pxPerUnit, pixelRatio);
+      }
     }
   }
 }

@@ -63,11 +63,11 @@ const PITCH_SPEED = 1.5;
 const BEARING_SPEED = 1.1;
 /**
  * How far (zoom levels) the user may zoom out (−) or in (+) from the camera's own choice.
- * Out: only one level, so the travellers never become specks. In: 3.5 levels, so you can
- * get close to the street where the satellite imagery is sharpest.
+ * Out: only one level, so the travellers never become specks. In: just 1 level — enough to get
+ * a little closer, but not so close that the walking models fill the screen.
  */
 const MIN_ZOOM_OFFSET = -1;
-const MAX_ZOOM_OFFSET = 3.5;
+const MAX_ZOOM_OFFSET = 1;
 /**
  * The box "Explore the map" is fenced into: North America from Alaska's Aleutians to
  * Newfoundland, and from Panama up into the Canadian Arctic ([west, south], [east, north]).
@@ -468,9 +468,10 @@ export class CameraDirector {
   private storyTarget(withUserZoom: boolean): { zoom: number; look: MutableLngLat; jumping: boolean; bearing: number } {
     const frame = this.engine.frame;
     const journey = this.engine.route.journey;
-    const leg = this.engine.route.legs[frame.legIndex];
     journey.pointAt(frame.distance, this.target);
-    const jumping = leg !== undefined && isJumpKind(leg.kind);
+    // A jump: a jump leg, or a `hidden` part of a walked leg (the span's kind says both).
+    const currentSpan = this.engine.timeline.chapters[frame.chapterIndex]?.legSpans[frame.spanIndex];
+    const jumping = currentSpan !== undefined && isJumpKind(currentSpan.kind);
     let zoom = this.spanZoom.get(`${frame.chapterIndex}:${frame.spanIndex}`) ?? 9;
     if (jumping) zoom = this.zoomForJump(frame.legIndex);
     if (withUserZoom) zoom = clamp(zoom + this.zoomOffset, 1.5, 18.5);

@@ -44,6 +44,11 @@ export const PALETTE = {
   tommyJacket: 0x6b4a2e,
   tommyPants: 0x38383a,
   tommyHair: 0x4a3626,
+  // Ellie's bow: a light, honey-coloured wood that stands out against snow and dark forest.
+  bowWood: 0xb08453,
+  // Marlene: the Fireflies' leader — an olive field jacket, dark khaki trousers.
+  marleneJacket: 0x5b5a3c,
+  marlenePants: 0x3b382c,
   // Maria: Tommy's wife — dark hair tied back, a muted teal jacket, dark trousers.
   mariaJacket: 0x4d6a64,
   mariaPants: 0x2f3338,
@@ -101,6 +106,22 @@ export const PALETTE = {
   palletWoodLight: 0xb59c74,
   palletWoodDark: 0x5e4a33,
   waterDark: 0x2c4350,
+  // Silver Lake's animals.
+  deerBrown: 0x8b6a45,
+  deerBelly: 0xc9b08a,
+  antler: 0xd8ccb0,
+  rabbitGrey: 0x9a9088,
+  // The rotten boat by the sewer: soaked, blackened planks and slimy weed.
+  rottenWood: 0x3f3324,
+  // The beached boat in the Suburbs: faded marine blue, on a sandy bank.
+  boatBlue: 0x3e5fa8,
+  sand: 0xb9a97f,
+  seaweed: 0x3e5a2a,
+  // The burning house in Buda: charred walls and glowing flames (emissive, see material()).
+  charred: 0x2b2622,
+  fireOrange: 0xff6a1a,
+  fireYellow: 0xffc23d,
+  smoke: 0x3d3833,
 } as const;
 
 export type PaletteKey = keyof typeof PALETTE;
@@ -112,9 +133,10 @@ export function material(key: PaletteKey): THREE.MeshLambertMaterial {
   let m = cache.get(key);
   if (!m) {
     m = new THREE.MeshLambertMaterial({ color: PALETTE[key], flatShading: true });
-    if (key === 'headlight') {
-      m.emissive = new THREE.Color(PALETTE.headlight);
-      m.emissiveIntensity = 1.2;
+    if (key === 'headlight' || key === 'fireOrange' || key === 'fireYellow') {
+      // Light sources glow by themselves (emissive): headlights and the flames in Buda.
+      m.emissive = new THREE.Color(PALETTE[key]);
+      m.emissiveIntensity = key === 'headlight' ? 1.2 : 1.6;
     }
     cache.set(key, m);
   }

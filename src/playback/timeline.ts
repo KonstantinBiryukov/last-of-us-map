@@ -71,6 +71,8 @@ export interface LegSpan {
   party: readonly Traveller[];
   /** Joel lies wounded across the horse's back while Ellie rides. */
   wounded: boolean;
+  /** Ellie carries her bow (data/types.ts LegPart). */
+  bow: boolean;
   /** How they travel this slice (the part's override, else the leg's mode). */
   mode: TravelMode;
   /** Text for the story panel (the part's override, else the leg's note). */
@@ -176,12 +178,14 @@ export function buildTimeline(
       if (!leg) throw new Error(`Chapter ${chapter.number} references unknown leg ${part.leg}`);
       return {
         legIndex: part.leg,
-        kind: leg.kind,
+        // A `hidden` part is played like a jump (fixed jump time, comet, camera pulled back).
+        kind: part.hidden ? ('jump' as LegKind) : leg.kind,
         from: part.from ?? 0,
         to: part.to ?? 1,
         timeShare: part.timeShare,
         party: part.party ?? DEFAULT_PARTY,
         wounded: part.wounded ?? false,
+        bow: part.bow ?? false,
         mode: part.mode ?? leg.mode,
         note: part.note ?? leg.note,
         camera: part.camera ?? NO_CAMERA,
@@ -222,6 +226,7 @@ export function buildTimeline(
         to: p.to,
         party: p.party,
         wounded: p.wounded,
+        bow: p.bow,
         mode: p.mode,
         note: p.note,
         camera: p.camera,

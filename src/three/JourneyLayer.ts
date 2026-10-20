@@ -341,12 +341,12 @@ export class JourneyLayer implements CustomLayerInterface {
     this.drawnPointAt(distance, this.pos, stretchStart, stretchEnd);
     const lng = this.pos[0];
     const lat = this.pos[1];
-    const legIndex = Math.max(0, frame.legIndex);
-    const leg = route.legs[legIndex]!;
-    const jumping = isJumpKind(leg.kind);
     // The current part of the chapter decides HOW they travel and WHO travels (in Lakeside
-    // Resort Ellie and Joel are separated), so read both from the timeline span.
+    // Resort Ellie and Joel are separated), so read both from the timeline span. It also says
+    // whether this is a jump: a jump leg, or a `hidden` part of a walked leg.
     const span = engine.timeline.chapters[frame.chapterIndex]!.legSpans[frame.spanIndex]!;
+    const jumping = isJumpKind(span.kind);
+    const legIndex = Math.max(0, frame.legIndex);
     const mode = span.mode;
     const party = span.party;
 
@@ -398,6 +398,9 @@ export class JourneyLayer implements CustomLayerInterface {
     if (crossing) heading += (((crossing.bearing - heading + 540) % 360) - 180) * crossing.weight;
     this.subject.rotation.y = -heading * DEG;
     this.poseRigs(mode, party, span.wounded, frame.travelling, storyTime);
+    // Ellie's bow: in her hand only while she hunts alone (parts with `bow`), and only on foot.
+    const walkingBow = this.rigs.walk.people.ellie.bow;
+    if (walkingBow) walkingBow.visible = span.bow && mode === 'walk';
     // The chapters' key-point props: fixed size and place on the map (keyPoints.ts); only
     // their position relative to the travellers (the camera's centre) changes.
     this.keyPoints.update(map, { mx: mercatorX(lng), my: mercatorY(lat), elevation, unitsPerMeter });

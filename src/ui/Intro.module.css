@@ -170,6 +170,27 @@
   font-size: 13px;
   color: var(--color-text-muted);
 }
+/* "Sound on": a quiet pill under the warning; it disappears once the browser allows sound. */
+.soundOn {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 999px;
+  background: rgba(13, 12, 10, 0.4);
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.25s, border-color 0.25s;
+}
+.soundOn:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
 .warning strong {
   color: #e07b5a;
 }

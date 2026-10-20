@@ -22,15 +22,15 @@
  *
  * WHERE EACH CHAPTER TRAVELS (matched to the game and to the chapter's images)
  * Every chapter only moves through the place its images show, and the travellers
- * are always moving. Fractions of leg 2 (Boston → Lincoln, 35.1 km) come from the
- * generated Boston street route (public/server/info/boston-streets.geojson, which
- * records each stop's distance) and from measuring the line (IMPLEMENTATION_GUIDE.md,
- * Appendix C):
- *     0      Boston QZ (North End)            0.0154  Robert's place at the docks
- *     0.0401 the Fireflies (Ellie joins)      0.0526  beyond the wall
- *     0.0747 Downtown                         0.0879  the Museum
- *     0.1081 the Capitol (Tess stays behind)  0.8651  within 3 km of Lincoln
- *     0.9038 within 2 km of Lincoln (with Bill from here)
+ * are always moving. Fractions of leg 2 (Boston → Lincoln, 34.8 km) come from the
+ * generated Boston street route (public/server/info/boston-streets.geojson, straightened
+ * on load — zig-zags under 40 m dropped, see data/legs.ts) and from measuring the line
+ * (IMPLEMENTATION_GUIDE.md, Appendix C):
+ *     0      Boston QZ (North End)            0.0152  Robert's place at the docks
+ *     0.0388 the Fireflies (Ellie joins)      0.0472  beyond the wall
+ *     0.0694 Downtown                         0.0818  the Museum
+ *     0.1004 the Capitol (Tess stays behind)  0.8639  within 3 km of Lincoln
+ *     0.9029 within 2 km of Lincoln (with Bill from here)
  * Bill's truck (leg 3) starts at the end of "Bill's Town" and drives on in "Pittsburgh";
  * "Bus Depot" starts with the jump to Utah and stays near Salt Lake City.
  *
@@ -40,6 +40,9 @@
  * would be misleading (a long walk compressed into the end of a chapter).
  */
 import type { Chapter, Slide, SlideKind } from './types';
+
+/** How much larger Ellie is drawn when she travels alone: 1 / her height (0.82 of Joel's, three/models/character.ts). */
+const ELLIE_ALONE_SCALE = 1 / 0.82;
 
 /** Folder holding one sub-folder of images per chapter. */
 const BASE = 'server/assets/story_telling_images/chapters';
@@ -111,8 +114,8 @@ export const CHAPTERS: readonly Chapter[] = [
     // Fireflies, where Marlene hands Ellie over; the three of them slip beyond the wall.
     legs: [
       { leg: 1 },
-      { leg: 2, from: 0, to: 0.0401, party: ['joel', 'tess'], note: 'Joel and Tess cross the Quarantine Zone to Robert and the Fireflies' },
-      { leg: 2, from: 0.0401, to: 0.0526, party: ['joel', 'tess', 'ellie'], note: 'Marlene entrusts Ellie to them — beyond the wall' },
+      { leg: 2, from: 0, to: 0.0388, party: ['joel', 'tess'], note: 'Joel and Tess cross the Quarantine Zone to Robert and the Fireflies' },
+      { leg: 2, from: 0.0388, to: 0.0472, party: ['joel', 'tess', 'ellie'], note: 'Marlene entrusts Ellie to them — beyond the wall' },
     ],
     ambience: ['spores', 'dust'],
   },
@@ -140,8 +143,15 @@ export const CHAPTERS: readonly Chapter[] = [
     // (about 70 % of the chapter; Tess dies near its end). Then Joel and Ellie leave Boston and
     // walk west, arriving close to Lincoln — that long walk is compressed into the last 30 %.
     legs: [
-      { leg: 2, from: 0.0526, to: 0.1081, party: ['joel', 'tess', 'ellie'], note: 'Downtown, the Museum, the Capitol' },
-      { leg: 2, from: 0.1081, to: 0.8651, timeShare: 0.3, note: 'Without Tess — out of Boston, towards Lincoln' },
+      // The trio's Boston walk takes 56 % of the chapter (1.85 km in ~34 s — a brisk walk,
+      // ~25 % quicker than the 70 % it used to take). After the State House, Joel and Ellie
+      // walk on at the SAME pace for ~1.2 km (0.1004 → 0.135: the time left after the jump;
+      // leg 2 is 34.8 km, so 0.0346 of it ≈ 1.2 km ≈ the ~22 s that remain × the same speed),
+      // then the long walk to Lincoln (~25 km) is skipped like a jump (`hidden`) — walking it
+      // in what is left of the chapter would have meant running.
+      { leg: 2, from: 0.0472, to: 0.1004, party: ['joel', 'tess', 'ellie'], timeShare: 0.56, note: 'Downtown, the Museum, the Capitol' },
+      { leg: 2, from: 0.1004, to: 0.135, note: 'Without Tess — out of Boston' },
+      { leg: 2, from: 0.135, to: 0.8639, hidden: true, note: 'The long walk to Lincoln' },
     ],
     ambience: ['spores', 'fireflies'],
   },
@@ -171,8 +181,8 @@ export const CHAPTERS: readonly Chapter[] = [
     // Starts right outside Lincoln. Into the town, then through it with Bill; at the end
     // Bill's truck runs again and they drive out of Lincoln (the last 20 % of the chapter).
     legs: [
-      { leg: 2, from: 0.8651, to: 0.9038, note: 'Arriving in Lincoln' },
-      { leg: 2, from: 0.9038, party: ['joel', 'bill', 'ellie'], note: 'Through Lincoln with Bill' },
+      { leg: 2, from: 0.8639, to: 0.9029, note: 'Arriving in Lincoln' },
+      { leg: 2, from: 0.9029, party: ['joel', 'bill', 'ellie'], note: 'Through Lincoln with Bill' },
       { leg: 3, from: 0, to: 0.1, timeShare: 0.2, note: "Bill's truck — leaving Lincoln" },
     ],
     ambience: ['fireflies', 'dust'],
@@ -334,8 +344,11 @@ export const CHAPTERS: readonly Chapter[] = [
     // levels closer than usual throughout (the walks are compressed, so it would pull far out).
     legs: [
       { leg: 10, from: 0, to: 0.806, mode: 'horse', wounded: true, timeShare: 0.5, note: 'Ellie rides on, wounded Joel lying across the horse', camera: { zoom: 0.8, heading: 'route', modelScale: 2 } }, // horse and riders drawn twice as large
-      { leg: 10, from: 0.806, party: ['ellie'], mode: 'walk', timeShare: 0.18, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8 } },
-      { leg: 11, from: 0, to: 0.21, party: ['ellie'], timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8 } },
+      // Ellie alone: her bow in hand (`bow`), and drawn 1.22× larger (`modelScale`) — her
+      // figure is built at 0.82 of Joel's height, so alone she looked small next to Joel on his
+      // own part that follows; 1 / 0.82 ≈ 1.22 makes her the same size on screen as he is.
+      { leg: 10, from: 0.806, party: ['ellie'], mode: 'walk', bow: true, timeShare: 0.18, note: 'Ellie alone, hunting while Joel recovers', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
+      { leg: 11, from: 0, to: 0.21, party: ['ellie'], bow: true, timeShare: 0.12, note: 'Ellie alone in the snow', camera: { zoom: 0.8, modelScale: ELLIE_ALONE_SCALE } },
       { leg: 11, from: 0.21, to: 0.737, party: ['joel'], timeShare: 0.1, note: 'Joel, barely recovered, searches for Ellie alone', camera: { zoom: 0.8 } },
       { leg: 11, from: 0.737, timeShare: 0.1, note: 'Together again', camera: { zoom: 0.8 } },
     ],
@@ -384,7 +397,15 @@ export const CHAPTERS: readonly Chapter[] = [
     ]),
     // The last ~17 km into downtown Salt Lake City, then ~13 km of streets south-east to
     // the Fireflies' hospital (St. Mark's — the game's St. Mary's).
-    legs: [{ leg: 13, from: 0.694 }],
+    // Leg 13 reaches downtown at 0.8665 (83.1 of its 95.9 km). From there the streets head
+    // south-east to the hospital, so on a north-up map they would walk DOWN the screen,
+    // towards the camera, and reach the hospital's back. For that last stretch the camera
+    // rides behind them (`heading: 'route'`): they walk UP the screen, straight at the
+    // hospital's front door, which faces the camera.
+    legs: [
+      { leg: 13, from: 0.694, to: 0.8665 },
+      { leg: 13, from: 0.8665, note: "Through the streets to St. Mary's Hospital", camera: { heading: 'route' } },
+    ],
     ambience: ['fireflies', 'pollen'],
   },
   {

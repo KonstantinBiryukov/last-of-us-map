@@ -400,7 +400,7 @@ to their speed and swoops out over jumps; *Overview* frames the whole journey;
 *Free* never moves on its own ("Explore the map"). During the journey the map **cannot be
 panned** (dragging it away let the travellers walk off-screen while the story played): wheel,
 pinch and the +/− buttons zoom around the centre and following continues at that zoom (kept
-as an offset from the camera's own choice: at most 1 level out, 3.5 levels in). Explore allows panning
+as an offset from the camera's own choice: at most 1 level out, 1 level in). Explore allows panning
 again, fenced to North America (`setMaxBounds`): it cannot be dragged or zoomed out past it.
 Any story navigation — next/previous chapter, clicking a location, releasing the
 timeline — switches back to Follow and flies there. Users can pan and zoom but **not rotate

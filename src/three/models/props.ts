@@ -19,7 +19,8 @@ import * as THREE from 'three';
 import type { PropKind } from '../../data/types';
 import { PROP_RADIUS } from '../../data/keyPoints';
 import { part, type PaletteKey } from '../materials';
-import { createCharacter, MARIA, poseIdle, TOMMY } from './character';
+import { createCharacter, MARIA, MARLENE, poseIdle, TOMMY } from './character';
+import { addEmitter } from '../fire';
 
 export interface Prop {
   root: THREE.Group;
@@ -293,16 +294,71 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     }
   },
   // A sewer outlet: a pipe mouth in a concrete wall over dark water.
+  // The sewer outlet (left: a concrete wall, the pipe's dark mouth, its water) and, a good way
+  // off to the right on a sandy bank, the beached boat from the game as a model of its own.
   sewer: (g) => {
-    pad(g, 3, 2.2);
-    box(g, 2.8, 1.6, 0.6, 'concreteDark', 0, 0, 0.4);
-    const pipe = part('prop-pipe', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 10).rotateX(Math.PI / 2), 'concrete', 0, 0.75, -0.1);
+    pad(g, 6.2, 2.6);
+    const X = -1.6; // the outlet's centre, well left of the middle — the boat has the right side
+    box(g, 2.8, 1.6, 0.6, 'concreteDark', X, 0, 0.4);
+    const pipe = part('prop-pipe', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 10).rotateX(Math.PI / 2), 'concrete', X, 0.75, -0.1);
     pipe.scale.set(1.1, 1.1, 0.6);
     g.add(pipe);
-    const mouth = part('prop-pipe', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 10).rotateX(Math.PI / 2), 'windowDark', 0, 0.75, -0.42);
+    const mouth = part('prop-pipe', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 10).rotateX(Math.PI / 2), 'windowDark', X, 0.75, -0.42);
     mouth.scale.set(0.85, 0.85, 0.05);
     g.add(mouth);
-    box(g, 1.6, 0.1, 0.9, 'water', 0, 0.04, -0.8); // sits clearly on the base (no flicker against it)
+    box(g, 2.8, 0.1, 1.5, 'water', X, 0.04, -0.95); // sits clearly on the base (no flicker against it)
+
+    // The beached boat, as in the game's Suburbs: a small blue fishing boat stranded on sand,
+    // listing to one side — a pointed bow, a rusty keel stripe and a pale trim line, a grimy
+    // wheelhouse with dark windows and a railing on its roof, a railing round the foredeck, an
+    // old tyre hung over the side as a fender, long green weed hanging down the hull, and a
+    // loose plank leaning against it. Built with its length along X (bow to the right), so its
+    // long blue side faces the front, like the screenshot. All sizes in model metres.
+    const boat = new THREE.Group();
+    boat.position.set(1.65, 0.08, -0.15); // ~1.1 m of sand between the water's edge (x 0) and its stern
+    boat.rotation.set(0, 0.12, 0.07); // turned a touch, and listing — it ran aground
+    box(g, 2.6, 0.08, 1.2, 'sand', 1.75, 0, -0.15); // the sand bank it lies on
+    // Hull: the main blue body, then the pointed bow (a box turned 45°: a diamond whose front
+    // corner is the stem), keel stripe at the bottom and a pale band under the deck edge.
+    box(boat, 1.5, 0.5, 0.7, 'boatBlue', -0.1, 0, 0);
+    const bowPiece = box(boat, 0.49, 0.5, 0.49, 'boatBlue', 0.65, 0, 0);
+    bowPiece.rotation.y = Math.PI / 4;
+    box(boat, 1.5, 0.08, 0.72, 'rust', -0.1, 0, 0); // keel stripe (rusty red)
+    box(boat, 1.5, 0.05, 0.72, 'offWhite', -0.1, 0.44, 0); // trim band
+    box(boat, 1.75, 0.04, 0.64, 'rottenWood', 0.02, 0.5, 0); // the deck
+    // Wheelhouse towards the stern: dirty pale walls, dark windows on all sides, a rusty roof.
+    box(boat, 0.62, 0.48, 0.52, 'concrete', -0.38, 0.54, 0);
+    for (const z of [-0.265, 0.265]) {
+      for (const x of [-0.52, -0.24]) box(boat, 0.18, 0.16, 0.02, 'windowDark', x, 0.78, z); // side windows
+    }
+    box(boat, 0.02, 0.16, 0.36, 'windowDark', -0.065, 0.78, 0); // front windows (towards the bow)
+    box(boat, 0.7, 0.05, 0.6, 'rust', -0.38, 1.02, 0); // roof
+    // Railings: thin metal posts with a top rail, round the wheelhouse roof and the foredeck.
+    const rail = (x0: number, x1: number, z: number, y: number, height: number) => {
+      box(boat, x1 - x0, 0.025, 0.025, 'metal', (x0 + x1) / 2, y + height, z); // top rail
+      for (let x = x0; x <= x1 + 1e-6; x += (x1 - x0) / 3) box(boat, 0.025, height, 0.025, 'metal', x, y, z); // posts
+    };
+    for (const z of [-0.27, 0.27]) {
+      rail(-0.68, -0.08, z, 1.07, 0.16); // on the roof
+      rail(0.05, 0.6, z * 0.9, 0.54, 0.2); // round the foredeck
+    }
+    // An old tyre hung over the side as a fender (on both long sides).
+    for (const z of [-0.37, 0.37]) {
+      const tyre = part('prop-boat-tyre', () => new THREE.TorusGeometry(0.11, 0.045, 6, 12), 'tyre', 0.15, 0.3, z);
+      boat.add(tyre); // a torus stands upright in the X–Y plane: flat against the hull side
+    }
+    // Weed hanging down the hull from the deck edge in long uneven strands (both sides).
+    const STRANDS: readonly (readonly [number, number, number])[] = [
+      [-0.7, 0.1, 0.26], [-0.45, 0.12, 0.18], [-0.1, 0.1, 0.32], [0.25, 0.14, 0.22], [0.48, 0.09, 0.28], [0.7, 0.07, 0.16],
+    ];
+    for (const side of [-1, 1]) {
+      for (const [x, w, h] of STRANDS) box(boat, w, h, 0.03, 'seaweed', x * (side < 0 ? 0.95 : 1), 0.5 - h, side * 0.37);
+    }
+    box(boat, 0.3, 0.04, 0.5, 'seaweed', -0.1, 1.05, 0.02); // and a clump on the wheelhouse roof
+    g.add(boat);
+    // A loose plank leaning against the boat's front side, its foot in the sand.
+    const plank = box(g, 1.0, 0.04, 0.12, 'rottenWood', 1.95, 0.06, -0.72);
+    plank.rotation.set(0, -0.15, 0.42);
   },
   // Two suburban houses with a picket fence.
   suburb: (g) => {
@@ -323,14 +379,11 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     box(g, 0.6, 1.0, 0.05, 'water', 0, 0.2, -0.55); // spillway
     box(g, 0.8, 0.6, 0.6, 'plaster', 1.6, 1.8, 0);
     // The pool below the spillway and the wooden pallet floating in it — the raft Ellie, who
-    // cannot swim, is pushed across on at the dam. Murky water (darker than the reservoir) with
-    // white foam where the spillway pours in. The pallet is a real shipping pallet: seven
+    // cannot swim, is pushed across on at the dam. Murky water (darker than the reservoir).
+    // The pallet is a real shipping pallet: seven
     // weathered, sun-bleached deck boards with gaps between them, on three thick runners; it
     // floats low (runners under the surface) and tilts a little, as if bobbing in the current.
     box(g, 2.8, 0.1, 0.95, 'waterDark', -0.55, 0.04, -1.1);
-    for (const [fx, fz, fw] of [[0, -0.7, 0.5], [0.25, -0.85, 0.25], [-0.3, -0.8, 0.3], [-1.6, -1.45, 0.35]] as const) {
-      box(g, fw, 0.02, fw * 0.45, 'offWhite', fx, 0.14, fz); // foam
-    }
     const raft = new THREE.Group();
     raft.position.set(-0.75, 0.12, -1.1);
     raft.rotation.set(0.06, 0.32, -0.05); // drifting: turned, and tipped a little
@@ -396,18 +449,86 @@ const BUILDERS: Record<PropKind, (g: THREE.Group) => void> = {
     tree(g, -1.8, 1.0, 2.1);
     tree(g, -0.4, 1.1, 1.7);
   },
-  // St. Mary's Hospital: a tall white block with a red cross.
+  // St. Mary's Hospital: a tall white block with a red cross, its entrance facing the arriving
+  // travellers, and Marlene — the Fireflies' leader — waiting at the door.
   hospital: (g) => {
     pad(g, 3.6, 3);
     box(g, 2.6, 3.4, 1.8, 'offWhite', 0, 0, 0.2);
     box(g, 1.2, 1.2, 1.0, 'offWhite', 1.6, 0, 0.3);
-    for (let y = 0.5; y < 3.2; y += 0.6) windows(g, 4, 2.2, y, -0.71);
+    // The entrance: a tall dark doorway in the middle of the front wall under a flat canopy,
+    // so the windows start one storey up (above the door).
+    box(g, 0.7, 1.1, 0.04, 'windowDark', 0, 0, -0.72);
+    box(g, 1.1, 0.08, 0.4, 'concrete', 0, 1.15, -0.88);
+    for (let y = 1.4; y < 3.2; y += 0.6) windows(g, 4, 2.2, y, -0.71);
+    // Marlene, standing just outside the door, a little to the side (the travellers' walk ends
+    // right in front of the door, see playback/keyPoints.ts), turned towards them. The same
+    // blocky figure as the travellers, at 0.7: the travellers are sized in screen pixels and the
+    // hospital in metres, and at the hospital's size 0.7 makes her as tall on screen as the
+    // walkers coming up to her (measured at the camera's usual zoom for the arrival).
+    const marlene = createCharacter(MARLENE);
+    poseIdle(marlene, 0);
+    marlene.root.position.set(0.6, 0, -0.95);
+    marlene.root.rotation.y = 0.35; // facing out of the door, turned a little towards the middle
+    marlene.root.scale.setScalar(0.7);
+    g.add(marlene.root);
     box(g, 0.8, 0.22, 0.06, 'crossRed', 0, 3.6, -0.5);
     box(g, 0.22, 0.8, 0.06, 'crossRed', 0, 3.31, -0.5);
   },
+  // The Hunt at Silver Lake: a snowy wood with a deer (Ellie hunts one in the game) and a rabbit.
+  hunt: (g) => {
+    pad(g, 3.6, 3);
+    tree(g, -1.1, 0.6, 2.3);
+    tree(g, 0.2, 0.95, 2.0);
+    tree(g, 1.2, 0.4, 1.7);
+    tree(g, 1.45, -0.95, 1.4, false); // a small one at the front corner, clear of the animals
+    // The deer: four thin legs, a body, a raised neck and head, a white tail, branching antlers.
+    const deer = new THREE.Group();
+    deer.position.set(0.3, 0, -0.4);
+    deer.rotation.y = 0.25; // head towards the front (the camera), turned only a touch so the antlers read
+    for (const [x, z] of [[-0.12, -0.32], [0.12, -0.32], [-0.12, 0.32], [0.12, 0.32]] as const) box(deer, 0.07, 0.55, 0.07, 'deerBrown', x, 0, z);
+    box(deer, 0.3, 0.3, 0.85, 'deerBrown', 0, 0.55, 0); // body
+    box(deer, 0.26, 0.08, 0.6, 'deerBelly', 0, 0.53, 0); // lighter belly
+    const neck = box(deer, 0.13, 0.4, 0.14, 'deerBrown', 0, 0.7, -0.42);
+    neck.rotation.x = -0.45; // neck up and forward
+    box(deer, 0.15, 0.15, 0.3, 'deerBrown', 0, 1.0, -0.62); // head
+    box(deer, 0.08, 0.08, 0.06, 'deerBelly', 0, 0.75, 0.45); // tail
+    for (const side of [-1, 1]) {
+      const beam = box(deer, 0.03, 0.28, 0.03, 'antler', side * 0.07, 1.12, -0.58);
+      beam.rotation.z = side * -0.35;
+      const tine = box(deer, 0.025, 0.15, 0.025, 'antler', side * 0.14, 1.27, -0.6);
+      tine.rotation.z = side * 0.4;
+    }
+    g.add(deer);
+    // The rabbit: small body, round head, two long ears, a white tail.
+    const rabbit = new THREE.Group();
+    rabbit.position.set(-1.0, 0, -0.8);
+    rabbit.rotation.y = -0.25; // facing the front (the camera) like the deer
+    rabbit.scale.setScalar(2); // larger than life, so it reads next to the deer
+    box(rabbit, 0.16, 0.14, 0.26, 'rabbitGrey', 0, 0, 0); // body
+    box(rabbit, 0.12, 0.12, 0.12, 'rabbitGrey', 0, 0.1, -0.15); // head
+    box(rabbit, 0.03, 0.14, 0.03, 'rabbitGrey', -0.03, 0.22, -0.14); // ears
+    box(rabbit, 0.03, 0.14, 0.03, 'rabbitGrey', 0.03, 0.22, -0.14);
+    box(rabbit, 0.06, 0.06, 0.05, 'offWhite', 0, 0.06, 0.14); // tail
+    g.add(rabbit);
+  },
+  // A house on fire in Buda, Texas, on the night of the outbreak: charred walls, the windows
+  // and door glowing (emissive), and real particle fire and smoke (three/fire.ts): flames
+  // pouring out of the roof and the windows, smoke billowing up and drifting away.
+  burningHouse: (g) => {
+    pad(g, 3, 2.6);
+    box(g, 2.0, 1.2, 1.6, 'charred', 0, 0, 0);
+    gableRoof(g, 2.1, 0.7, 1.7, 'charred', 0, 1.2, 0);
+    for (const x of [-0.5, 0.5]) box(g, 0.34, 0.3, 0.05, 'fireOrange', x, 0.55, -0.81); // burning windows
+    box(g, 0.36, 0.7, 0.05, 'fireOrange', 0, 0, -0.81); // the open door glowing
+    addEmitter(g, { kind: 'smoke', count: 40, origin: [0.1, 1.9, 0.1], spread: 0.9, height: 3.2, size: 0.9 });
+    addEmitter(g, { kind: 'fire', count: 90, origin: [0, 1.25, 0], spread: 1.6, height: 1.5, size: 0.42 }); // through the roof
+    for (const x of [-0.5, 0.5]) {
+      addEmitter(g, { kind: 'fire', count: 18, origin: [x, 0.6, -0.85], spread: 0.3, height: 0.7, size: 0.22 }); // out of the windows
+    }
+  },
   // The giraffe of Salt Lake City: blocky, patched, neck stretched forward and up.
   giraffe: (root) => {
-    pad(root, 2.2, 2.0);
+    // No ground pad: the giraffe stands right on the map (its hooves on the ground).
     // Built at full size, then scaled to 75 % so it stays clearly shorter than the hospital.
     const g = new THREE.Group();
     g.scale.setScalar(0.75);

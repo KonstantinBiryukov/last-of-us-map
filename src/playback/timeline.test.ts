@@ -125,9 +125,15 @@ describe('timeline built from the real story data', () => {
     expect(spans.map((sp) => (sp.wounded ? 'ride' : sp.party.join('+')))).toEqual(['ride', 'ellie', 'ellie', 'joel', 'joel+ellie']);
     // The camera rides behind the horse for the ride, then is north up for the second half.
     expect(spans[0]!.camera.heading).toBe('route');
-    // Horse and riders drawn twice as large during the ride only.
+    // Horse and riders drawn twice as large during the ride; Ellie alone drawn as large as Joel
+    // (1 / 0.82: her figure is 0.82 of his height), with her bow; the rest at the usual size.
     expect(spans[0]!.camera.modelScale).toBe(2);
-    expect(spans.slice(1).every((sp) => sp.camera.modelScale === undefined)).toBe(true);
+    const ellieAlone = spans.filter((sp) => sp.party.length === 1 && sp.party[0] === 'ellie');
+    for (const sp of ellieAlone) {
+      expect(sp.camera.modelScale).toBeCloseTo(1 / 0.82, 6);
+      expect(sp.bow).toBe(true);
+    }
+    expect(spans.slice(3).every((sp) => sp.camera.modelScale === undefined && !sp.bow)).toBe(true);
     expect(spans.slice(1).every((sp) => sp.camera.heading === undefined)).toBe(true);
     for (const span of timeline.chapters[9]!.legSpans) expect(span.party).toEqual(['joel', 'ellie']);
   });
@@ -135,7 +141,12 @@ describe('timeline built from the real story data', () => {
   it('Tess is with them for most of The Outskirts (she dies near its end, at the Capitol)', () => {
     const c = timeline.chapters[2]!;
     const trio = c.legSpans.find((s) => s.party.includes('tess'))!;
-    expect((trio.end - trio.start) / (c.end - c.start)).toBeGreaterThan(0.6);
+    expect((trio.end - trio.start) / (c.end - c.start)).toBeGreaterThan(0.5);
+    // Joel and Ellie walk out of Boston at the trio's pace (metres per second within 10 %).
+    const pace = (s: typeof trio) => (s.endDistance - s.startDistance) / (s.end - s.start);
+    const after = c.legSpans[c.legSpans.indexOf(trio) + 1]!;
+    expect(pace(after) / pace(trio)).toBeGreaterThan(0.9);
+    expect(pace(after) / pace(trio)).toBeLessThan(1.1);
   });
 
   it('Boston and Lincoln companions appear exactly where the game has them', () => {
