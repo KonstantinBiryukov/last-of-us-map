@@ -5,7 +5,7 @@
  * extended with copyright/trademark notices, a no-affiliation statement, the
  * licence attribution for the location texts (CC BY-SA, required by that licence).
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CloseIcon } from './icons';
 import styles from './About.module.css';
 
@@ -14,15 +14,42 @@ const WIKI_URL = 'https://thelastofus.fandom.com/wiki/The_Last_of_Us_Wiki';
 /** The licence of that wiki's text (Fandom wikis use CC BY-SA). */
 const CC_BY_SA_URL = 'https://creativecommons.org/licenses/by-sa/3.0/';
 /** The version shown at the bottom of this dialog: 2.0 = the rebuilt, modernised journey. */
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
+
+/**
+ * The release log shown in the small "Version history" popup under the version line.
+ * Newest first, so the release a visitor is looking at sits at the top. Add a row here
+ * (and bump APP_VERSION above) with every release; `date` is month/year as MM/YYYY.
+ */
+const VERSION_HISTORY: { version: string; date: string; changes: string }[] = [
+  { version: '2.1', date: '11/2026', changes: 'Pause-all button; SLC route updates.' },
+  {
+    version: '2.0',
+    date: '10/2026',
+    changes:
+      'Stylised low-poly models of key spots and characters: the corresponding transport on every stretch, companions joining and leaving along the way.',
+  },
+  { version: '1.0', date: '05/2020', changes: 'Core functionality.' },
+];
 
 export function About({ onClose }: { onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  /** Whether the small version-history popup is open. */
+  const [historyOpen, setHistoryOpen] = useState(false);
+  /**
+   * Mirror of `historyOpen` for the keydown listener below: that listener is attached once
+   * per `onClose`, so it reads the ref instead of a stale copy of the state.
+   */
+  const historyOpenRef = useRef(false);
+  historyOpenRef.current = historyOpen;
 
   useEffect(() => {
     closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key !== 'Escape') return;
+      // Escape peels one layer at a time: the history popup first, then the whole dialog.
+      if (historyOpenRef.current) setHistoryOpen(false);
+      else onClose();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -35,7 +62,12 @@ export function About({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="about-title"
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          // Clicks inside the dialog never reach the overlay (which would close it), but any
+          // click outside the history popup (and its toggle, which stops its own clicks) closes the popup.
+          event.stopPropagation();
+          setHistoryOpen(false);
+        }}
       >
         <button ref={closeRef} type="button" className={styles.close} onClick={onClose} aria-label="Close">
           <CloseIcon size={18} />
@@ -55,6 +87,7 @@ export function About({ onClose }: { onClose: () => void }) {
           <li>Pause at any time; drag the timeline to any moment; click a location on the map to jump to it.</li>
           <li>Drag or zoom the map to explore freely — press “Follow” to return to the travellers.</li>
           <li>The music has its own controls and keeps playing when you pause or jump in the journey.</li>
+          <li>“Pause all” at the right end of the player pauses the journey and the music together, and starts both again.</li>
         </ul>
 
         <h3>Keyboard</h3>
@@ -67,6 +100,8 @@ export function About({ onClose }: { onClose: () => void }) {
           <dd>Previous / next chapter</dd>
           <dt>M</dt>
           <dd>Play / pause music</dd>
+          <dt>P</dt>
+          <dd>Pause all / play all (journey and music)</dd>
           <dt>F · O</dt>
           <dd>Follow travellers · whole-journey overview</dd>
         </dl>
@@ -87,7 +122,7 @@ export function About({ onClose }: { onClose: () => void }) {
         <p className={styles.credits}>
           <em>The Last of Us</em> is a trademark of Sony Interactive Entertainment LLC. The game was developed by
           Naughty Dog. All images shown are from <em>The Last of Us</em> (2013) and <em>The Last of Us
-          Remastered</em> (2014); music from <em>The Last of Us</em> original soundtrack, composed by Gustavo
+            Remastered</em> (2014); music from <em>The Last of Us</em> original soundtrack, composed by Gustavo
           Santaolalla. All game images and soundtrack recordings are © their respective owners and are used here
           for non-commercial fan purposes only.
         </p>
@@ -110,6 +145,54 @@ export function About({ onClose }: { onClose: () => void }) {
         <p className={styles.author}>Made by Konstantin Biriukov.</p>
         {/* The release shown to visitors (bump it by hand with each big update). */}
         <p className={styles.stack}>Version {APP_VERSION}. Built with React, TypeScript, Mapbox GL JS and Three.js. </p>
+        {/*
+          Version history: a small link under the version line that opens a popup card with the
+          release log. The card opens upwards (it sits at the very bottom of the scrolling dialog,
+          so opening downwards would push it out of view); clicks inside it are kept from the
+          dialog's close-the-popup handler so the table can be read and selected.
+        */}
+        <div className={styles.historyWrap}>
+          <button
+            type="button"
+            className={styles.historyToggle}
+            aria-expanded={historyOpen}
+            aria-controls="version-history"
+            onClick={(event) => {
+              event.stopPropagation();
+              setHistoryOpen((open) => !open);
+            }}
+          >
+            Version history
+          </button>
+          {historyOpen && (
+            <div
+              id="version-history"
+              className={styles.history}
+              role="dialog"
+              aria-label="Version history"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <table className={styles.historyTable}>
+                <thead>
+                  <tr>
+                    <th scope="col">Version</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Changes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {VERSION_HISTORY.map((entry) => (
+                    <tr key={entry.version}>
+                      <td className={styles.historyVersion}>{entry.version}</td>
+                      <td className={styles.historyDate}>{entry.date}</td>
+                      <td>{entry.changes}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

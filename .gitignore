@@ -20,3 +20,7 @@ node_modules/.cache/gh-pages
 
 # Cross-browser test output (npm run test:browsers): screenshots, report, traces
 /e2e-results
+
+# Claude Code: local session settings and the project notes file, kept on this machine only
+.claude/
+CLAUDE.md

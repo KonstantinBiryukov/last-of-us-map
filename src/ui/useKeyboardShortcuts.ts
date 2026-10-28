@@ -5,6 +5,7 @@
  *   ← / →        previous / next image
  *   Shift + ← →  previous / next chapter
  *   M            play / pause music
+ *   P            pause all / play all (journey and music together)
  *   F / O        follow the travellers / overview
  *
  * Keys are ignored while the user types in a field or operates a focused
@@ -13,6 +14,7 @@
  */
 import { useEffect } from 'react';
 import type { JourneyRuntime } from '../journey/JourneyContext';
+import { togglePauseAll } from './pauseAll';
 
 /** True if the key press happened in a field or on a control that uses keys itself. */
 function isInteractive(target: EventTarget | null): boolean {
@@ -52,6 +54,10 @@ export function useKeyboardShortcuts(runtime: JourneyRuntime, enabled: boolean):
         case 'm':
         case 'M':
           music.toggle();
+          break;
+        case 'p':
+        case 'P':
+          togglePauseAll(engine, music);
           break;
         case 'f':
         case 'F':

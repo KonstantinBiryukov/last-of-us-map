@@ -105,6 +105,74 @@
   color: var(--color-accent);
 }
 
+/* Version history: a quiet text link under the version line … */
+.historyWrap {
+  position: relative;
+  margin-top: -6px;
+}
+.historyToggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.historyToggle:hover,
+.historyToggle[aria-expanded='true'] {
+  color: var(--color-accent);
+}
+/* … that opens a small card upwards, above the link, over the credits. */
+.history {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: min(440px, 100%);
+  padding: 12px 14px;
+  border-radius: var(--radius-l);
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-panel);
+  animation: rise 0.25s var(--ease-out);
+}
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.historyTable th {
+  padding: 0 10px 6px 0;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.historyTable td {
+  padding: 6px 10px 6px 0;
+  vertical-align: top;
+  border-top: 1px solid var(--color-line);
+}
+.historyTable th:last-child,
+.historyTable td:last-child {
+  padding-right: 0;
+}
+.historyVersion {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-text);
+}
+.historyDate {
+  white-space: nowrap;
+  color: var(--color-text-faint);
+}
+
 @keyframes fade {
   from {
     opacity: 0;

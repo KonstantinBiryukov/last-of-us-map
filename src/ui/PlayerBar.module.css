@@ -10,7 +10,8 @@
 
 .row {
   display: grid;
-  grid-template-columns: auto minmax(0, 0.8fr) auto minmax(0, 3fr);
+  /* transport · chapter · | · music · | · pause all */
+  grid-template-columns: auto minmax(0, 0.8fr) auto minmax(0, 3fr) auto auto;
   align-items: center;
   gap: 16px;
 }
@@ -85,12 +86,46 @@
   background: var(--color-line);
 }
 
+/*
+ * "Pause all": an outlined pill at the far right, quieter than the amber play button
+ * (that one stays the main control) but clearly a button, with its label in the display font.
+ */
+.all {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 14px 0 12px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.15s;
+}
+.all:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+.all:active {
+  transform: scale(0.96);
+}
+.allLabel {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 /* Phones: transport on the left, compact music on the right, timeline above. */
 .compact {
   padding: 8px 12px 10px;
 }
 .compact .row {
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr); /* no "Pause all" on phones */
   gap: 10px;
 }
 .compact .button {
