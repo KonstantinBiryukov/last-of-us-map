@@ -31,6 +31,53 @@ describe('chapter key points', () => {
     }
   });
 
+  it('nobody walks through an arrival building: only the final approach crosses its footprint', () => {
+    // The hospital (`arrive`) stands just beyond the end of the walk, so the last stretch of the
+    // walk naturally runs onto its forecourt (its base). Nothing else of the journey may: once
+    // a walk up 1500 East in Salt Lake City ran straight through the building. "Final approach"
+    // = the last 1.3 footprint radii of route before the end (the base reaches 2.1 model metres
+    // from the centre, the walk stops 0.9 in front of it: ~1.2 radii of base along the way in).
+    for (const p of placed.filter((p) => p.arrive)) {
+      for (let d = 0; d < p.distance - 1.3 * p.radiusMetres; d += 25) {
+        const point = route.journey.pointAt(d);
+        expect(haversineMeters(point, [p.lng, p.lat]), `${p.name}, ${Math.round(p.distance - d)} m before the end`).toBeGreaterThan(p.radiusMetres);
+      }
+      // …and the final approach is straight at its front: within 25° of the way it faces back.
+      const approach = route.journey.bearingAt(p.distance - 175, 175);
+      expect(Math.abs(((approach - p.bearing + 540) % 360) - 180), p.name).toBeLessThan(25);
+    }
+  });
+
+  it("Salt Lake City: the rest of the walk keeps a traveller's height from every prop, and never turns back", () => {
+    // The travellers are drawn at a fixed screen size: one model metre of them is `figure` real
+    // metres at the camera's zoom for the part being walked (its speed ÷ 28 px/s per pixel, times
+    // the part's `modelScale` — 1.5 after the giraffe). Apart from where they pass a prop (or walk
+    // up to the hospital's door), the whole Salt Lake City walk keeps at least that from every
+    // footprint — once a walk up 1500 East went through the hospital, and the turn onto 500 South
+    // through the buses.
+    const walk = [9, 10].flatMap((i) => timeline.chapters[i]!.legSpans.filter((s) => !isJumpKind(s.kind) && s.legIndex === 13 && s.endDistance - s.startDistance > 0));
+    const city = walk.filter((s) => s.startDistance >= route.legStart[13]! + 0.85 * (route.legEnd[13]! - route.legStart[13]!));
+    for (const p of placed.filter((p) => p.chapterIndex === 9 || p.chapterIndex === 10)) {
+      for (const s of city) {
+        const figure = ((81 * ((s.endDistance - s.startDistance) / (s.end - s.start) / 28)) / 1.85) * (s.camera.modelScale ?? 1);
+        for (let d = s.startDistance; d <= s.endDistance; d += 20) {
+          const own = p.arrive ? d > p.distance - 1.3 * p.radiusMetres : Math.abs(d - p.distance) < p.radiusMetres;
+          if (own) continue;
+          const gap = haversineMeters(route.journey.pointAt(d), [p.lng, p.lat]) - p.radiusMetres;
+          expect(gap, `${p.name}, at ${route.journey.pointAt(d).map((v) => v.toFixed(4)).join(', ')}`).toBeGreaterThan(figure * 0.98);
+        }
+      }
+    }
+    // No U-turns (the travellers spun round on a hairpin by the hospital): over every 120 m of
+    // the city walk the direction changes by less than 120° — street corners are 90°.
+    const from = city[0]!.startDistance + 80;
+    const to = city.at(-1)!.endDistance - 80;
+    for (let d = from; d < to; d += 20) {
+      const turn = Math.abs(((route.journey.bearingAt(d + 60, 60) - route.journey.bearingAt(d - 60, 60) + 540) % 360) - 180);
+      expect(turn, `at ${route.journey.pointAt(d).map((v) => v.toFixed(4)).join(', ')}`).toBeLessThan(120);
+    }
+  });
+
   it('props never overlap each other', () => {
     for (let i = 0; i < placed.length; i++) {
       for (let j = i + 1; j < placed.length; j++) {
@@ -88,13 +135,57 @@ describe('chapter key points', () => {
     expect(hunt.metresPerModel).toBeLessThan(1972 * 1.01);
     expect(haversineMeters([hunt.lng, hunt.lat], [-105.4459, 40.0248])).toBeLessThan(50);
     expect(find('Cabin Resort').metresPerModel).toBeCloseTo(hunt.metresPerModel / 2, 0);
-    // The school buses stand in Provo, on the downtown (east) side of the walk — inland, away
-    // from Utah Lake to the west.
+    // Salt Lake City: the school buses stand by Salt Lake Central Station, west of the walk up
+    // 300 West (the station's side); the giraffe west of the walk north up 1100 East, in Liberty
+    // Park (on their left, as when they walked north past it before).
     const buses = find('The Bus Depot');
-    expect(haversineMeters([buses.lng, buses.lat], buses.coord)).toBeLessThan(5_000);
-    expect(buses.lng).toBeGreaterThan(route.journey.pointAt(buses.distance)[0]);
+    const station: [number, number] = [-111.908764, 40.762005]; // Salt Lake Central Station (Mapbox Search)
+    expect(haversineMeters([buses.lng, buses.lat], station)).toBeLessThan(1_000);
+    expect(buses.lng).toBeLessThan(route.journey.pointAt(buses.distance)[0]);
+    const giraffe = find('The Giraffes');
+    expect(giraffe.lng).toBeLessThan(route.journey.pointAt(giraffe.distance)[0]);
+    // Each is as large next to the travellers as it was before the bus depot and the giraffe moved
+    // into the city: metres per model metre ÷ the walking travellers' (81 px tall, 1.85 model
+    // metres, at the follow camera's zoom for the walk past it — its speed ÷ 28 px/s per pixel):
+    // buses 0.69, giraffe 1.15, hospital 1.61 × 1.5 (see SLC_BUSES, SLC_HOSPITAL in
+    // data/keyPoints.ts — the travellers walking up to it are drawn 1.5× larger, too).
+    const travellersAt = (p: typeof buses) => {
+      const span = timeline.chapters[p.chapterIndex]!.legSpans.find((s) => !s.pause && p.distance >= s.startDistance && p.distance <= s.endDistance)!;
+      return (81 * ((span.endDistance - span.startDistance) / (span.end - span.start) / 28)) / 1.85;
+    };
+    expect(buses.metresPerModel / travellersAt(buses)).toBeCloseTo(0.69, 1);
+    expect(giraffe.metresPerModel / travellersAt(giraffe)).toBeCloseTo(1.15, 1);
+    expect(hospital.metresPerModel / travellersAt(hospital)).toBeCloseTo(1.61 * 1.5, 1);
+    // Jackson's props keep the size they were tuned at (they once changed when Salt Lake City's
+    // pacing changed — see JACKSON_SCALE in data/keyPoints.ts).
+    expect(find('Hydroelectric Dam').radiusMetres).toBeCloseTo(31_390, -1);
+    expect(find('Ranch House').radiusMetres).toBeCloseTo(9_777, -1);
+    expect(find('Jackson').radiusMetres).toBeCloseTo(1_504, -1);
     // The State House stands near its real gold dome.
     expect(haversineMeters([capitol.lng, capitol.lat], capitol.coord)).toBeLessThan(150);
+  });
+
+  it('Ellie pets the giraffe right where the walk passes it, while the giraffe slide is shown', () => {
+    const chapter = timeline.chapters[9]!;
+    const giraffe = placed.find((p) => p.name === 'The Giraffes')!;
+    const pet = chapter.legSpans.find((s) => s.pet)!;
+    // They stop where the walk passes the giraffe (within a few metres), on a straight stretch:
+    // the walk's direction there is the same 300 m before and after (a bend left it ahead of her).
+    expect(Math.abs(pet.startDistance - giraffe.distance)).toBeLessThan(30);
+    const before = route.journey.bearingAt(pet.startDistance - 300, 100);
+    const after = route.journey.bearingAt(pet.startDistance + 300, 100);
+    expect(Math.abs(((after - before + 540) % 360) - 180)).toBeLessThan(10);
+    // The giraffe slide (img_6_2) comes up just after they stop and is over just before they walk on.
+    const slide = CHAPTERS[9]!.slides.findIndex((s) => s.src.endsWith('img_6_2.png'));
+    const slideStart = chapter.slideStarts[slide]!;
+    expect(slideStart).toBeGreaterThanOrEqual(pet.start);
+    expect(slideStart - pet.start).toBeLessThan(0.5);
+    expect(slideStart + chapter.slideSeconds).toBeLessThanOrEqual(pet.end);
+    // In the city the viewer cannot zoom out, and at the giraffe not in either (data/chapters.ts).
+    for (const span of chapter.legSpans.filter((s) => s.startDistance >= route.legStart[13]! + 0.78 * (route.legEnd[13]! - route.legStart[13]!))) {
+      expect(span.camera.zoomOut).toBe(0);
+    }
+    expect(pet.camera.zoomIn).toBe(0);
   });
 
   it('neighbouring props share one size (Pittsburgh), and the bridge stands exactly in place', () => {

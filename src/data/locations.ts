@@ -8,9 +8,10 @@
  *   2. Austin's description contained a broken "\n" that had turned into the
  *      literal text "area.nThe"; it is now split into two paragraphs.
  *   3. Salt Lake City's marker moved from the city's western edge (near the airport,
- *      ~25 km from where the story ends) to downtown Salt Lake City. (It first stood on
- *      St. Mark's Hospital, where the journey ends, but there the glowing marker sat right on
- *      top of the hospital prop and hid it; the hospital prop now marks that spot.)
+ *      ~25 km from where the story ends) to Rose Park, north-west of downtown. (It first stood on
+ *      the hospital, where the journey ends, but there the glowing marker sat right on top of
+ *      the hospital prop and hid it; then downtown, until the bus depot and the giraffe moved
+ *      into the city and it covered them.)
  *      The original coordinates are kept below as ORIGINAL_SALT_LAKE_CITY.
  *
  * The original GeoJSON file is kept in /public for reference.
@@ -105,8 +106,10 @@ export const LOCATIONS: readonly StoryLocation[] = [
     id: "salt-lake-city",
     title: "Salt Lake City, Utah",
     shortName: "Salt Lake City",
-    // Downtown Salt Lake City, clear of the hospital prop: see note 3 at the top of this file.
-    coordinates: [-111.891, 40.7608],
+    // Rose Park, north-west of downtown: clear of the hospital prop, and of the bus depot and
+    // the giraffe scenes — from downtown, and even from the Capitol, its name label sat on the
+    // travellers' heads as they petted the giraffe (see note 3 at the top of this file).
+    coordinates: [-111.94, 40.785],
     icon: "server/assets/marker_icons/firefly.jpg",
     photo: "server/assets/card_images/utah_icon.jpg",
     description: [

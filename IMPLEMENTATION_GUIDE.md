@@ -81,7 +81,9 @@ src/
   map/MapView.tsx          Creates the Mapbox map; wires layers, markers, camera
   map/mapStyle.ts          Style URLs, season light presets, 3D terrain
   map/routeLayers.ts       Route line layers + progressive reveal controller
-  map/markers.ts           Location markers (buttons) + hover preview
+  map/markers.ts           Location markers (buttons) + hover preview; they live in the map's own
+                           layer (`.mapArea`, z-index 1), so they always pass UNDER the story
+                           panel and the player bar
   map/camera.ts            CameraDirector: follow / overview / free modes
   map/FallbackMap.tsx      SVG map used when Mapbox cannot run
   three/JourneyLayer.ts    Mapbox custom layer that renders the Three.js scene
@@ -236,12 +238,23 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
      `scripts/build-street-routes.mjs`, output `public/server/info/boston-streets.geojson`,
      which also records each stop's distance along the line). The game's places are
      fictionalised; each stop is a real place chosen to match the story.
-  4. *St. Mark's Hospital* — the original route stopped in downtown Salt Lake City, ~10 km
-     short of the game's last stop. Leg 13 now continues with a 12.8 km walking route to
-     St. Mark's Hospital (the real basis of the game's St. Mary's; `build:streets -- hospital`
-     → `hospital-streets.geojson`), and the Epilogue drive (leg 14) starts there with a
-     5.5 km driving route that joins the original line on I-80 (`build:streets -- escape`
-     → `escape-streets.geojson`). The Salt Lake City marker moved to the hospital too.
+  4. *Salt Lake City* — the original route stopped in downtown Salt Lake City, short of the
+     game's last stop. Leg 13 now continues with an 11.2 km walking route (`build:streets --
+     hospital` → `hospital-streets.geojson`, straightened on load: bends < 60 m dropped): south
+     down State Street, east along 1300 South, north up 1100 East past Liberty Park (the giraffe,
+     on their left), up into the Avenues and the last kilometre straight down the University of
+     Utah campus heading south-east to the hospital (the game's St. Mary's; it faces north-west,
+     back along their way). The props are large (sized to match the fixed-size travellers), so the
+     walk never doubles back beside one of them, and a test checks that the whole walk keeps a
+     traveller's height from every prop and never turns back. The hospital stands on the flat
+     south part of the campus: a prop rests on the highest ground under it, and nearer the
+     mountain its base was lifted above the travellers at its door. The Epilogue drive (leg 14) is
+     now entirely generated (`build:streets -- escape`; the original I-80 line is cut to its first
+     point): from the hospital over Capitol Hill and north on I-15 to Idaho Falls, east along the
+     Snake River (US-26) to Alpine, where leg 16 now starts (`trimStartAt`) and goes on through
+     the Snake River Canyon to Jackson. The jump between them (leg 15) is no longer travelled.
+     The Salt Lake City marker stands in Rose Park, clear of the city scenes. The script sends a
+     `localhost:5173` Referer (the token is URL-restricted).
   5. *Pittsburgh* — the original walk wandered back and forth along the river front. Bill's
      truck now stops near Monroeville, east of the city (`trimEndAt` on leg 5), and leg 6 starts
      with a 23 km walking route (`build:streets -- pittsburgh`): into the city, past the hotel and
@@ -298,6 +311,14 @@ seeking, replay, distant jumps, frame-rate independence and loop cleanup.
   would mislead (a long walk compressed into the end of a chapter, the Epilogue's last walk).
 - **Camera zoom** is chosen per part so the travellers always visibly move (about 28 px/s
   on screen), up to street level (zoom 15.5) for the slow city walks in Boston and Lincoln.
+  The viewer can zoom one level in or out with the wheel or a pinch; a part can narrow that
+  (`camera.zoomOut` / `zoomIn`): in Salt Lake City's walk to the giraffe the wheel cannot zoom
+  out (the props shrank next to the travellers and the city's marker drifted over the scenes),
+  and at the giraffe not in either (Ellie, drawn smaller, could no longer reach its head).
+  A part can also draw the travellers larger (`camera.modelScale`): Lakeside's ride ×2, and in
+  Salt Lake City ×1.5 from the giraffe to the hospital — that walk is slow, so the camera follows
+  it close and at their usual size they looked tiny against the streets. The hospital is 1.5×
+  larger to match (`SLC_HOSPITAL` in `data/keyPoints.ts`), and the wheel cannot zoom in there.
 
 ## 8. Add or modify a story location
 
@@ -560,10 +581,10 @@ chapter images show*. Checked against real coordinates (automated in `data.test.
 | --- | --- |
 | Markers: Austin, Boston (North End = the game's QZ), Lincoln, Pittsburgh, Jackson, Fort Collins (CSU = University of Eastern Colorado) | within 0–5 km of the real places ✔ |
 | Silver Lake marker | ~11 km east of Silver Lake in the Boulder watershed — fine at map scale |
-| Salt Lake City marker | was ~26 km **west** of downtown (near Magna); **moved** to St. Mark's Hospital (the basis of the game's St. Mary's), where the route now ends (§7, correction 4) |
+| Salt Lake City marker | was ~26 km **west** of downtown (near Magna); **moved** to Rose Park, north-west of downtown, clear of the city walk's scenes; the route now ends at the University of Utah Hospital (the stand-in for the game's St. Mary's, §7, correction 4) |
 | *Bill's Town* showed Connecticut/Pennsylvania | **fixed** — it starts right outside Lincoln (< 3 km), and only its last 20 % drives out of Lincoln in Bill's truck; the drive west continues in *Pittsburgh* |
 | Boston chapters walked on the spot | **fixed** — a street route through the game's places (§7, correction 3); the split points (Ellie joins at the Fireflies, Tess stays at the Capitol) are tested to land within 150 m of those places |
-| *Bus Depot* walked through Colorado | **fixed** — the Colorado mountain walk belongs to *Lakeside Resort*; *Bus Depot* starts with the jump to Utah and stays within 80 km of Salt Lake City (the original jump lands near Provo); *The Firefly Lab* is the last ~17 km into the city plus ~13 km of streets to the hospital |
+| *Bus Depot* walked through Colorado | **fixed** — the Colorado mountain walk belongs to *Lakeside Resort*; *Bus Depot* starts with the jump to Utah and stays within 80 km of Salt Lake City (the original jump lands near Provo); the long valley walk goes by in 4 s, then the city: the bus depot by Salt Lake Central Station, the giraffe by Liberty Park (Ellie pets it during the giraffe slide); *The Firefly Lab* is the last ~7 km of streets to the University of Utah Hospital |
 | Boston chapters | stay in Boston (QZ within 3 km, Outskirts within 8 km of the State House) ✔ |
 | Leg order and travel modes (truck, horse) | match the game's chapters ✔ |
 | Prologue drive | ends ~47 km south-west of Austin — longer than the game's drive to the outskirts (harmless) |

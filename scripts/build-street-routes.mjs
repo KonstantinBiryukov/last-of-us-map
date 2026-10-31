@@ -11,14 +11,14 @@
  *              so Joel and Ellie looked like they were walking on the spot. This route
  *              goes THROUGH the game's Boston places instead.
  *   hospital – the original route ends in downtown Salt Lake City; the game's last stop,
- *              the Fireflies' hospital (St. Mary's, based on the real St. Mark's Hospital),
- *              is ~10 km further. This route continues there.
+ *              the Fireflies' hospital (St. Mary's; here the University of Utah Hospital),
+ *              is further on. This route continues there, past Liberty Park (the giraffe).
  *   pittsburgh – the original walk wandered back and forth around the river front. This route
  *              starts where they leave Bill's truck near Monroeville, walks into the city through the game's places
  *              and crosses the Roberto Clemente Bridge straight to the North Side.
- *   escape   – the drive away (Epilogue) originally starts back downtown; with the journey
- *              now ending at the hospital, this DRIVING route takes Joel and Ellie from the
- *              hospital to the original drive's interstate (I-80), ~4 km north.
+ *   escape   – the drive away (Epilogue): this DRIVING route takes Joel and Ellie from the
+ *              hospital north through Idaho Falls and east along the Snake River to Alpine,
+ *              where the original road home to Jackson goes on.
  *
  * HOW: for each pair of consecutive stops it asks the Mapbox Directions API (walking
  * profile, or driving for `escape`) for the street path, joins the pieces into one line and writes a GeoJSON with
@@ -48,22 +48,51 @@ const BOSTON_STOPS = [
 
 /**
  * Salt Lake City: from where the original route ends (downtown, the last point of feature 13
- * of test2.geojson) to the hospital. St. Mark's position comes from the Mapbox Search API
- * ("St Mark's Hospital, 1200 East 3900 South").
+ * of test2.geojson) to the Fireflies' hospital, on the University of Utah campus (the user's
+ * map of the game's places). The props here are large (sized to match the travellers, who are
+ * drawn at a fixed screen size), so the walk never doubles back beside one of them:
+ *   • south down State Street, well west of Liberty Park;
+ *   • east along 1300 South, then NORTH up 1100 East past Liberty Park — the site of the old
+ *     zoo — with the giraffe on their left (west), as when they walked north past it before:
+ *     they only turn a quarter round to pet it (walking south, it was behind them);
+ *   • on north up into the Avenues, east, and down University Street (a loop that gives the
+ *     walk to the hospital its length, so the camera does not follow it from too close and the
+ *     hospital is in view as they come), then the last stretch heading
+ *     south-east to the hospital, as they came to St. Mark's before: the hospital faces
+ *     north-west (back along their way), shows the north-up camera its back wall with the
+ *     Fireflies' sign, then its front with Marlene. It stands on the south part of the campus,
+ *     where the ground is nearly flat: a prop rests on the highest ground under it, and nearer
+ *     the mountain it was lifted above the travellers at its door.
+ * The University of Utah Hospital's position comes from the Mapbox Search Box API.
  */
 const HOSPITAL_STOPS = [
   { id: 'downtown-slc', name: 'Downtown Salt Lake City', basis: 'end of the original route', coord: [-111.897697, 40.771461] },
-  { id: 'hospital', name: "St. Mary's Hospital — the Fireflies", basis: "St. Mark's Hospital (the game's St. Mary's is based on it)", coord: [-111.857112, 40.686071] },
+  { id: 'state-street', name: 'South down State Street', basis: 'State Street at 200 South', coord: [-111.888, 40.765] },
+  { id: 'state-1300-south', name: 'East along 1300 South', basis: 'State Street at 1300 South', coord: [-111.888, 40.7417] },
+  { id: '1100-east', name: 'North up 1100 East', basis: '1100 East at 1300 South', coord: [-111.8593, 40.7417] },
+  { id: 'liberty-park', name: 'Past Liberty Park', basis: '1100 East at 400 South, past the park', coord: [-111.8593, 40.76] },
+  { id: 'avenues', name: 'Up into the Avenues', basis: '1100 East at 3rd Avenue', coord: [-111.8593, 40.7745] },
+  { id: 'avenues-east', name: 'East through the Avenues', basis: 'University Street at 3rd Avenue', coord: [-111.8475, 40.7745] },
+  { id: 'campus', name: 'Down to the campus', basis: 'University Street at 100 South, north-west of the hospital', coord: [-111.8475, 40.767] },
+  { id: 'hospital', name: "St. Mary's Hospital — the Fireflies", basis: 'the south part of the University of Utah campus', coord: [-111.842, 40.76] },
 ];
 
 /**
- * The drive away: from the hospital to the original Epilogue line where it passes closest
- * (point 193 of feature 14, on I-80 just east of its nearest point 178), so the original
- * drive is re-joined heading the way it was already going.
+ * The drive away (Epilogue): from the hospital north on I-15 to Idaho Falls, east on US-26
+ * along the Snake River through Swan Valley and past Palisades to Alpine, Wyoming — where it
+ * joins the original route home (feature 16, its point 731, 1.2 km south of Alpine's centre),
+ * which goes on through the Snake River Canyon to Jackson (`trimStartAt` in data/legs.ts).
+ * Swan Valley is a waypoint so the route keeps to US-26 along the river. Out of the city it
+ * goes over Capitol Hill and up Beck Street (US-89) to I-15 north of the city — not downtown
+ * onto I-15 by Salt Lake Central Station, where it ran through the bus depot.
  */
 const ESCAPE_STOPS = [
-  { id: 'hospital', name: "St. Mary's Hospital", basis: "St. Mark's Hospital", coord: [-111.857112, 40.686071] },
-  { id: 'interstate', name: 'Onto the interstate', basis: 'point 193 of feature 14 (I-80)', coord: [-111.83625, 40.717327] },
+  { id: 'hospital', name: "St. Mary's Hospital", basis: 'the University of Utah campus (where the walk ends)', coord: [-111.842, 40.76] },
+  { id: 'capitol-hill', name: 'Over Capitol Hill', basis: 'Victory Road, behind the State Capitol', coord: [-111.8935, 40.79] },
+  { id: 'beck-street', name: 'North up Beck Street', basis: 'US-89 (Beck Street), north of the city', coord: [-111.9045, 40.81] },
+  { id: 'idaho-falls', name: 'Idaho Falls', basis: 'Idaho Falls, Idaho, on I-15', coord: [-112.0339, 43.4917] },
+  { id: 'swan-valley', name: 'Swan Valley', basis: 'Swan Valley, Idaho, on US-26 along the Snake River', coord: [-111.3305, 43.4566] },
+  { id: 'alpine', name: 'Alpine', basis: 'Alpine, Wyoming — point 731 of feature 16, where the original road home goes on', coord: [-111.030075, 43.15918] },
 ];
 
 /**
@@ -159,7 +188,8 @@ for (let i = 0; i < STOPS.length; i++) {
   // so retry a few times before giving up.
   let json;
   for (let attempt = 1; attempt <= 4; attempt++) {
-    json = await (await fetch(url)).json();
+    // The token is URL-restricted to the dev server, so say we are asking from there.
+    json = await (await fetch(url, { headers: { Referer: 'http://localhost:5173/' } })).json();
     if (json.code === 'Ok') break;
     await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
   }

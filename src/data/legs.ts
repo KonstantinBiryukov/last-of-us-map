@@ -49,14 +49,19 @@ export const LEG_META: readonly LegMeta[] = [
   // 11–13 — Leaving the mountains, a jump to Utah, then into Salt Lake City.
   { featureIndex: 11, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'Leaving the mountains' },
   { featureIndex: 12, kind: 'jump', mode: 'walk', modeSource: 'default', note: 'Winter turns to spring — Colorado to Utah (no detailed path in the source data)' },
-  // 13 — continued (generated street route) from downtown to St. Mary's Hospital, the
-  //      Fireflies' base — the real St. Mark's Hospital the game's hospital is based on.
-  { featureIndex: 13, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'Into Salt Lake City', streets: { route: 'hospital', at: 'end' } },
+  // 13 — continued (generated street route) from downtown past Liberty Park (the giraffe) to
+  //      St. Mary's Hospital, the Fireflies' base — here the University of Utah Hospital.
+  { featureIndex: 13, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'Into Salt Lake City', streets: { route: 'hospital', at: 'end', simplify: 60 } }, // straighter: bends < 60 m dropped (the travellers turned with every kink)
   // 14–16 — Driving away from Salt Lake City, then the last stretch home to Jackson.
-  //      14 starts at the hospital (generated driving route) and joins the original on I-80.
-  { featureIndex: 14, kind: 'detailed', mode: 'vehicle', modeSource: 'canon', note: 'Driving away from Salt Lake City', streets: { route: 'escape', at: 'start' } },
-  { featureIndex: 15, kind: 'jump', mode: 'vehicle', modeSource: 'default', note: 'North towards Wyoming (no detailed path in the source data)' },
-  { featureIndex: 16, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'The last stretch home to Jackson' },
+  //      14 is now entirely a generated driving route (the original line, east along I-80, is
+  //      cut to its first point, `trimEndAt`): from the hospital north on I-15 to Idaho Falls and
+  //      east along the Snake River (US-26) to Alpine, Wyoming.
+  //      15 (originally a jump north from I-80) is no longer travelled: 14 now ends where 16 starts.
+  //      16 starts at Alpine (`trimStartAt`, its original start south of it is dropped) and goes
+  //      on through the Snake River Canyon to Jackson.
+  { featureIndex: 14, kind: 'detailed', mode: 'vehicle', modeSource: 'canon', note: 'Driving away from Salt Lake City, north through Idaho Falls', trimEndAt: [-111.897697, 40.771461], streets: { route: 'escape', at: 'start' } },
+  { featureIndex: 15, kind: 'jump', mode: 'vehicle', modeSource: 'default', note: 'North towards Wyoming (no detailed path in the source data; no longer travelled)' },
+  { featureIndex: 16, kind: 'detailed', mode: 'walk', modeSource: 'default', note: 'Through the Snake River Canyon home to Jackson', trimStartAt: [-111.030075, 43.15918] },
 ];
 
 /** Where the original route file lives (relative to /public). */

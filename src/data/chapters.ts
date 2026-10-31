@@ -44,6 +44,27 @@ import type { Chapter, Slide, SlideKind } from './types';
 /** How much larger Ellie is drawn when she travels alone: 1 / her height (0.82 of Joel's, three/models/character.ts). */
 const ELLIE_ALONE_SCALE = 1 / 0.82;
 
+/**
+ * Leg 13 (into Salt Lake City), where the walk passes the giraffe prop in Liberty Park
+ * (data/keyPoints.ts, measured on the committed route; a test keeps the two together): Joel and
+ * Ellie stop there to pet it.
+ */
+const GIRAFFE = 0.9396;
+/**
+ * Leg 13, where "Bus Depot" ends and "The Firefly Lab" begins: 11 / 51 of the way from the
+ * giraffe to the hospital (see Bus Depot's comment), so the pace is the same in both chapters.
+ */
+/**
+ * From the giraffe to the hospital, Joel and Ellie are drawn 1.5× their usual on-screen size
+ * (`modelScale`). The walk there is slow (3.6 km in 51 s), so the camera follows it 2.7× closer
+ * than the walk before the giraffe, and at their usual size they looked tiny against the
+ * streets; the hospital is 1.5× larger too (data/keyPoints.ts, SLC_HOSPITAL), so next to it
+ * they keep the same proportion. The wheel cannot zoom in there either (`zoomIn: 0`): closer
+ * still, they shrank against the streets again.
+ */
+const SLC_TRAVELLERS = 1.5;
+const BUS_DEPOT_END = 0.9526;
+
 /** Folder holding one sub-folder of images per chapter. */
 const BASE = 'server/assets/story_telling_images/chapters';
 
@@ -399,15 +420,35 @@ export const CHAPTERS: readonly Chapter[] = [
     ]),
     // Spring: the jump from Colorado to Utah plays during the title card, then they walk
     // into Salt Lake City (they are together again).
-    // Leg 13 is ~95.9 km: 83.1 km of original line into downtown, then 12.8 km of streets to
-    // the hospital. 0.694 ≈ 66.5 km, ~14 km from downtown, where the original split was.
-    // Halfway, Joel and Ellie stop for 6 s at the giraffe (leg 13 at 0.5558, where
-    // they pass it); Ellie walks up and pets it, as in the game (`pet`, three/petGiraffe.ts).
+    // Leg 13 is 94.2 km: 83.1 km of original line north from Provo into downtown, then 11.2 km
+    // of streets to the hospital (straightened, data/legs.ts). Along it (fractions of the leg):
+    //     0.8709  the bus depot: up 300 West, past Salt Lake Central Station
+    //     0.8815  downtown, where the streets begin: south down State Street, east along 1300 South
+    //     0.9592  the giraffe, in Liberty Park, as the walk goes north up 1100 East past the park
+    //     1       the hospital, on the University of Utah campus (the game's St. Mary's)
+    // The long walk up the valley goes by quickly (4 s, to 0.86, just before the bus depot);
+    // the city is walked at a pace the camera follows comfortably (playback/followZoom.ts).
+    // The chapter is 10 slides × 5 s + the 6 s pause = 56 s, so each slide stays 5.6 s; the
+    // giraffe slide (img_6_2, the 8th) runs 39.2 → 44.8 s. They reach the giraffe at 39.0 s:
+    // jump 4.5 s + valley 8 % (4 s) + city 61 % (30.5 s; the bus depot at ~12 s, on the depot's
+    // own slides). Joel and Ellie stop for 6 s (39.0 → 45.0 s, the whole giraffe slide); Ellie
+    // walks up and pets it, as in the game (`pet`, three/petGiraffe.ts). The pause point is where
+    // the walk passes the giraffe prop (data/keyPoints.ts; a test checks they match).
+    // After the giraffe, the last 11 s of this chapter and the 40 s of The Firefly Lab share the
+    // 3.6 km to the hospital: 11 / 51 of it, 0.9592 → 0.968, is walked here. The city walk before
+    // the giraffe (9.6 km in 30.5 s) is faster; either way the camera follows at its comfortable
+    // pace, and each prop is sized for the walk past it (data/keyPoints.ts, SLC_BUSES), with room
+    // around it for the passing travellers (a test checks the whole walk).
+    // Zoom: in the city the wheel cannot zoom out (`zoomOut: 0`) — from further out the props
+    // shrink next to the travellers and the Salt Lake City marker drifts over the scenes — and
+    // at the giraffe it cannot zoom in either (`zoomIn: 0`): close in, its bowed head stays far
+    // above Ellie and she cannot reach it.
     legs: [
       { leg: 12 },
-      { leg: 13, from: 0, to: 0.5558 },
-      { leg: 13, from: 0.5558, to: 0.5558, pauseSeconds: 6, pet: true, note: 'Ellie meets the giraffes' },
-      { leg: 13, from: 0.5558, to: 0.694 },
+      { leg: 13, from: 0, to: 0.8423, timeShare: 0.08, note: 'North through the Salt Lake valley' },
+      { leg: 13, from: 0.8423, to: GIRAFFE, timeShare: 0.61, note: 'Past the bus depot into Salt Lake City', camera: { zoomOut: 0 } },
+      { leg: 13, from: GIRAFFE, to: GIRAFFE, pauseSeconds: 6, pet: true, note: 'Ellie meets the giraffes', camera: { zoomOut: 0, zoomIn: 0 } },
+      { leg: 13, from: GIRAFFE, to: BUS_DEPOT_END, note: 'North past Liberty Park', camera: { zoomOut: 0, zoomIn: 0, modelScale: SLC_TRAVELLERS } },
     ],
     ambience: ['pollen', 'petals'],
   },
@@ -427,16 +468,20 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_6.jpg',
       'img_7.png',
     ]),
-    // The last ~17 km into downtown Salt Lake City, then ~13 km of streets south-east to
-    // the Fireflies' hospital (St. Mark's — the game's St. Mary's).
-    // Leg 13 reaches downtown at 0.8665 (83.1 of its 95.9 km). From there the streets head
-    // south-east to the hospital, so on a north-up map they would walk DOWN the screen,
-    // towards the camera, and reach the hospital's back. For that last stretch the camera
-    // rides behind them (`heading: 'route'`): they walk UP the screen, straight at the
-    // hospital's front door, which faces the camera.
+    // From Liberty Park through the streets to the Fireflies' hospital (on the University of Utah
+    // campus, the game's St. Mary's), at the pace the walk left Bus Depot with: north up 1100 East,
+    // east along 100 South and the last kilometre straight down the campus heading south-east, as
+    // they came to St. Mark's before. As then: the north-up camera first sees the hospital's back
+    // wall with the Fireflies' sign; from 22.5 s (leg 13 at 0.986, the moment it turned before)
+    // it turns to look along their way in (`bearing: 146`): they walk UP the screen, straight at
+    // the hospital's front door, where Marlene waits.
     legs: [
-      { leg: 13, from: 0.694, to: 0.8665 },
-      { leg: 13, from: 0.8665, note: "Through the streets to St. Mary's Hospital", camera: { heading: 'route' } },
+      { leg: 13, from: BUS_DEPOT_END, to: 0.9793, camera: { zoomIn: 0, modelScale: SLC_TRAVELLERS } },
+      { leg: 13, from: 0.9793, to: 0.9904, note: "Through the Avenues to St. Mary's Hospital", camera: { heading: 'route', zoomIn: 0, modelScale: SLC_TRAVELLERS } },
+      // Not zoomed in closer than this (`zoomIn: 0`): the hospital's base rests on the highest
+      // ground under it, a little above where they stop, and close in — where the travellers are
+      // drawn smaller in metres — it hid them at the door.
+      { leg: 13, from: 0.9904, note: "Across the campus to St. Mary's Hospital", camera: { bearing: 146, zoomIn: 0, modelScale: SLC_TRAVELLERS } },
     ],
     ambience: ['fireflies', 'pollen'],
   },
@@ -454,12 +499,16 @@ export const CHAPTERS: readonly Chapter[] = [
       'img_3_2.png',
       'img_4.jpeg',
     ]),
-    // Most of the way by car; only the last 20 % on foot, walking the road home to Jackson.
+    // By car from the hospital north through Idaho Falls, east along the Snake River to Alpine and
+    // on through the Snake River Canyon (legs 14 and 16, data/legs.ts — the jump, leg 15, is no
+    // longer travelled); only the last 20 % of the time on foot, walking the road home to
+    // Jackson. The drive shares the rest at one even pace (by length, playback/timeline.ts). The
+    // walk is the same 32.6 km of road as before (leg 16 now starts at Alpine, 60.2 km out, so
+    // it begins at 0.4578 of it).
     legs: [
-      { leg: 14 },
-      { leg: 15 },
-      { leg: 16, from: 0, to: 0.8, mode: 'vehicle', note: 'Driving north towards Jackson' },
-      { leg: 16, from: 0.8, timeShare: 0.2, note: 'The last stretch home to Jackson, on foot' },
+      { leg: 14, note: 'Driving north through Idaho Falls' },
+      { leg: 16, from: 0, to: 0.4578, mode: 'vehicle', note: 'Through the Snake River Canyon towards Jackson' },
+      { leg: 16, from: 0.4578, timeShare: 0.2, note: 'The last stretch home to Jackson, on foot' },
     ],
     ambience: ['petals', 'fireflies'],
   },

@@ -115,9 +115,11 @@ const DECK_HALF_LENGTH = { bridge: 2.3 } as const;
  * Arrival buildings: how far back (m) the arrival direction is measured, and where the walk
  * stops, in model metres from the building's centre: 0.9 = just outside the hospital's front
  * wall (its front is 0.7 in front of the centre, see props.ts), on its forecourt — right at
- * the door, as if they are about to walk in.
+ * the door, as if they are about to walk in. The direction is that of the last 350 m — the
+ * straight stretch they walk up to it on (in Salt Lake City, down the campus after the turns
+ * through the Avenues, which a longer stretch would have mixed in).
  */
-const ARRIVE_LOOKBACK_M = 1500;
+const ARRIVE_LOOKBACK_M = 350;
 const ARRIVE_STOP_MODEL = 0.9;
 /** How deep (in landmark radii) the clear view corridor in front of an exact landmark is. */
 const VIEW_CORRIDOR = 5;

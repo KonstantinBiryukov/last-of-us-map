@@ -123,6 +123,12 @@ export interface LegMeta {
    * city, instead of driving on across the river).
    */
   trimEndAt?: LngLat;
+  /**
+   * Optional correction: start this leg late, at its point closest to this place (leg 16: the
+   * drive home now comes over from Idaho Falls and joins the original road to Jackson at
+   * Alpine, so the original line's start, from the south, is dropped).
+   */
+  trimStartAt?: LngLat;
 }
 
 /** The generated street routes (files in public/server/info/<route>-streets.geojson). */
@@ -221,6 +227,19 @@ export interface PartCamera {
    * (e.g. 2 for Lakeside Resort's ride). Props, trail and everything else keep their size.
    */
   modelScale?: number;
+  /**
+   * How far (zoom levels) the viewer may zoom OUT with the wheel or a pinch during the part,
+   * instead of the usual 1 (map/camera.ts, MIN_ZOOM_OFFSET); 0 = not at all. For scenes that
+   * fall apart when seen from further out — in Salt Lake City the props shrink next to the
+   * travellers (drawn at a fixed screen size) and the city's marker drifts over the scene.
+   * The viewer's own zoom is kept; it only counts up to this limit while the part plays.
+   */
+  zoomOut?: number;
+  /**
+   * The same for zooming IN (usual 1). The giraffe stop: close in, the giraffe's bowed head
+   * stays far above Ellie, who is drawn smaller, and she cannot reach it.
+   */
+  zoomIn?: number;
 }
 
 /** The four seasons the game is split into (plus the 2013 prologue). */

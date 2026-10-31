@@ -28,10 +28,14 @@ describe('timeline built from the real story data', () => {
     // Walk the spans: each must continue exactly where the previous one stopped.
     let leg = 0;
     let from = 0;
+    // A leg of zero length may be left out (leg 15: the jump north from I-80, no longer needed
+    // since the drive home goes through Idaho Falls and leg 14 ends where leg 16 starts).
+    const empty = (i: number) => route.legEnd[i]! - route.legStart[i]! < 50;
     for (const span of spans) {
       if (span.legIndex !== leg) {
         expect(from).toBeCloseTo(1); // previous leg was finished
         leg++;
+        while (leg < span.legIndex && empty(leg)) leg++;
         from = 0;
       }
       expect(span.legIndex).toBe(leg);

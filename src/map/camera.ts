@@ -548,7 +548,10 @@ export class CameraDirector {
     const jumping = currentSpan !== undefined && isJumpKind(currentSpan.kind);
     let zoom = this.spanZoom.get(`${frame.chapterIndex}:${frame.spanIndex}`) ?? 9;
     if (jumping) zoom = this.zoomForJump(frame.legIndex);
-    if (withUserZoom) zoom = clamp(zoom + this.zoomOffset, 1.5, 18.5);
+    // The viewer's zoom offset, within the part's own limits if it has any (PartCamera.zoomOut /
+    // zoomIn in data/types.ts: the Salt Lake City scenes); the offset itself is kept as it is.
+    const offset = clamp(this.zoomOffset, -(currentSpan?.camera.zoomOut ?? -MIN_ZOOM_OFFSET), currentSpan?.camera.zoomIn ?? MAX_ZOOM_OFFSET);
+    if (withUserZoom) zoom = clamp(zoom + offset, 1.5, 18.5);
     // Look ~90 px ahead along the route so the travellers sit a little behind centre.
     const ahead = jumping ? 0 : metersPerPixel(zoom, this.target[1]) * 90;
     journey.pointAt(frame.distance + ahead, this.ahead);

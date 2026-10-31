@@ -33,6 +33,35 @@ const BOSTON_SCALE = 0.7;
  */
 const LAKESIDE_SCALE = 0.2744;
 
+/**
+ * Jackson's props (the dam and the ranch in Tommy's Dam, the town in the Epilogue): they used to
+ * share a size GROUP with Salt Lake City's props, which were then huge (the walk into the city
+ * was followed from far out), and the group's size came from the hospital's travellers' scale
+ * (1137.323). When the bus depot and the giraffe moved into the city and the walk there slowed,
+ * Salt Lake City's props formed a group of their own and Jackson's grew 3.7×. This factor (that
+ * scale ÷ Jackson's own, 8456.2 — the walk home's, computed at the latitude of leg 16's start,
+ * which since the drive home goes through Idaho Falls is Alpine) keeps them exactly as they
+ * looked before.
+ */
+const JACKSON_SCALE = 1137.323 / 8456.2;
+
+/**
+ * Salt Lake City's bus depot and giraffe: sized to look exactly as large next to the travellers
+ * as they did before they moved into the city (at their own camera, 0.69 and 1.15 of the
+ * travellers' scale; a test checks). Their size GROUP shares the hospital's, which is sized by
+ * the slower walk to it, so their factors make up the difference: the walk past them is 2.69×
+ * as fast as the walk to the hospital (data/chapters.ts), hence 0.6 × 2.69 and 1 × 2.69. (The
+ * hospital keeps its 1.4: it is sized by its own walk.)
+ */
+const SLC_BUSES = 1.61;
+/**
+ * The hospital: 1.5× the size it had at St. Mark's (1.4 then), at the user's request — and from
+ * the giraffe on the travellers are drawn 1.5× larger too (data/chapters.ts, `modelScale`), so
+ * next to them it is in the same proportion as before.
+ */
+const SLC_HOSPITAL = 1.4 * 1.5;
+const SLC_GIRAFFE = 2.69;
+
 export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
   // The escape drive starts at Joel's house: the house stands right where the route begins.
   1: [
@@ -94,9 +123,9 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     // — where Tommy and Maria wait — facing south, towards the camera; ten times the usual size
     // (`scale: 10`). At that size its footprint is ~31 km in radius, so its centre is placed one
     // radius plus a little (~34 km) north of the marker (43.4746 N → 43.784 N).
-    { name: 'Hydroelectric Dam', prop: 'dam', coord: [-110.810617, 43.784], basis: "just north of Jackson (Tommy's dam is fictional)", exact: { heading: 180 }, scale: 10, moment: 0.8 }, // reached as Tommy and Maria are met
+    { name: 'Hydroelectric Dam', prop: 'dam', coord: [-110.810617, 43.784], basis: "just north of Jackson (Tommy's dam is fictional)", exact: { heading: 180 }, scale: 10 * JACKSON_SCALE, moment: 0.8 }, // reached as Tommy and Maria are met
     // The ranch: right beside the route as they arrive at Jackson (`close`), five times the usual size.
-    { name: 'Ranch House', prop: 'ranch', coord: [-110.775, 43.47], basis: 'ranch land at the edge of Jackson', close: true, scale: 5 },
+    { name: 'Ranch House', prop: 'ranch', coord: [-110.775, 43.47], basis: 'ranch land at the edge of Jackson', close: true, scale: 5 * JACKSON_SCALE },
   ],
   8: [
     // The University of Eastern Colorado is modelled on Colorado State University, Fort Collins.
@@ -114,23 +143,35 @@ export const KEY_POINTS: Readonly<Record<number, readonly KeyPoint[]>> = {
     { name: 'Cabin Resort', prop: 'cabins', coord: [-105.5042, 40.0315], basis: 'Silver Lake, Boulder County (the map marker)', scale: LAKESIDE_SCALE * 2 }, // twice the usual size
   ],
   10: [
-    // Walking north through Provo: two decayed school buses (the game's bus depot) in north
-    // Provo by the Orem line, east of the walk on the flat valley floor — inland, away from
-    // Utah Lake (west of the town) and clear of the mountain slopes further east, where they
-    // floated above the rising ground. Beside the walk (`close`). 1.2× the usual size: twice
-    // as large as they stood in Spanish Fork (785 → ~1570 real metres per model metre).
-    { name: 'The Bus Depot', prop: 'schoolBuses', coord: [-111.672, 40.283], basis: 'north Provo, Utah, by the Orem line (the game’s bus depot is fictional)', close: true, scale: 1.2 },
-    // The giraffes, met around the bus depot — in the valley's south (Riverton), on the valley
-    // side west of I-15 (not the mountains). Far enough south that they are passed in the middle
-    // of "Bus Depot", not at its very end, where they were still on screen in "The Firefly Lab"
-    // (the game's depot is fictional).
-    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.895, 40.5176], basis: 'Riverton, Utah, in the south of the Salt Lake valley, by the bus depot (fictional)', close: true, scale: 2 }, // twice the usual size; right beside the walk (`close`), so Ellie can pet it
+    // The bus depot: Salt Lake Central Station (bus and train station, 340 S 600 W). The walk
+    // comes up I-15, turns east onto 500 South and then north up 300 West, ~750 m east of the
+    // station; the two decayed school buses stand on the left of that stretch, west, at the
+    // station (`close`) — beside the travellers on screen, as they stood beside the northbound
+    // walk before. The coordinate is where the prop's centre should stand: a `close` prop stands
+    // exactly on its coordinate at the largest size that keeps the walk outside it, so this one
+    // is its footprint radius plus one travellers' height (the room for the passing travellers,
+    // drawn at a fixed screen size) west of 300 West — at its full size. Size: SLC_BUSES (above).
+    { name: 'The Bus Depot', prop: 'schoolBuses', coord: [-111.9123, 40.766], basis: 'Salt Lake Central Station, Salt Lake City (the game’s bus depot is fictional)', close: true, scale: SLC_BUSES },
+    // The giraffes, in Liberty Park, where Salt Lake City's zoo stood before it moved to Hogle
+    // Zoo. The walk goes NORTH up 1100 East past the park; the giraffe stands on their left, west,
+    // in the park — as when they walked north past it before, so Ellie only turns a quarter
+    // round, walks over and pets it (walking south, it was behind them and they turned right
+    // round). `close`; the coordinate is where its centre should stand, as for the buses: its
+    // footprint radius plus one travellers' height west of 1100 East. Size: SLC_GIRAFFE (above).
+    // The chapter's pause (data/chapters.ts, GIRAFFE) is where the walk passes it.
+    { name: 'The Giraffes', prop: 'giraffe', coord: [-111.8726, 40.752], basis: 'Liberty Park, Salt Lake City — the site of the city’s old zoo', close: true, scale: SLC_GIRAFFE },
   ],
   // The walk ends at the hospital: it stands straight ahead of them at the end of the route,
-  // facing them, so they walk right up to its front, as if entering (`arrive`).
-  11: [{ name: 'The Hospital', prop: 'hospital', coord: [-111.857112, 40.686071], basis: "St. Mark's Hospital (the basis of St. Mary's)", arrive: true, scale: 1.4 }],
+  // facing them, so they walk right up to its front, as if entering (`arrive`). It stands on the
+  // University of Utah campus (the user's map of the game's places; the game's St. Mary's). The
+  // last kilometre runs straight down the campus heading south-east, as they came to St. Mark's
+  // before, so it faces north-west (~325°, towards the Great Salt Lake), its back wall with the
+  // Fireflies' sign towards the north-up camera. On the south part of the campus the ground is
+  // nearly flat: a prop rests on the highest ground under it, and nearer the mountain (by the
+  // real hospital) it was lifted above the travellers at its door.
+  11: [{ name: 'The Hospital', prop: 'hospital', coord: [-111.842, 40.76], basis: "University of Utah campus (the game's St. Mary's)", arrive: true, scale: SLC_HOSPITAL }],
   // Home: the town stands right beside the end of the journey (`close`).
-  12: [{ name: 'Jackson', prop: 'town', coord: [-110.762, 43.4799], basis: 'Jackson, Wyoming', close: true }],
+  12: [{ name: 'Jackson', prop: 'town', coord: [-110.762, 43.4799], basis: 'Jackson, Wyoming', close: true, scale: JACKSON_SCALE }],
 };
 
 /**

@@ -11,6 +11,9 @@
 .mapArea {
   position: absolute;
   inset: 0;
+  /* Its own layer, under the panels: the location markers inside it (z-index 1–3 among
+     themselves, map/markers.ts) can never come up over the story panel or the player bar. */
+  z-index: 1;
 }
 
 /* Subtle cinematic vignette at the edges of the map (does not catch clicks). */
